@@ -20,7 +20,7 @@ export default function UserScreen({ navigation }) {
     admin: [
       { title: "Add Store", icon: "store", screen: "AddStoreScreen" },
       { title: "Manage Data", icon: "folder", screen: "ManageDataAdminScreen" },
-      { title: "Manage Stores", icon: "storefront", screen: "ManageDataAdminScreen" },
+      { title: "Manage Stores", icon: "storefront", screen: "ManageStoresScreen" },
       { title: "User Management", icon: "supervisor-account", screen: "ManageManagerScreen" },
       { title: "Notify Stores", icon: "notifications", screen: "NotifyStoresScreen" },
       { title: "Data Analysis", icon: "query-stats", screen: "DataAnalysisScreen" },

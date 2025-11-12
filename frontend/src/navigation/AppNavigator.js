@@ -79,7 +79,7 @@ export default function AppNavigator() {
 
             {/* Manager Screens */}
             <Stack.Screen name="ManageDataManagerScreen" component={ManageDataManagerScreen} />
-            <Stack.Screen name="ManagerStaffScreen" component={ManageStaffScreen} />
+            <Stack.Screen name="ManageStaffScreen" component={ManageStaffScreen} />
             <Stack.Screen name="HistoryManagerScreen" component={HistoryManagerScreen} />
             <Stack.Screen name="ExportDataScreen" component={ExportDataScreen} />
             <Stack.Screen name="ProcessTransactionScreen" component={ProcessTransactionScreen} />

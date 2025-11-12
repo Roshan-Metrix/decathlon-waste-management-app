@@ -9,8 +9,10 @@ export default function FeatureLayout({ navigation, title, icon }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
+        <View>
         <Text style={styles.headerTitle}>{title}</Text>
-        <View style={{ width: 26 }} /> {/* spacer */}
+        </View>
+        <View style={{ width: 26 }} /> 
       </View>
 
       {/* Icon and Title */}
@@ -18,7 +20,7 @@ export default function FeatureLayout({ navigation, title, icon }) {
         <MaterialIcons name={icon} size={80} color="#2563eb" />
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.desc}>
-          This is the {title} screen. You can design this feature’s full logic
+          This is the {title} screen. We can design this feature’s full logic
           later.
         </Text>
       </View>

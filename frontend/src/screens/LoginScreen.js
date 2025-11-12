@@ -1,64 +1,141 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState, useContext } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  KeyboardAvoidingView,
+  ScrollView,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import Input from "../Components/Input";
-import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
   const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
   const handleLogin = async () => {
-    const res = await login(email, password);
-    alert(res.message);
+    if (!email || !password) return setMessage("Please fill all fields");
+    setLoading(true);
+    try {
+      const res = await login(email, password);
+      setMessage(res.message || "");
+    } catch (error) {
+      setMessage("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.headerContainer}>
+          <Ionicons name="log-in-outline" size={70} color="#2563eb" />
+          <Text style={styles.title}>Welcome Back</Text>
+          <Text style={styles.subtitle}>Login to continue</Text>
+        </View>
 
-      <Input placeholder="Email" onChangeText={setEmail} />
-      <Input secure placeholder="Password" onChangeText={setPassword} />
+        <View style={styles.formContainer}>
+          <Input
+            icon={<Ionicons name="mail-outline" size={22} color="#2563eb" />}
+            placeholder="Email"
+            onChangeText={setEmail}
+          />
+          <Input
+            icon={<Ionicons name="lock-closed-outline" size={22} color="#2563eb" />}
+            secure
+            placeholder="Password"
+            onChangeText={setPassword}
+          />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
+          {message ? <Text style={styles.message}>{message}</Text> : null}
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.linkText}>Create an account</Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity
+            style={[styles.button, loading && { opacity: 0.8 }]}
+            onPress={handleLogin}
+            activeOpacity={0.8}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Login</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+            <Text style={styles.forgotText}>Forgot Password?</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+            <Text style={styles.linkText}>
+              Don’t have an account? <Text style={{ fontWeight: "bold" }}>Sign up</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     justifyContent: "center",
-    paddingHorizontal: 24,
-    backgroundColor: "#ffffff",
+    paddingHorizontal: 28,
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 30,
   },
   title: {
     fontSize: 30,
     fontWeight: "bold",
-    marginBottom: 20,
-    color: "#000000",
+    color: "#111827",
+    marginTop: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#6b7280",
+    marginTop: 4,
+  },
+  formContainer: {
+    gap: 14,
   },
   button: {
-    backgroundColor: "#1e40af",
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginTop: 12,
+    backgroundColor: "#2563eb",
+    paddingVertical: 14,
+    borderRadius: 14,
+    marginTop: 10,
   },
   buttonText: {
-    color: "#ffffff",
+    color: "#fff",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
     textAlign: "center",
   },
-  linkText: {
-    color: "#1e40af",
+  forgotText: {
+    color: "#2563eb",
     textAlign: "center",
-    marginTop: 16,
+    marginTop: 10,
+  },
+  linkText: {
+    textAlign: "center",
+    marginTop: 14,
+    color: "#374151",
+  },
+  message: {
+    textAlign: "center",
+    color: "#2563eb",
+    marginBottom: 8,
   },
 });

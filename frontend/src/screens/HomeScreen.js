@@ -3,12 +3,21 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Waste Management System</Text>
+      {/* Main Title */}
+      <Text style={styles.title}>DECATHLON</Text>
+
+      {/* Tagline */}
+      <Text style={styles.tagline}>SPORT FOR ALL - ALL FOR SPORTS</Text>
+
+      {/* Optional Illustration */}
+      {/* <Image source={require("../../assets/waste.png")} style={styles.image} /> */}
 
       <Text style={styles.subtitle}>
-        Manage your waste efficiently. Track collections, approvals, and vendors.
+        Manage operations efficiently. Track collections, approvals, and store
+        activities.
       </Text>
 
+      {/* Get Started Button */}
       <TouchableOpacity
         style={styles.loginButton}
         onPress={() => navigation.navigate("Login")}
@@ -16,11 +25,10 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.loginText}>Get Started</Text>
       </TouchableOpacity>
 
-      {/* Optional: Add an illustration */}
-      <Image
-        style={styles.image}
-      />
-      
+      {/* Footer Note */}
+      <Text style={styles.footerText}>
+        This application is developed for Decathlon's internal usage
+      </Text>
     </View>
   );
 }
@@ -31,39 +39,59 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#e5e7eb",
+    backgroundColor: "#f9fafb",
   },
   title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    marginBottom: 12,
+    fontSize: 42,
+    fontWeight: "900",
+    color: "#1e40af",
     textAlign: "center",
+    letterSpacing: 2,
+  },
+  tagline: {
+    fontSize: 14,
+    color: "#374151",
+    marginTop: 6,
+    marginBottom: 20,
+    textAlign: "center",
+    fontStyle: "italic",
   },
   subtitle: {
     fontSize: 16,
     textAlign: "center",
+    marginTop: 10,
     marginBottom: 24,
-    color: "#374151",
+    color: "#4b5563",
+    paddingHorizontal: 20,
   },
   loginButton: {
     backgroundColor: "#1e40af",
     paddingVertical: 12,
-    paddingHorizontal: 32,
+    paddingHorizontal: 40,
     borderRadius: 12,
-    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 3,
   },
   loginText: {
     color: "#ffffff",
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "700",
     textAlign: "center",
   },
   image: {
-    width: 250,
-    height: 250,
+    width: 200,
+    height: 100,
     resizeMode: "contain",
-    marginTop: 20,
-    backgroundColor: "#ffffff",
-    borderRadius: 12,
+    marginVertical: 10,
+  },
+  footerText: {
+    position: "absolute",
+    bottom: 16,
+    textAlign: "center",
+    color: "#6b7280",
+    fontSize: 12,
   },
 });

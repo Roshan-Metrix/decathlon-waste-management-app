@@ -6,6 +6,8 @@ import {
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplates.js";
 import transporter from "../config/nodemailer.js";
+import dotenv from 'dotenv'
+dotenv.config();
 
 export const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;

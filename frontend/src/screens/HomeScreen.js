@@ -3,14 +3,11 @@ import { View, Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
-      {/* Main Title */}
-      <Text style={styles.title}>DECATHLON</Text>
-
+      <View>
+        <Image source={require("../../assets/icon.png")} style={styles.image} />
+      </View>
       {/* Tagline */}
       <Text style={styles.tagline}>SPORT FOR ALL - ALL FOR SPORTS</Text>
-
-      {/* Optional Illustration */}
-      {/* <Image source={require("../../assets/waste.png")} style={styles.image} /> */}
 
       <Text style={styles.subtitle}>
         Manage operations efficiently. Track collections, approvals, and store
@@ -41,20 +38,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     backgroundColor: "#f9fafb",
   },
-  title: {
-    fontSize: 42,
-    fontWeight: "900",
-    color: "#1e40af",
-    textAlign: "center",
-    letterSpacing: 2,
-  },
   tagline: {
     fontSize: 14,
     color: "#374151",
-    marginTop: 6,
-    marginBottom: 20,
+    marginBottom: 15,
     textAlign: "center",
     fontStyle: "italic",
+    position: "absolute",
   },
   subtitle: {
     fontSize: 16,
@@ -82,10 +72,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   image: {
-    width: 200,
-    height: 100,
+    width: 300,
+    height: 200,
     resizeMode: "contain",
-    marginVertical: 10,
   },
   footerText: {
     position: "absolute",

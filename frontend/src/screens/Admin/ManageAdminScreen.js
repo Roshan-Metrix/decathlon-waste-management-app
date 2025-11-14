@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function ManageManagerScreen({ navigation }) {
+export default function ManageAdminScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
@@ -20,7 +20,7 @@ export default function ManageManagerScreen({ navigation }) {
         >
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manager Management</Text>
+        <Text style={styles.headerTitle}>Admin Management</Text>
         <View style={{ width: 26 }} />
       </View>
 
@@ -30,7 +30,7 @@ export default function ManageManagerScreen({ navigation }) {
           <MaterialIcons name="supervisor-account" size={60} color="#2563eb" />
         </View>
 
-        <Text style={styles.subTitle}>Manager Control Panel</Text>
+        <Text style={styles.subTitle}>Admin Control Panel</Text>
         <Text style={styles.desc}>
           Manage all store managers and staff accounts here. You can add new
           users, edit existing ones, or remove inactive accounts.
@@ -40,37 +40,22 @@ export default function ManageManagerScreen({ navigation }) {
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: "#22c55e" }]}
-            onPress={() => navigation.navigate("AddStoreScreen")}
+            onPress={() => navigation.navigate("AddAdminsScreen")}
           >
             <MaterialIcons name="person-add" size={22} color="#fff" />
-            <Text style={styles.actionText}>Add Manager</Text>
+            <Text style={styles.actionText} >Add Admin</Text>
           </TouchableOpacity>
-
+          
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate("ViewManagersScreen")}
+            onPress={() => navigation.navigate("ViewOtherAdminsScreen")}
           >
             <MaterialIcons name="people" size={22} color="#fff" />
-            <Text style={styles.actionText}>View All Managers</Text>
+            <Text style={styles.actionText}>View Other Admins</Text>
           </TouchableOpacity>
 
-
-          {/* <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#f59e0b" }]}
-            onPress={() => handleAction("Edit User")}
-          >
-            <MaterialIcons name="edit" size={22} color="#fff" />
-            <Text style={styles.actionText}>Edit User</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#ef4444" }]}
-            onPress={() => handleAction("Remove User")}
-          >
-            <MaterialIcons name="person-remove" size={22} color="#fff" />
-            <Text style={styles.actionText}>Remove User</Text>
-          </TouchableOpacity> */}
         </View>
+
 
         {/* Info Section */}
         <View style={styles.infoBox}>

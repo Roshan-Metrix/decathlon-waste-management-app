@@ -21,18 +21,11 @@ export default function SavedDataScreen({ navigation }) {
         { id: "2", title: "Manager Activity Log", date: "2025-11-09", amount: "8 records" },
         { id: "3", title: "System Export Backup", date: "2025-11-07", amount: "4 files" },
       ];
-    } else if (role === "manager") {
+    } else {
       return [
         { id: "1", title: "Store 12 Daily Report", date: "2025-11-12", amount: "54 kg" },
         { id: "2", title: "Staff Entry Summary", date: "2025-11-10", amount: "18 entries" },
         { id: "3", title: "Weekly Plastic Data", date: "2025-11-08", amount: "31 kg" },
-      ];
-    } else {
-      // Default for staff
-      return [
-        { id: "1", title: "Plastic Waste Entry", date: "2025-11-12", amount: "24 kg" },
-        { id: "2", title: "Metal Scrap Entry", date: "2025-11-10", amount: "10 kg" },
-        { id: "3", title: "E-Waste Entry", date: "2025-11-08", amount: "8 kg" },
       ];
     }
   }, [role]);

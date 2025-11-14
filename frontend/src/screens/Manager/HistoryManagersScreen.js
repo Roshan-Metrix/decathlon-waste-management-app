@@ -14,7 +14,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-export default function HistoryStaffScreen({ navigation }) {
+export default function HistoryManagersScreen({ navigation }) {
   const [history, setHistory] = useState([
     {
       id: 1,

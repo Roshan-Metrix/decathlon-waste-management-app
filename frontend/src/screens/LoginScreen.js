@@ -76,11 +76,11 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+          {/* <TouchableOpacity onPress={() => navigation.navigate("Register")}>
             <Text style={styles.linkText}>
               Don’t have an account? <Text style={{ fontWeight: "bold" }}>Sign up</Text>
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>

@@ -42,36 +42,37 @@ export default function ManageStoresScreen({ navigation }) {
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
           <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => handleAction("View All Stores")}
-          >
-            <MaterialIcons name="visibility" size={22} color="#fff" />
-            <Text style={styles.actionText}>View All Stores</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: "#22c55e" }]}
-            onPress={() => handleAction("Add New Store")}
+            onPress={() => navigation.navigate("AddStoreScreen")}
           >
             <MaterialIcons name="add-business" size={22} color="#fff" />
             <Text style={styles.actionText}>Add New Store</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => navigation.navigate("ViewAllStoresScreen")}
+          >
+            <MaterialIcons name="visibility" size={22} color="#fff" />
+            <Text style={styles.actionText}>View All Stores</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.actionButton, { backgroundColor: "#ef4444" }]}
+            onPress={() => navigation.navigate("RemoveStoresScreen")}
+          >
+            <MaterialIcons name="delete-forever" size={22} color="#fff" />
+            <Text style={styles.actionText}>Remove Store</Text>
+          </TouchableOpacity>
+
+          {/* <TouchableOpacity
             style={[styles.actionButton, { backgroundColor: "#f59e0b" }]}
             onPress={() => handleAction("Update Store Info")}
           >
             <MaterialIcons name="edit-location" size={22} color="#fff" />
             <Text style={styles.actionText}>Update Store Info</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity
-            style={[styles.actionButton, { backgroundColor: "#ef4444" }]}
-            onPress={() => handleAction("Remove Store")}
-          >
-            <MaterialIcons name="delete-forever" size={22} color="#fff" />
-            <Text style={styles.actionText}>Remove Store</Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

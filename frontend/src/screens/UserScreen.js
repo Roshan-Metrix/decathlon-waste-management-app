@@ -21,22 +21,20 @@ export default function UserScreen({ navigation }) {
       { title: "Add Store", icon: "store", screen: "AddStoreScreen" },
       { title: "Manage Data", icon: "folder", screen: "ManageDataAdminScreen" },
       { title: "Manage Stores", icon: "storefront", screen: "ManageStoresScreen" },
-      { title: "User Management", icon: "supervisor-account", screen: "ManageManagerScreen" },
+      { title: "Manage Admins", icon: "manage-accounts", screen: "ManageAdminScreen" },
+      { title: "Manage Managers", icon: "supervisor-account", screen: "ManageManagerScreen" },
       { title: "Notify Stores", icon: "notifications", screen: "NotifyStoresScreen" },
       { title: "Data Analysis", icon: "query-stats", screen: "DataAnalysisScreen" },
     ],
     manager: [
       { title: "Manage Data", icon: "folder", screen: "ManageDataManagerScreen" },
       { title: "User Management", icon: "supervisor-account", screen: "ManageStaffScreen" },
-      { title: "History", icon: "history", screen: "HistoryManagerScreen" },
+      { title: "History", icon: "history", screen: "HistoryManagersScreen" },
       { title: "Export Data", icon: "import-export", screen: "ExportDataScreen" },
       { title: "Process Transaction", icon: "account-balance", screen: "ProcessTransactionScreen" },
-    ],
-    staff: [
       { title: "Add Entry", icon: "playlist-add", screen: "AddEntryScreen" },
       { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
       { title: "Datas", icon: "assignment", screen: "CheckDataScreen" },
-      { title: "History", icon: "history", screen: "HistoryStaffScreen" },
     ],
   };
 
@@ -51,10 +49,10 @@ export default function UserScreen({ navigation }) {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Welcome, {user?.name || "User"}</Text>
         <TouchableOpacity onPress={() => setSidebarVisible(true)}>
           <MaterialIcons name="menu" size={30} color="#fff" style={{paddingTop:15}} />
         </TouchableOpacity>
+        <Text style={styles.welcomeText}>Welcome, {user?.name || "User"}</Text>
       </View>
 
       {/* Sidebar */}

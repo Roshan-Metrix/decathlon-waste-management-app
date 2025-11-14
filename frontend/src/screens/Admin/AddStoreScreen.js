@@ -1,8 +1,3 @@
-// import FeatureLayout from "../../Components/FeatureLayout";
-
-// export default function AddStoreScreen({ navigation }) {
-//   return <FeatureLayout navigation={navigation} title="Add Store" icon="store" />;
-// }
 import React, { useState } from "react";
 import {
   View,
@@ -11,23 +6,67 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  Modal,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Clipboard from "expo-clipboard";
+import { Alert } from "react-native";
 
 export default function AddStoreScreen({ navigation }) {
+  const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [contactNumber, setContactNumber] = useState("");
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [vendorEmail, setVendorEmail] = useState("");
+  const [vendorPassword, setVendorPassword] = useState("");
+
+  // Generate 16-char random password
+  const generatePassword = () => {
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let pass = "";
+    for (let i = 0; i < 12; i++) {
+      pass += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return pass;
+  };
+
   const handleAddStore = () => {
-    if (!storeName || !storeLocation || !contactNumber) {
+    if (!storeId || !storeName || !storeLocation || !contactNumber) {
       alert("Please fill all fields!");
       return;
     }
-    alert(`✅ Store "${storeName}" added successfully!`);
+
+    // Open Popup & generate password
+    setVendorPassword(generatePassword());
+    setModalVisible(true);
+  };
+
+  const handleVendorSubmit = () => {
+    if (!vendorEmail) {
+      alert("Please enter vendor email!");
+      return;
+    }
+
+    alert(
+      `Store Added!\nVendor Email: ${vendorEmail}\nVendor Password: ${vendorPassword}`
+    );
+
+    // Reset fields
+    setStoreId("");
     setStoreName("");
     setStoreLocation("");
     setContactNumber("");
+    setVendorEmail("");
+    setVendorPassword("");
+    setModalVisible(false);
+  };
+
+  const copyPassword = async () => {
+    await Clipboard.setStringAsync(vendorPassword);
+    // Alert.alert("Copied!", "Password copied to clipboard.");
   };
 
   return (
@@ -41,7 +80,7 @@ export default function AddStoreScreen({ navigation }) {
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Add Store</Text>
-        <View style={{ width: 26 }} /> {/* Spacer */}
+        <View style={{ width: 26 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -54,6 +93,12 @@ export default function AddStoreScreen({ navigation }) {
 
         {/* Input Fields */}
         <View style={styles.form}>
+          <TextInput
+            placeholder="Store ID"
+            value={storeId}
+            onChangeText={setStoreId}
+            style={styles.input}
+          />
           <TextInput
             placeholder="Store Name"
             value={storeName}
@@ -85,10 +130,60 @@ export default function AddStoreScreen({ navigation }) {
           <Text style={styles.addText}>Add Store</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Popup Modal */}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalBox}>
+            <Text style={styles.modalTitle}>Manager Login Details</Text>
+
+            <TextInput
+              placeholder="Manager Email"
+              value={vendorEmail}
+              onChangeText={setVendorEmail}
+              style={styles.input}
+            />
+
+            <View style={styles.passwordBox}>
+              <TouchableOpacity onPress={copyPassword}>
+                <Text
+                  style={[
+                    styles.passwordText,
+                    { color: "#1d4ed8" },
+                  ]}
+                >
+                  {vendorPassword}
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => setVendorPassword(generatePassword())}
+              >
+                <MaterialIcons name="refresh" size={26} color="#2563eb" />
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.submitButton}
+              onPress={handleVendorSubmit}
+            >
+              <Text style={styles.submitText}>Confirm & Create Manager</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.cancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
+/* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -102,10 +197,6 @@ const styles = StyleSheet.create({
     paddingTop: 60,
     paddingBottom: 15,
     backgroundColor: "#fff",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
     elevation: 3,
   },
   backButton: {
@@ -160,5 +251,61 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "600",
     marginLeft: 8,
+  },
+
+  /* Modal Styling */
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.4)",
+    padding: 20,
+  },
+  modalBox: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 16,
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2563eb",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  passwordBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#e0e7ff",
+    padding: 14,
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  passwordText: {
+    fontSize: 16,
+    fontWeight: "600",
+    letterSpacing: 1,
+    color: "#111",
+  },
+  submitButton: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  submitText: {
+    color: "#fff",
+    textAlign: "center",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+  },
+  cancelText: {
+    color: "#6b7280",
+    textAlign: "center",
+    fontSize: 15,
   },
 });

@@ -16,12 +16,12 @@ const userSchema = new mongoose.Schema({
     },
     role: {
         type: String,
-        enum: ['admin', 'manager', 'staff', 'vendor'],
+        enum: ['admin', 'manager','vendor'],
         required: true 
     },
     isApproved: {
         type: Boolean,
-        default: false    
+        default: true    
     },
      resetOtp:{
         type:String,

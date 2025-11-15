@@ -13,6 +13,7 @@ export const getAllAdmins = async (req, res) => {
     });
 
   } catch (error) {
+    console.log("Error in getAllAdmins")
     return res.json({ success: false, message: error.message });
   }
 };

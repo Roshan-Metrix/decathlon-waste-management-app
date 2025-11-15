@@ -11,22 +11,23 @@ export const getAllStores = async (req, res) => {
     });
 
   } catch (error) {
+    console.log("Error in getAllStores Controller : ",error)
     return res.json({ success: false, message: error.message });
   }
 };
 
 export const deleteStore = async (req, res) => {
   try {
-    const { storeID } = req.params;  
+    const { storeId } = req.params;
 
-    if (!storeID) {
+    if (!storeId) {
       return res.json({
         success: false,
         message: "Store ID is required"
       });
     }
 
-    const store = await storeModel.findOne({ storeID });
+    const store = await storeModel.findOne({ storeId });
 
     if (!store) {
       return res.json({
@@ -35,18 +36,16 @@ export const deleteStore = async (req, res) => {
       });
     }
 
-    const result = await storeModel.deleteOne({ storeID });
+    const result = await storeModel.deleteOne({ storeId });
 
     return res.json({
       success: true,
       message: "Store removed successfully",
-      deletedStoreID: storeID
+      deletedStoreID: storeId
     });
 
   } catch (error) {
-    return res.json({
-      success: false,
-      message: error.message
-    });
+    console.log("Error in deleteStore Controller : ",error)
+    return res.json({ success: false, message: error.message });
   }
 };

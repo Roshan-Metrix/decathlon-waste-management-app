@@ -3,7 +3,6 @@ import cors from 'cors';
 import dotenv from 'dotenv'
 dotenv.config();
 import cookieParser from 'cookie-parser';
-
 import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js'
 
@@ -21,6 +20,7 @@ app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.get('/',(req,res) => {
     res.send('API Running...');
 })
+
 app.use('/api/auth',authRouter)
 
 app.listen(port,() => {

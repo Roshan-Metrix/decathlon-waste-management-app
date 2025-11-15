@@ -6,10 +6,10 @@ import {
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplates.js";
 import transporter from "../config/nodemailer.js";
-import dotenv from 'dotenv'
 import adminModel from "../models/adminModel.js";
 import storeModel from "../models/storeModel.js";
 import managerModel from "../models/managerModel.js";
+import dotenv from 'dotenv'
 dotenv.config();
 
 export const registerAdmin = async (req, res) => {
@@ -60,6 +60,7 @@ export const registerAdmin = async (req, res) => {
       message: "Registration successful",
     });
   } catch (error) {
+    console.log("Error in registerAdmin Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -118,6 +119,7 @@ export const registerStore = async (req, res) => {
       message: "Registration successful",
     });
   } catch (error) {
+    console.log("Error in registerStore Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -177,6 +179,7 @@ export const registerManager = async (req, res) => {
       message: "Registration successful",
     });
   } catch (error) {
+    console.log("Error in registerManager Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -235,6 +238,7 @@ export const loginUser = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log("Error in loginUser Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -246,6 +250,7 @@ export const logoutUser = async (req, res) => {
       message: "Logged out successfully",
     });
   } catch (error) {
+    console.log("Error in logoutUser Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -276,6 +281,7 @@ export const getLoggedInUserDetails = async (req, res) => {
     });
 
   } catch (error) {
+    console.log("Error in getLoggedInUsesDetails Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -311,6 +317,7 @@ export const sendPasswordResetOtp = async (req, res) => {
 
     return res.json({ success: true, message: "Reset OTP sent successfully" });
   } catch (error) {
+    console.log("Error in sendPasswordResetOtp Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };
@@ -365,6 +372,7 @@ export const resetPassword = async (req, res) => {
       message: "Password has been reset successfully",
     });
   } catch (error) {
+    console.log("Error in resetPassword Controller : ",error);
     return res.json({ success: false, message: error.message });
   }
 };

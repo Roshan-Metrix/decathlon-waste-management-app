@@ -20,6 +20,7 @@ const adminMiddleware = (req, res, next) => {
     }
 
   } catch (error) {
+    console.log("Error in adminMiddleware")
     return res.status(401).json({ success: false, message: "Invalid or expired token" });
   }
 };

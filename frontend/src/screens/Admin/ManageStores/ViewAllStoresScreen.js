@@ -1,35 +1,58 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import api from "../../../api/api";
 
 export default function ViewAllStoresScreen({ navigation }) {
-  // Sample dummy data
-  const stores = [
-    {
-      id: "ST-101",
-      name: "Kathmandu Central Store",
-      location: "Kathmandu, Nepal",
-      contact: "9800000001",
-    },
-    {
-      id: "ST-102",
-      name: "Pokhara Lakeside Store",
-      location: "Pokhara, Nepal",
-      contact: "9800000002",
-    },
-    {
-      id: "ST-103",
-      name: "Birgunj City Store",
-      location: "Birgunj, Nepal",
-      contact: "9800000003",
-    },
-  ];
+  const [stores, setStores] = useState([]);
+  const [filteredStores, setFilteredStores] = useState([]);
+  const [count, setCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState("");
+
+  const fetchStores = async () => {
+    try {
+      const { data } = await api.get("/auth/admin/get-all-stores");
+
+      if (data.success) {
+        setStores(data.stores);
+        setFilteredStores(data.stores);
+        setCount(data.count);
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      alert("Error fetching stores: " + error.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchStores();
+  }, []);
+
+  // 🔍 Filter stores
+  useEffect(() => {
+    const s = search.toLowerCase();
+
+    const filtered = stores.filter((store) => {
+      return (
+        store.storeId.toLowerCase().includes(s) ||
+        store.name.toLowerCase().includes(s)
+      );
+    });
+
+    setFilteredStores(filtered);
+  }, [search]);
 
   return (
     <View style={styles.container}>
@@ -38,35 +61,76 @@ export default function ViewAllStoresScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
+
         <Text style={styles.headerTitle}>All Stores</Text>
+
         <View style={{ width: 26 }} />
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 20 }}>
-        {stores.map((store, index) => (
-          <View key={index} style={styles.card}>
-            <View style={styles.row}>
-              <MaterialIcons name="confirmation-number" size={22} color="#2563eb" />
-              <Text style={styles.value}>{store.id}</Text>
-            </View>
+      {/* Total Count */}
+      <View style={styles.countBox}>
+        <MaterialIcons name="store" size={32} color="#2563eb" />
+        <View>
+          <Text style={styles.countLabel}>Total Stores</Text>
+          <Text style={styles.countValue}>{count}</Text>
+        </View>
+      </View>
 
-            <View style={styles.row}>
-              <MaterialIcons name="store" size={22} color="#2563eb" />
-              <Text style={styles.value}>{store.name}</Text>
-            </View>
+      {/* Search */}
+      <View style={styles.searchBox}>
+        <MaterialIcons name="search" size={22} color="#2563eb" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by Store ID or Name"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
 
-            <View style={styles.row}>
-              <MaterialIcons name="location-pin" size={22} color="#2563eb" />
-              <Text style={styles.value}>{store.location}</Text>
-            </View>
+      {loading ? (
+        <ActivityIndicator
+          size="large"
+          color="#2563eb"
+          style={{ marginTop: 50 }}
+        />
+      ) : (
+        <ScrollView contentContainerStyle={{ padding: 20 }}>
+          {filteredStores.map((store, index) => (
+            <View key={index} style={styles.card}>
+              <View style={styles.row}>
+                <MaterialIcons name="confirmation-number" size={22} color="#2563eb" />
+                <Text style={styles.value}>{store.storeId}</Text>
+              </View>
 
-            <View style={styles.row}>
-              <MaterialIcons name="phone" size={22} color="#2563eb" />
-              <Text style={styles.value}>{store.contact}</Text>
+              <View style={styles.row}>
+                <MaterialIcons name="store" size={22} color="#2563eb" />
+                <Text style={styles.value}>{store.name}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="location-pin" size={22} color="#2563eb" />
+                <Text style={styles.value}>{store.storeLocation}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="phone" size={22} color="#2563eb" />
+                <Text style={styles.value}>{store.contactNumber}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="email" size={22} color="#2563eb" />
+                <Text style={styles.value}>{store.email}</Text>
+              </View>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ))}
+
+          {filteredStores.length === 0 && (
+            <Text style={{ textAlign: "center", marginTop: 20, color: "#6b7280" }}>
+              No stores found
+            </Text>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
@@ -77,6 +141,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f9fafb",
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -87,10 +152,51 @@ const styles = StyleSheet.create({
     elevation: 4,
     justifyContent: "space-between",
   },
+
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
     color: "#2563eb",
+  },
+
+  countBox: {
+    backgroundColor: "#e0e7ff",
+    padding: 18,
+    marginTop: 10,
+    marginHorizontal: 20,
+    borderRadius: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 15,
+  },
+
+  countLabel: {
+    fontSize: 16,
+    color: "#1f2937",
+    fontWeight: "500",
+  },
+
+  countValue: {
+    fontSize: 26,
+    fontWeight: "900",
+    color: "#2563eb",
+  },
+
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eef2ff",
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    marginLeft: 8,
   },
 
   card: {
@@ -106,7 +212,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: 8,
   },
 
   value: {
@@ -116,4 +222,3 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
-

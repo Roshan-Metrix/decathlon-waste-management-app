@@ -13,12 +13,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 
-export default function AddAdminsScreen({ navigation }) {
+export default function AddManagersScreen({ navigation }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  const role = "admin";
+  const [storeId, setStoreId] = useState("");
 
   const [showPopup, setShowPopup] = useState(false);
 
@@ -74,10 +73,10 @@ export default function AddAdminsScreen({ navigation }) {
     setShowPopup(true);
   };
 
-  // FINAL CONFIRM -> Verify admin -> register new admin
+  // FINAL CONFIRM -> Verify credentials -> register new manager
   const handleConfirm = async () => {
     if (!adminEmail || !adminPassword) {
-      alert("Enter your admin login credentials");
+      alert("Enter your login credentials");
       return;
     }
 
@@ -93,12 +92,12 @@ export default function AddAdminsScreen({ navigation }) {
         return;
       }
 
-      // Register new admin
-      const registerRes = await api.post("/auth/admin/registerAdmin", {
+      // Register new manager
+      const registerRes = await api.post("/auth/registerManager", {
         name,
         email,
         password,
-        role,
+        storeId
       });
 
       if (!registerRes.data.success) {
@@ -106,7 +105,7 @@ export default function AddAdminsScreen({ navigation }) {
         return;
       }
 
-      alert("Admin Created Successfully!");
+      alert("Manager Created Successfully!");
 
       // Reset All
       setName("");
@@ -131,7 +130,7 @@ export default function AddAdminsScreen({ navigation }) {
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>Add Admin</Text>
+        <Text style={styles.headerTitle}>Add Manager</Text>
         <View style={{ width: 26 }} />
       </View>
 
@@ -141,15 +140,26 @@ export default function AddAdminsScreen({ navigation }) {
           <MaterialIcons name="person-add" size={60} color="#2563eb" />
         </View>
 
-        <Text style={styles.title}>Create New Admin</Text>
+        <Text style={styles.title}>Create New Manager</Text>
 
         <View style={styles.form}>
+          {/* NAME */}
+          <View style={styles.inputWrapper}>
+            <MaterialIcons name="store" size={20} color="#2563eb" />
+            <TextInput
+              style={styles.inputField}
+              placeholder="Store Id"
+              value={storeId}
+              onChangeText={setStoreId}
+            />
+          </View>
+
           {/* NAME */}
           <View style={styles.inputWrapper}>
             <MaterialIcons name="person" size={20} color="#2563eb" />
             <TextInput
               style={styles.inputField}
-              placeholder="Admin Name"
+              placeholder="Manager Name"
               value={name}
               onChangeText={setName}
             />
@@ -160,7 +170,7 @@ export default function AddAdminsScreen({ navigation }) {
             <MaterialIcons name="email" size={20} color="#2563eb" />
             <TextInput
               style={styles.inputField}
-              placeholder="Admin Email"
+              placeholder="Manager Email"
               value={email}
               keyboardType="email-address"
               onChangeText={setEmail}
@@ -190,7 +200,7 @@ export default function AddAdminsScreen({ navigation }) {
           onPress={handleCreate}
         >
           <MaterialIcons name="add" size={22} color="#fff" />
-          <Text style={styles.btnText}>Create Admin</Text>
+          <Text style={styles.btnText}>Create Manager</Text>
         </TouchableOpacity>
       </ScrollView>
 
@@ -219,7 +229,7 @@ export default function AddAdminsScreen({ navigation }) {
               style={styles.submitButton}
               onPress={handleConfirm}
             >
-              <Text style={styles.submitText}>Confirm & Create Admin</Text>
+              <Text style={styles.submitText}>Confirm & Create Manager</Text>
             </TouchableOpacity>
 
             <TouchableOpacity

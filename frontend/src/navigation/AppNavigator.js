@@ -27,6 +27,7 @@ import AddAdminsScreen from "../screens/Admin/ManageAdmins/AddAdminsScreen";
 import ViewManagersScreen from "../screens/Admin/ManageManagers/ViewManagersScreen";
 import RemoveStoresScreen from "../screens/Admin/ManageStores/RemoveStoresScreen";
 import ViewAllStoresScreen from "../screens/Admin/ManageStores/ViewAllStoresScreen";
+import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
@@ -81,6 +82,7 @@ export default function AppNavigator() {
             <Stack.Screen name="DataAnalysisScreen" component={DataAnalysisScreen} />
             <Stack.Screen name="ViewOtherAdminsScreen" component={ViewOtherAdminsScreen} />
             <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
+            <Stack.Screen name="AddManagersScreen" component={AddManagersScreen} />
             <Stack.Screen name="ViewManagersScreen" component={ViewManagersScreen} />
             <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
             <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />

@@ -67,7 +67,7 @@ export const registerAdmin = async (req, res) => {
 export const registerStore = async (req, res) => {
   const { storeId , name, storeLocation, contactNumber, email, password } = req.body;
 
-  if (!storeId , !name, !storeLocation, !contactNumber, !email, !password ) {
+  if (!storeId || !name || !storeLocation || !contactNumber || !email || !password ) {
     return res.json({ success: false, message: "Missing details" });
   }
 

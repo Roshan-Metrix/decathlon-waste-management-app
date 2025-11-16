@@ -50,7 +50,7 @@ Contributions welcome. Please:
 4. Follow code style and include tests where applicable
 
 ## License
-MIT — see LICENSE file for details. ![MIT License](license.txt)
+MIT — see LICENSE file for details. [MIT License](license.txt)
 
 ## Contact
 For product or design queries, link to Decathlon stakeholders or internal channels.

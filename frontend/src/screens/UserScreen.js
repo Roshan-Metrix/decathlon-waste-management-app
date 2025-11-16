@@ -28,7 +28,8 @@ export default function UserScreen({ navigation }) {
     ],
     manager: [
       { title: "Manage Data", icon: "folder", screen: "ManageDataManagerScreen" },
-      { title: "User Management", icon: "supervisor-account", screen: "ManageStaffScreen" },
+      // { title: "Manage Staff", icon: "supervisor-account", screen: "ManageStaffScreen" },
+      { title: "Manage Managers", icon: "supervisor-account", screen: "ManageManagerScreen" },
       { title: "History", icon: "history", screen: "HistoryManagersScreen" },
       { title: "Export Data", icon: "import-export", screen: "ExportDataScreen" },
       { title: "Process Transaction", icon: "account-balance", screen: "ProcessTransactionScreen" },

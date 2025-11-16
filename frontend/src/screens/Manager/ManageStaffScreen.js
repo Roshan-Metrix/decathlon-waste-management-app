@@ -1,8 +1,4 @@
-// import FeatureLayout from "../../Components/FeatureLayout";
-
-// export default function ManageStaffScreen({ navigation }) {
-//   return <FeatureLayout navigation={navigation} title="User Management" icon="supervisor-account" />;
-// }
+// temporaily this screen is not in use
 
 import React from "react";
 import {
@@ -22,7 +18,7 @@ export default function ManageStaffScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Manage Staff</Text>
+        <Text style={styles.headerTitle}>Manage Staffs</Text>
         <View style={{ width: 26 }} />
       </View>
 

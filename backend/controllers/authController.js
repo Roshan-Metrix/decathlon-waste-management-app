@@ -200,6 +200,9 @@ export const loginUser = async (req, res) => {
     if (!user) {
        user =  await storeModel.findOne({email});
     }
+    if (!user) {
+      user = await managerModel.findOne({ email });
+    }
 
     if (!user) {
 

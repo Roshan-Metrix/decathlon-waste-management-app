@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Input from "../Components/Input";
+import { LinearGradient } from "expo-linear-gradient";
 import { AuthContext } from "../context/AuthContext";
 
 export default function LoginScreen({ navigation }) {
@@ -25,7 +26,7 @@ export default function LoginScreen({ navigation }) {
     try {
       const res = await login(email, password);
       setMessage(res.message || "");
-    } catch (error) {
+    } catch {
       setMessage("Login failed. Please try again.");
     } finally {
       setLoading(false);
@@ -33,36 +34,41 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#f9fafb" }}>
-      <ScrollView
-        contentContainerStyle={styles.container}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.headerContainer}>
-          <Ionicons name="log-in-outline" size={70} color="#2563eb" />
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>Login to continue</Text>
-        </View>
+    <KeyboardAvoidingView style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        {/* 🔵 Gradient Header */}
+        <LinearGradient
+          colors={["#2563eb", "#1e3a8a"]}
+          style={styles.header}
+        >
+          <Ionicons name="shield-checkmark-outline" size={80} color="#fff" />
+          <Text style={styles.headerTitle}>Welcome Back</Text>
+          <Text style={styles.headerSubtitle}>
+            Please login to continue
+          </Text>
+        </LinearGradient>
 
-        <View style={styles.formContainer}>
+        {/* 🔘 Card Section */}
+        <View style={styles.card}>
           <Input
             icon={<Ionicons name="mail-outline" size={22} color="#2563eb" />}
-            placeholder="Email"
+            placeholder="Email address"
             onChangeText={setEmail}
           />
+
           <Input
             icon={<Ionicons name="lock-closed-outline" size={22} color="#2563eb" />}
-            secure
             placeholder="Password"
+            secure
             onChangeText={setPassword}
           />
 
           {message ? <Text style={styles.message}>{message}</Text> : null}
 
+          {/* Login Button */}
           <TouchableOpacity
             style={[styles.button, loading && { opacity: 0.8 }]}
             onPress={handleLogin}
-            activeOpacity={0.8}
             disabled={loading}
           >
             {loading ? (
@@ -72,45 +78,54 @@ export default function LoginScreen({ navigation }) {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-            <Text style={styles.forgotText}>Forgot Password?</Text>
+          <TouchableOpacity
+            onPress={() => navigation.navigate("ForgotPassword")}
+          >
+            <Text style={styles.forgot}>Forgot Password?</Text>
           </TouchableOpacity>
-
-          {/* <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-            <Text style={styles.linkText}>
-              Don’t have an account? <Text style={{ fontWeight: "bold" }}>Sign up</Text>
-            </Text>
-          </TouchableOpacity> */}
         </View>
+
+        <Text style={styles.footer}>
+          Powered by Store Management System
+        </Text>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    paddingHorizontal: 28,
-  },
-  headerContainer: {
+  header: {
+    paddingTop: 80,
+    paddingBottom: 50,
     alignItems: "center",
-    marginBottom: 30,
+    borderBottomLeftRadius: 35,
+    borderBottomRightRadius: 35,
   },
-  title: {
-    fontSize: 30,
-    fontWeight: "bold",
-    color: "#111827",
+  headerTitle: {
+    color: "#fff",
+    fontSize: 32,
+    fontWeight: "800",
     marginTop: 10,
   },
-  subtitle: {
+  headerSubtitle: {
+    color: "#e0e7ff",
     fontSize: 16,
-    color: "#6b7280",
     marginTop: 4,
   },
-  formContainer: {
-    gap: 14,
+
+  card: {
+    backgroundColor: "#fff",
+    marginHorizontal: 25,
+    marginTop: -40,
+    padding: 22,
+    borderRadius: 22,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    gap: 15,
   },
+
   button: {
     backgroundColor: "#2563eb",
     paddingVertical: 14,
@@ -123,19 +138,25 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
-  forgotText: {
+
+  forgot: {
+    textAlign: "center",
+    marginTop: 12,
     color: "#2563eb",
-    textAlign: "center",
-    marginTop: 10,
+    fontSize: 15,
   },
-  linkText: {
-    textAlign: "center",
-    marginTop: 14,
-    color: "#374151",
-  },
+
   message: {
     textAlign: "center",
-    color: "#2563eb",
+    color: "#dc2626",
     marginBottom: 8,
+    fontWeight: "500",
+  },
+
+  footer: {
+    textAlign: "center",
+    color: "#6b7280",
+    marginTop: 20,
+    marginBottom: 10,
   },
 });

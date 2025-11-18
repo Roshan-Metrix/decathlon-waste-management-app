@@ -1,6 +1,4 @@
-export const PASSWORD_RESET_TEMPLATE = `
-
-<!DOCTYPE html>
+export const PASSWORD_RESET_TEMPLATE = `<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
@@ -16,26 +14,22 @@ export const PASSWORD_RESET_TEMPLATE = `
       font-family: 'Open Sans', sans-serif;
       background: #E5E5E5;
     }
-
     table, td {
       border-collapse: collapse;
     }
-
     .container {
       width: 100%;
       max-width: 500px;
       margin: 70px 0px;
       background-color: #ffffff;
     }
-
     .main-content {
       padding: 48px 30px 40px;
       color: #000000;
     }
-
     .button {
       width: 100%;
-      background: #22D172;
+      background: #2563eb;
       text-decoration: none;
       display: inline-block;
       padding: 10px 0;
@@ -45,12 +39,10 @@ export const PASSWORD_RESET_TEMPLATE = `
       font-weight: bold;
       border-radius: 7px;
     }
-
     @media only screen and (max-width: 480px) {
       .container {
         width: 80% !important;
       }
-
       .button {
         width: 50% !important;
       }
@@ -59,7 +51,14 @@ export const PASSWORD_RESET_TEMPLATE = `
 </head>
 
 <body>
-<img src="https://github.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/blob/master/frontend/assets/icon.png" alt="logo" width="100" height="100"/>
+      .button {
+        width: 50% !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
   <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center" bgcolor="#F6FAFB">
     <tbody>
       <tr>
@@ -70,6 +69,9 @@ export const PASSWORD_RESET_TEMPLATE = `
                 <td class="main-content">
                   <table width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tbody>
+                      <tr>
+                        <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
+                      </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
                           Forgot your password?
@@ -107,9 +109,9 @@ export const PASSWORD_RESET_TEMPLATE = `
   </table>
 </body>
 </html>
-`
+`;
 
-export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE  = `
+export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE = `
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 
@@ -145,7 +147,7 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE  = `
 
     .button {
       width: 100%;
-      background: #22D172;
+      background: #2563eb;
       text-decoration: none;
       display: inline-block;
       padding: 10px 0;
@@ -169,13 +171,15 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE  = `
 </head>
 
 <body>
-<img src="https://github.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/blob/master/frontend/assets/icon.png" alt="logo" width="100" height="100"/>
   <table width="100%" cellspacing="0" cellpadding="0" border="0" align="center" bgcolor="#F6FAFB">
     <tbody>
       <tr>
         <td valign="top" align="center">
           <table class="container" width="600" cellspacing="0" cellpadding="0" border="0">
             <tbody>
+             <tr>
+               <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
+                      </tr>
               <tr>
                 <td class="main-content">
                   <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -203,4 +207,4 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE  = `
 </body>
 </html>
 
-`
+`;

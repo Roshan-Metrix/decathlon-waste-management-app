@@ -123,7 +123,7 @@ export default function RemoveStoresScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.screenTitle}>All Stores</Text>
 
-        {/* 🔍 Search Bar */}
+        {/*  Search Bar */}
         <View style={styles.searchBox}>
           <MaterialIcons name="search" size={22} color="#2563eb" />
           <TextInput
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 
-  /* 🔍 Search Bar Style */
+  /*  Search Bar Style */
   searchBox: {
     flexDirection: "row",
     alignItems: "center",

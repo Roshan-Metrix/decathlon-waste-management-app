@@ -23,9 +23,9 @@ authRouter.post('/admin/registerStore',adminMiddleware,registerStore);
 authRouter.get('/admin/get-all-admins',authMiddleware,getAllAdmins);
 authRouter.get('/admin/get-all-stores',adminMiddleware,getAllStores);
 authRouter.delete('/admin/delete-store/:storeId',adminMiddleware,deleteStore);
+authRouter.get('/get-all-managers',adminMiddleware,getAllManagers);
 
 //manager
-authRouter.get('/get-all-managers',authMiddleware,getAllManagers);
 authRouter.post('/registerManager',authMiddleware,registerManager);
 
 //vendor

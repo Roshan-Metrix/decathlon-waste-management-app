@@ -32,7 +32,7 @@ export const getAllManagers = async (req, res) => {
 
 export const getManagerProfile = async (req, res) => {
   try {
-    const manager = req.user;
+    const manager = req.manager;
     const store = req.store;
 
     return res.json({ success: true, manager, store });

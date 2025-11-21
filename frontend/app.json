@@ -16,7 +16,7 @@
       "supportsTablet": true
     },
     "android": {
-       "permissions": [
+      "permissions": [
         "CAMERA",
         "WRITE_EXTERNAL_STORAGE",
         "READ_EXTERNAL_STORAGE"
@@ -26,15 +26,16 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.roshanpatel13.Decathlon"
+      "package": "com.roshanpatel150.Decathlon"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
       "eas": {
-        "projectId": "3ad120f0-40ee-467d-b863-5f5b933ff86e"
+        "projectId": "bfc0e836-e580-478a-be10-5b4c03b3ccdf"
       }
-    }
+    },
+    "owner": "roshan150"
   }
 }

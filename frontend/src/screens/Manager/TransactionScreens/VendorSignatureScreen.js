@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function VendorSignatureScreen({ navigation }) {
   const signatureRef = useRef(null);
@@ -27,7 +28,16 @@ export default function VendorSignatureScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+   <View style={styles.container}>
+          {/* HEADER */}
+               <View style={styles.header}>
+                 <TouchableOpacity onPress={() => navigation.goBack()}>
+                   <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+                 </TouchableOpacity>
+                 <Text style={styles.headerTitle}>Calibration Phase</Text>
+                 <View style={{ width: 26 }} />
+               </View>
+
       <Text style={styles.heading}>Vendor Signature</Text>
 
       {!submitted ? (
@@ -69,21 +79,40 @@ export default function VendorSignatureScreen({ navigation }) {
       >
         <Text style={styles.submitText}>Go Back</Text>
       </TouchableOpacity>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    backgroundColor: "#fff",
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: "#f9fafb",
+    paddingHorizontal: 20,
   },
+   header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 60,
+    paddingBottom: 15,
+    backgroundColor: "#fff",
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+    elevation: 3,
+  },
+
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#2563eb",
+  },
+
   heading: {
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
     marginBottom: 20,
+    marginTop: 30,
   },
   signatureBox: {
     height: 300,

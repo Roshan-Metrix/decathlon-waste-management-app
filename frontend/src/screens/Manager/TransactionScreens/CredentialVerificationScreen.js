@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function CredentialVerificationScreen({ navigation }) {
   const signatureRef = useRef(null);
@@ -25,7 +26,16 @@ export default function CredentialVerificationScreen({ navigation }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <View style={styles.container}>
+      {/* HEADER */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Calibration Phase</Text>
+        <View style={{ width: 26 }} />
+      </View>
+
       <Text style={styles.heading}>Signature</Text>
 
       {!submitted ? (
@@ -60,20 +70,45 @@ export default function CredentialVerificationScreen({ navigation }) {
           <Text style={styles.clearText}>Clear Signature</Text>
         </TouchableOpacity>
       )}
-    </ScrollView>
+      <TouchableOpacity
+        style={[styles.submitBtn, { marginTop: 20, backgroundColor: "black" }]}
+        onPress={() => navigation.goBack()}
+      >
+        <Text style={styles.submitText}>Go Back</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 60,
+    paddingBottom: 15,
     backgroundColor: "#fff",
-    flexGrow: 1,
+    marginHorizontal: -20,
+    paddingHorizontal: 20,
+    elevation: 3,
+  },
+
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#2563eb",
+  },
+
+  container: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+    paddingHorizontal: 20,
   },
   heading: {
     fontSize: 28,
     fontWeight: "800",
     textAlign: "center",
+    marginTop: 30,
     marginBottom: 20,
   },
   signatureBox: {

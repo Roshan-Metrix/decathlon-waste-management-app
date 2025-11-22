@@ -11,6 +11,11 @@ import managerMiddleware from '../middlewares/managerMiddleware.js';
 
 const authRouter = express.Router();
 
+authRouter.get('/', (req, res) => {
+    res.send('Auth API Endpoint Running...');
+});
+
+//user
 authRouter.post('/login', loginUser);
 authRouter.post('/logout', logoutUser);
 authRouter.get('/profile',authMiddleware,getLoggedInUserDetails);

@@ -5,6 +5,7 @@ dotenv.config();
 import cookieParser from 'cookie-parser';
 import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js'
+import transactionRouter from './routes/transactionRoutes.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ app.get('/',(req,res) => {
 })
 
 app.use('/api/auth',authRouter)
+app.use('/api/manager/transaction',transactionRouter)
 
 app.listen(port,() => {
     console.log(`Server is running at ${port}`)

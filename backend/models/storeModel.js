@@ -50,11 +50,12 @@ const storeSchema = new mongoose.Schema(
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "user",
+      ref: "admin",
     },
   },
   { timestamps: true }
 );
 
 const storeModel = mongoose.model("store", storeSchema);
+
 export default storeModel;

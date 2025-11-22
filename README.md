@@ -1,4 +1,4 @@
-# ![Decathlon Logo](frontend/assets/icon.png) Decathlon Mobile (Expo)
+# ![Decathlon Logo](frontend/assets/splash-icon.png) Decathlon Mobile (Expo)
 
 A modern, fast, and user-friendly mobile app prototype for Decathlon — built with Expo and React Native. Designed to showcase product browsing, cart flow and in-store helpers. This repository is in active development.
 

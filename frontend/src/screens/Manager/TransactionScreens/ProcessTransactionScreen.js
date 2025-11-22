@@ -1,21 +1,31 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import HomeButton from "../../../Components/HomeButton"
+import HomeButton from "../../../Components/HomeButton";
 
-export default function ProcessTransactionScreen({ navigation }) {
-  const [calibrationStatus] = useState("Completed"); 
-  const [credentialStatus] = useState("Completed");
+export default function ProcessTransactionScreen({ navigation, route }) {
+  const [transactionId, setTransactionId] = useState(
+    route.params?.transactionId || ""
+  );
 
-  // Possible statuses: Completed / Pending
+  const [loading, setLoading] = useState(false);
+
+  const [calibrationStatus] = useState("Pending");
+  const [credentialStatus] = useState("Pending");
 
   const isReady =
-    calibrationStatus === "Completed" &&
-    credentialStatus === "Completed";
+    calibrationStatus === "Completed" && credentialStatus === "Completed";
 
-  const getStatusStyle = (status) => {
-    return status === "Completed" ? styles.completed : styles.pending;
-  };
+  const getStatusStyle = (status) =>
+    status === "Completed" ? styles.completed : styles.pending;
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
@@ -40,12 +50,32 @@ export default function ProcessTransactionScreen({ navigation }) {
         </Text>
       </View>
 
-      {/* Body */}
       <View style={styles.container}>
+        {/* Transaction ID */}
+        <Text style={styles.label}>Transaction ID</Text>
+
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="Fetch Transaction ID"
+            value={transactionId}
+            editable={false}
+          />
+        </View>
+
+        {!transactionId && (
+          <Text style={{ color: "red", marginBottom: 15 }}>
+            Fetch Transaction ID to continue
+          </Text>
+        )}
+
         {/* Calibration Phase */}
         <TouchableOpacity
-          style={styles.phaseButton}
-          onPress={() => navigation.navigate("CalibrationPhaseScreen")}
+          style={[styles.phaseButton, !transactionId && styles.disabled]}
+          disabled={!transactionId}
+          onPress={() =>
+            navigation.navigate("CalibrationPhaseScreen", { transactionId })
+          }
         >
           <View>
             <Text style={styles.phaseTitle}>Calibration Phase</Text>
@@ -61,8 +91,13 @@ export default function ProcessTransactionScreen({ navigation }) {
 
         {/* Credential Verification */}
         <TouchableOpacity
-          style={styles.phaseButton}
-          onPress={() => navigation.navigate("CredentialVerificationScreen")}
+          style={[styles.phaseButton, !transactionId && styles.disabled]}
+          disabled={!transactionId}
+          onPress={() =>
+            navigation.navigate("CredentialVerificationScreen", {
+              transactionId,
+            })
+          }
         >
           <View>
             <Text style={styles.phaseTitle}>Credential Verification</Text>
@@ -74,18 +109,20 @@ export default function ProcessTransactionScreen({ navigation }) {
           </View>
         </TouchableOpacity>
 
-        {/* ---------- FINAL SUBMIT BUTTON ---------- */}
+        {/* Final Button */}
         <TouchableOpacity
-          disabled={!isReady}
-          onPress={() => navigation.navigate("ItemsTransactionScreen")}
+          disabled={!isReady || !transactionId}
+          onPress={() =>
+            navigation.navigate("ItemsTransactionScreen", { transactionId })
+          }
           style={[
             styles.finalButton,
-            { backgroundColor: isReady ? "#2563eb" : "#94a3b8" },
+            {
+              backgroundColor: isReady && transactionId ? "#2563eb" : "#94a3b8",
+            },
           ]}
         >
-          <Text style={styles.finalButtonText}>
-            Continue to Billing
-          </Text>
+          <Text style={styles.finalButtonText}>Continue to Billing</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -104,20 +141,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     elevation: 3,
   },
-
   headerTitle: {
     fontSize: 22,
     fontWeight: "700",
     color: "#2563eb",
     marginLeft: 15,
   },
-
-  topIconWrapper: {
-    alignItems: "center",
-    marginTop: 25,
-    marginBottom: 10,
-  },
-
+  topIconWrapper: { alignItems: "center", marginTop: 25, marginBottom: 10 },
   topIconCircle: {
     width: 110,
     height: 110,
@@ -130,23 +160,38 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
   },
-
   topTitle: {
     fontSize: 20,
     fontWeight: "700",
     color: "#1e40af",
     marginTop: 12,
   },
+  topSubtitle: { fontSize: 14, color: "#64748b", marginTop: 4 },
 
-  topSubtitle: {
-    fontSize: 14,
-    color: "#64748b",
-    marginTop: 4,
-  },
+  container: { padding: 20 },
 
-  container: {
-    padding: 20,
+  label: { 
+    fontSize: 16, 
+    fontWeight: "600", 
+    marginBottom: 8,
+    marginLeft: 10,
   },
+  inputRow: { flexDirection: "row", alignItems: "center", marginBottom: 20 },
+  input: {
+    flex: 1,
+    backgroundColor: "#fff",
+    padding: 14,
+    borderRadius: 12,
+    elevation: 2,
+  },
+  fetchButton: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    marginLeft: 10,
+  },
+  fetchButtonText: { color: "#fff", fontWeight: "700" },
 
   phaseButton: {
     backgroundColor: "#ffffff",
@@ -158,48 +203,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 2,
   },
+  disabled: { opacity: 0.5 },
 
-  phaseTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-  },
+  phaseTitle: { fontSize: 18, fontWeight: "700", color: "#111827" },
+  phaseDesc: { fontSize: 13, color: "#6b7280", marginTop: 4 },
 
-  phaseDesc: {
-    fontSize: 13,
-    color: "#6b7280",
-    marginTop: 4,
-  },
-
-  statusBadge: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-
-  completed: {
-    backgroundColor: "#dcfce7",
-  },
-
-  pending: {
-    backgroundColor: "#fee2e2",
-  },
-
-  statusText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#111827",
-  },
+  statusBadge: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 12 },
+  completed: { backgroundColor: "#dcfce7" },
+  pending: { backgroundColor: "#fee2e2" },
+  statusText: { fontSize: 13, fontWeight: "700", color: "#111827" },
 
   finalButton: {
     paddingVertical: 16,
     borderRadius: 14,
     alignItems: "center",
+    marginTop: 10,
   },
-
-  finalButtonText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#fff",
-  },
+  finalButtonText: { fontSize: 18, fontWeight: "700", color: "#fff" },
 });

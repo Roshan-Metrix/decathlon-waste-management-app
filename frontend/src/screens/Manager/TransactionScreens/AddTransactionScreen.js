@@ -20,7 +20,6 @@ export default function AddTransactionScreen({ navigation }) {
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
-
   const [transactionId, setTransactionId] = useState("");
 
   // Vendor Dropdown
@@ -56,25 +55,76 @@ export default function AddTransactionScreen({ navigation }) {
     fetchProfile();
   }, []);
 
-  const handleProcess = () => {
-    if (!vendor) {
-      return Alert.alert("Missing", "Please select Vendor Name.");
+  // const handleProcess = async () => {
+  //   if (!vendor) {
+  //     return Alert.alert("Missing", "Please select Vendor Name.");
+  //   }
+
+  //   if (vendor === "Others" && !otherVendor.trim()) {
+  //     return Alert.alert("Missing Field", "Please enter Vendor Name.");
+  //   }
+
+  //   try {
+  //     const res = await api.post("/manager/transaction/add-transaction", {
+  //       storeId,
+  //       storeName,
+  //       storeLocation,
+  //       managerName,
+  //       vendorName: vendor === "Others" ? otherVendor : vendor,
+  //     });
+
+  //     if (res.data.transactionId) {
+  //       setTransactionId(res.data.transactionId);
+
+  //       navigation.navigate("ProcessTransactionScreen", {
+  //         transactionId: res.data.transactionId,
+  //       });
+  //     } else {
+  //       Alert.alert("Error", "Failed to create transaction.");
+  //     }
+  //   } catch (error) {
+  //     console.log("Transaction Create Error:", error);
+  //     Alert.alert("Error", "Something went wrong while creating transaction.");
+  //   }
+  // };
+
+  const handleProcess = async () => {
+  if (!vendor) {
+    return Alert.alert("Missing", "Please select Vendor Name.");
+  }
+
+  if (vendor === "Others" && !otherVendor.trim()) {
+    return Alert.alert("Missing Field", "Please enter Vendor Name.");
+  }
+
+  try {
+    const payload = {
+      storeId: storeId,                  // must be string
+      storeName: storeName,              // must be string
+      storeLocation: storeLocation,      // must be string
+      managerName: managerName,          // must be string
+      vendorName: vendor === "Others" ? otherVendor : vendor,
+    };
+
+    console.log("Sending Payload:", payload);
+
+    const res = await api.post("/manager/transaction/add-transaction", payload);
+
+    if (res.data?.transactionId) {
+      setTransactionId(res.data.transactionId);
+
+      navigation.navigate("ProcessTransactionScreen", {
+        transactionId: res.data.transactionId,
+      });
+    } else {
+      Alert.alert("Error", "Failed to create transaction.");
     }
+  } catch (error) {
+    console.log("Transaction Create Error:", error?.response?.data || error);
+    Alert.alert("Error", "Something went wrong while creating transaction.");
+  }
+};
 
-    if (vendor === "Others" && !otherVendor.trim()) {
-      return Alert.alert("Missing Field", "Please enter Vendor Name.");
-    }
-
-    const finalVendor = vendor === "Others" ? otherVendor : vendor;
-
-    navigation.navigate("ProcessTransactionScreen", {
-      storeId,
-      storeName,
-      managerName,
-      vendor: finalVendor,
-      transactionId,
-    });
-  };
 
   if (loading) {
     return (
@@ -95,74 +145,61 @@ export default function AddTransactionScreen({ navigation }) {
         <View style={{ width: 26 }} />
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.form}>
+      <View style={styles.form}>
+        {/* Store ID */}
+        <Text style={styles.label}>Store ID</Text>
+        <TextInput style={styles.input} value={storeId} editable={false} />
 
-            {/* Transaction ID */}
-            <Text style={styles.label}>Transaction ID</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Enter Transaction ID"
-              value={transactionId}
-              onChangeText={setTransactionId}
-            />
-            
-          {/* Store ID */}
-          <Text style={styles.label}>Store ID</Text>
-          <TextInput style={styles.input} value={storeId} editable={false} />
+        {/* Store Name */}
+        <Text style={styles.label}>Store Name</Text>
+        <TextInput style={styles.input} value={storeName} editable={false} />
 
-          {/* Store Name */}
-          <Text style={styles.label}>Store Name</Text>
-          <TextInput style={styles.input} value={storeName} editable={false} />
+        {/* Store Location */}
+        <Text style={styles.label}>Store Location</Text>
+        <TextInput
+          style={styles.input}
+          value={storeLocation}
+          editable={false}
+        />
 
-          {/* Store Location */}
-          <Text style={styles.label}>Store Location</Text>
-          <TextInput style={styles.input} value={storeLocation} editable={false} />
+        {/* Manager Name */}
+        <Text style={styles.label}>Manager Name</Text>
+        <TextInput style={styles.input} value={managerName} editable={false} />
+        {/* Vendor */}
+        <Text style={styles.label}>Vendor Name</Text>
 
-          {/* Manager Name */}
-          <Text style={styles.label}>Manager Name</Text>
-          <TextInput style={styles.input} value={managerName} editable={false} />
-
-          {/* Vendor */}
-          <Text style={styles.label}>Vendor Name</Text>
-
-          <View style={{ zIndex: 1000 }}>
-            <DropDownPicker
-              open={vendorOpen}
-              value={vendor}
-              items={vendorItems}
-              setOpen={setVendorOpen}
-              setValue={setVendor}
-              setItems={setVendorItems}
-              placeholder="Select Vendor"
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-            />
-          </View>
-
-          {vendor === "Others" && (
-            <TextInput
-              style={[styles.input, { marginTop: 10 }]}
-              placeholder="Enter Vendor Name"
-              value={otherVendor}
-              onChangeText={setOtherVendor}
-            />
-          )}
-
-
-          {/* Submit Button */}
-          <TouchableOpacity
-            style={styles.processButton}
-            onPress={() => navigation.navigate("ProcessTransactionScreen")}
-          >
-            <MaterialIcons name="account-balance" size={22} color="#fff" />
-            <Text style={styles.processText}>Process Transaction</Text>
-          </TouchableOpacity>
+        <View style={{ zIndex: 1000 }}>
+          <DropDownPicker
+            open={vendorOpen}
+            value={vendor}
+            items={vendorItems}
+            setOpen={setVendorOpen}
+            setValue={setVendor}
+            setItems={setVendorItems}
+            placeholder="Select Vendor"
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+          />
         </View>
-      </ScrollView>
+
+        {vendor === "Others" && (
+          <TextInput
+            style={[styles.input, { marginTop: 10 }]}
+            placeholder="Enter Vendor Name"
+            value={otherVendor}
+            onChangeText={setOtherVendor}
+          />
+        )}
+
+        {/* Submit Button */}
+        <TouchableOpacity
+          style={styles.processButton}
+          onPress={() => handleProcess()}
+        >
+          <MaterialIcons name="account-balance" size={22} color="#fff" />
+          <Text style={styles.processText}>Process Transaction</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }

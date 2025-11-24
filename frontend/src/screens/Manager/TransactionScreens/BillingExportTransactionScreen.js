@@ -11,6 +11,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const [store, setStore] = useState(null);
@@ -33,20 +34,32 @@ export default function BillingExportTransactionScreen({ navigation }) {
     fetchProfile();
   }, []);
 
-  // Load both signatures from async storage
-  useEffect(() => {
+  useFocusEffect(
+  React.useCallback(() => {
+    const loadSignatures = async () => {
+      const vendorSig = await AsyncStorage.getItem("vendorSignature");
+      const managerSig = await AsyncStorage.getItem("managerSignature");
+
+      if (managerSig) setManagerSignature(managerSig);
+      if (vendorSig) setVendorSignature(vendorSig);
+    };
+
     loadSignatures();
-  }, []);
+  }, [])
+);
 
-    // await AsyncStorage.removeItem("vendorSignature");
+  // Load both signatures from async storage
+  // useFocusEffect(() => {
+  //   loadSignatures();
+  // }, []);
 
-  const loadSignatures = async () => {
-    const managerSig = await AsyncStorage.getItem("managerSignature");
-    const vendorSig = await AsyncStorage.getItem("vendorSignature");
+  // const loadSignatures = async () => {
+  //   const managerSig = await AsyncStorage.getItem("managerSignature");
+  //   const vendorSig = await AsyncStorage.getItem("vendorSignature");
 
-    if (managerSig) setManagerSignature(managerSig);
-    if (vendorSig) setVendorSignature(vendorSig);
-  };
+  //   if (managerSig) setManagerSignature(managerSig);
+  //   if (vendorSig) setVendorSignature(vendorSig);
+  // };
 
   return (
     <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
@@ -133,8 +146,6 @@ export default function BillingExportTransactionScreen({ navigation }) {
             Grand Total (in words): _______________________________________
           </Text>
 
-          {/* SIGNATURES */}
-          {/* <Text style={styles.subHeading}>Signatures</Text> */}
 
           <View style={styles.signatureRow}>
 
@@ -156,24 +167,11 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
             {/* VENDOR SIGNATURE */}
             <View style={{ alignItems: "center" }}>
-              {!vendorSignature ? (
-                <TouchableOpacity
-                  style={styles.vendorSignBtn}
-                  onPress={() => navigation.navigate("VendorSignatureScreen")}
-                >
-                  <Text style={{ color: "#fff", fontWeight: "700" }}>
-                    Add Vendor Signature
-                  </Text>
-                </TouchableOpacity>
-              ) : (
-                <>
                   <Image
                     source={{ uri: vendorSignature }}
                     style={styles.signatureImg}
                   />
                   <Text style={styles.signatureLabel}>Vendor Signature</Text>
-                </>
-              )}
             </View>
           </View>
 

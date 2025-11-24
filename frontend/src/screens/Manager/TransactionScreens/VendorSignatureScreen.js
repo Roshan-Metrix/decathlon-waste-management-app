@@ -1,19 +1,26 @@
-import React, { use, useRef, useState,useEffect } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HomeButton from '../../../Components/HomeButton';
+import { useFocusEffect } from "@react-navigation/native";
 
 export default function VendorSignatureScreen({ navigation }) {
   const signatureRef = useRef(null);
   const [signature, setSignature] = useState(null);
   const [submitted, setSubmitted] = useState(false);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      handleClear();
+    }, [])
+  );
+
   const handleSignature = async (sig) => {
     setSignature(sig);
     setSubmitted(true);
-    // Save to async storage (overwrite every time)
+
     try {
       await AsyncStorage.setItem("vendorSignature", sig);
       console.log("Vendor Signature saved!");
@@ -21,14 +28,16 @@ export default function VendorSignatureScreen({ navigation }) {
       console.log("Error saving signature: ", err);
     }
   };
-  
+
   const handleClear = async () => {
-    signatureRef.current.clearSignature();
+    try {
+      signatureRef.current?.clearSignature();
+    } catch (e) {}
+
     setSignature(null);
     setSubmitted(false);
     await AsyncStorage.removeItem("vendorSignature");
   };
-
 
   return (
     <View style={styles.container}>
@@ -62,20 +71,19 @@ export default function VendorSignatureScreen({ navigation }) {
         </View>
       )}
 
-        <TouchableOpacity
-          style={styles.submitBtn}
-          onPress={() => {
-            signatureRef.current.readSignature()
-            navigation.navigate("BillingExportTransactionScreen");}
-          }>
-          <Text style={styles.submitText}>Submit</Text>
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.submitBtn}
+        onPress={() => {
+          signatureRef.current.readSignature();
+          navigation.navigate("BillingExportTransactionScreen");
+        }}
+      >
+        <Text style={styles.submitText}>Submit</Text>
+      </TouchableOpacity>
 
-        <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
-          <Text style={styles.clearText}>Clear Signature</Text>
-        </TouchableOpacity>
-
-
+      <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
+        <Text style={styles.clearText}>Clear Signature</Text>
+      </TouchableOpacity>
     </View>
   );
 }

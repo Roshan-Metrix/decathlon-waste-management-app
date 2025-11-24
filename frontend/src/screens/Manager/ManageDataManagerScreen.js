@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   View,
@@ -50,7 +49,7 @@ export default function ManageDataManagerScreen({ navigation }) {
         <View style={styles.actionsContainer}>
           <TouchableOpacity
             style={styles.actionBox}
-            onPress={() => navigation.navigate("AddEntryScreen")}
+            onPress={() => navigation.navigate("UserScreen")}
           >
             <MaterialIcons name="add-box" size={40} color="#2563eb" />
             <Text style={styles.actionTitle}>Add New Data</Text>
@@ -61,7 +60,7 @@ export default function ManageDataManagerScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.actionBox}
-            onPress={() => navigation.navigate("ViewEntriesScreen")}
+            onPress={() => navigation.navigate("UserScreen")}
           >
             <MaterialIcons name="visibility" size={40} color="#2563eb" />
             <Text style={styles.actionTitle}>View Entries</Text>
@@ -72,7 +71,7 @@ export default function ManageDataManagerScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.actionBox}
-            onPress={() => navigation.navigate("EditDataScreen")}
+            onPress={() => navigation.navigate("UserScreen")}
           >
             <MaterialIcons name="edit" size={40} color="#2563eb" />
             <Text style={styles.actionTitle}>Edit Data</Text>
@@ -83,7 +82,7 @@ export default function ManageDataManagerScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.actionBox}
-            onPress={() => navigation.navigate("DeleteDataScreen")}
+            onPress={() => navigation.navigate("UserScreen")}
           >
             <MaterialIcons name="delete-forever" size={40} color="#dc2626" />
             <Text style={[styles.actionTitle, { color: "#dc2626" }]}>

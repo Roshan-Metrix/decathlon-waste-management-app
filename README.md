@@ -1,8 +1,25 @@
 # ![Decathlon Logo](frontend/assets/splash-icon.png) Decathlon Mobile (Expo)
 
-A modern, fast, and user-friendly mobile app prototype for Decathlon — built with Expo and React Native. Designed to showcase product browsing, cart flow and in-store helpers. This repository is in active development.
+A comprehensive mobile application for warehouse waste management operations for Decathlon Company featuring **advanced OCR (Optical Character Recognition)** for automated weight detection from digital scales and measuring devices.
 
-Tagline: Discover. Play. Gear up — faster.
+## 🌟 Key Features
+
+### Core Application
+- **🔐 Multi-role Authentication** - Admin, Manager, Vendor access levels
+- **📊 Transaction Management** - Complete waste transaction lifecycle
+- **🏪 Store Management** - Add, edit, monitor waste collection stores
+- **📈 Data Analytics** - Comprehensive reporting and insights
+- **👥 User Management** - Role-based administration
+
+### 🆕 OCR Weight Detection System
+- **📷 Real-time Camera Capture** - Direct weight reading from digital scales
+- **🖼️ Gallery Integration** - Process existing images of weight displays
+- **🧠 Smart AI Recognition** - Multi-layer OCR with intelligent parsing
+- **✏️ Manual Fallback** - Seamless manual entry when OCR fails
+- **💾 Secure Data Storage** - Automatic backend storage with metadata
+- **📱 Cross-platform** - Optimized for iOS and Android devices
+
+---
 
 ## Status
 - Development: In active development (work in progress)

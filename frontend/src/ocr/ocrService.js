@@ -1,3 +1,99 @@
+// import * as FileSystem from "expo-file-system/legacy";
+// import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+
+// const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+
+// async function recognizeWithGemini(base64) {
+//   if (!GEMINI_API_KEY) {
+//     throw new Error("Missing EXPO_PUBLIC_GOOGLE_API_KEY");
+//   }
+
+//   console.log("🌐 Calling Gemini OCR API...");
+
+//   try {
+//     const response = await fetch(
+//       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=AIzaSyC6q74k2ISglwhacSSs1MvgurH47Y5wgrw`,
+//       {
+//         method: "POST",
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({
+//           contents: [
+//             {
+//               parts: [
+//                 {
+//                   inline_data: {
+//                     mime_type: "image/jpeg",
+//                     data: base64,
+//                   },
+//                 },
+//                 {
+//                   text: "Extract ONLY the weight number from this scale image. Do not add units or extra text.",
+//                 },
+//               ],
+//             },
+//           ],
+//         }),
+//       }
+//     );
+
+//     const json = await response.json();
+
+//     if (!response.ok) {
+//       console.warn("⚠️ Gemini OCR error:", json);
+//       throw new Error("Gemini OCR failed: " + response.status);
+//     }
+
+//     const text =
+//       json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
+
+//     return text;
+//   } catch (err) {
+//     console.warn("⚠️ Gemini OCR error:", err);
+//     throw err;
+//   }
+// }
+
+// export async function runOcrOnImage(uri) {
+//   try {
+//     console.log("🔍 Starting OCR on:", uri);
+
+//     const manip = await manipulateAsync(
+//       uri,
+//       [{ resize: { width: 1000 } }],
+//       { compress: 0.7, format: SaveFormat.JPEG }
+//     );
+
+//     console.log("🖼️ Preprocessed image, converting to Base64…");
+
+//     const base64 = await FileSystem.readAsStringAsync(manip.uri, {
+//       encoding: "base64",
+//     });
+
+//     console.log("📏 Base64 length:", base64.length);
+
+//     const weight = await recognizeWithGemini(base64);
+//     console.log("🎯 Gemini OCR Result:", weight);
+
+//     if (!weight) {
+//       return "Unable to detect weight.";
+//     }
+
+//     return `Detected Weight: ${weight}`;
+//   } catch (err) {
+//     console.error("❌ OCR Error:", err);
+//     throw new Error("OCR failed: " + err);
+//   }
+// }
+
+// export async function terminateOcrWorker() {
+//   console.log("Gemini OCR: No cleanup required");
+// }
+
+
+
+
 import * as FileSystem from 'expo-file-system/legacy';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { analyzeImageForWeights, extractWeightFromAnalysis, getSmartWeightSuggestions } from './clientOcrService';

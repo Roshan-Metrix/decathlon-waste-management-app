@@ -72,7 +72,7 @@ export default function ProcessTransactionScreen({ navigation }) {
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.navigate("UserScreen")}>
-          <MaterialIcons name="home" size={40} color="#2563eb" />
+          <MaterialIcons name="arrow-back" size={40} color="#2563eb" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Process Transaction</Text>
         <View style={{ width: 26 }} />

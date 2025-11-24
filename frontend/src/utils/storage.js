@@ -16,5 +16,7 @@ export const getTodayTransaction = async () => {
 export const clearOldTransaction = async () => {
   await AsyncStorage.removeItem("todayTransaction");
   await AsyncStorage.setItem("calibrationStatus","Pending");
-  await AsyncStorage.setItem("calibrationData","Pending");
+  await AsyncStorage.setItem("credentialStatus","Pending");
+  await AsyncStorage.removeItem("managerSignature");
+  await AsyncStorage.removeItem("vendorSignature");
 };

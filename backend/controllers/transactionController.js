@@ -10,7 +10,6 @@ export const AddTransactionDetailController = async (req, res) => {
     const { storeId, storeName, storeLocation, managerName, vendorName } =
       req.body;
 
-    // Validate required fields
     if (
       !storeId ||
       !storeName ||

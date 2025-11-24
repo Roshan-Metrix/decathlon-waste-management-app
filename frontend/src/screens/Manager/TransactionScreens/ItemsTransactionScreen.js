@@ -8,8 +8,9 @@ import {
   ScrollView,
   Image,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { CameraView, Camera } from "expo-camera";
+import { Camera, CameraView } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
 import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
@@ -20,21 +21,207 @@ export default function ItemsTransactionScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
+
   const [materialType, setMaterialType] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
-  const [loading, setLoading] = useState(false);
 
+  const [loading, setLoading] = useState(false);
   const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
 
-  // ASK PERMISSION
+  const [itemsList, setItemsList] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(true);
+
+  // Ask camera permission on mount
   useEffect(() => {
     (async () => {
-      const cam = await Camera.requestCameraPermissionsAsync();
-      setHasPermission(cam.status === "granted");
+      try {
+        const { status } = await Camera.requestCameraPermissionsAsync();
+        setHasPermission(status === "granted");
+      } catch (err) {
+        console.log("Camera permission error:", err);
+        setHasPermission(false);
+      }
     })();
   }, []);
 
+  // Fetch existing items on load (from today's transaction endpoint)
+  useEffect(() => {
+    fetchAllItems();
+  }, []);
+
+  const fetchAllItems = async () => {
+    try {
+      setItemsLoading(true);
+
+      const stored = await AsyncStorage.getItem("todayTransaction");
+      if (!stored) {
+        setItemsLoading(false);
+        return;
+      }
+
+      const parsed = JSON.parse(stored);
+      const transactionId = parsed?.transactionId;
+      if (!transactionId) {
+        setItemsLoading(false);
+        return;
+      }
+
+      const res = await api.get(
+        `/manager/transaction/todays-transactions/${transactionId}`
+      );
+
+      if (res.data?.success) {
+        const items = res.data?.transactions?.[0]?.items || [];
+        setItemsList(items);
+      }
+    } catch (e) {
+      console.log("Fetch items error:", e);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  // Capture image and run OCR
+  const handleCapture = async () => {
+    try {
+      if (!cameraRef.current) {
+        Alert.alert("Camera not ready");
+        return;
+      }
+
+      const picture = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.5,
+      });
+
+      setPhoto(picture);
+      setLoading(true);
+
+      // OCR
+      const ocrText = await runOcrOnImage(picture.uri);
+      const cleanWeight = parseWeight(ocrText);
+
+      if (cleanWeight) setFetchWeight(cleanWeight.toString());
+      else {
+        Alert.alert(
+          "OCR couldn't detect weight",
+          "Please enter weight manually or capture again."
+        );
+        setFetchWeight("");
+      }
+      setLoading(false);
+    } catch (e) {
+      console.log("Capture Error:", e);
+      setLoading(false);
+      Alert.alert("Capture Failed", "Try again.");
+    }
+  };
+
+  // Add item to backend
+  const handleAddItem = async () => {
+    if (!materialType) {
+      Alert.alert("Missing", "Please select material type.");
+      return;
+    }
+    if (!photo) {
+      Alert.alert("Missing", "Please capture an image first.");
+      return;
+    }
+
+    // Determine weight and source
+    let weight = "";
+    let weightSource = "";
+
+    if (enterWeight.trim() !== "") {
+      weight = enterWeight.trim();
+      weightSource = "manually";
+    } else {
+      weight = fetchWeight;
+      weightSource = "system";
+    }
+
+    if (!weight) {
+      Alert.alert("Missing", "No weight detected or entered.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const stored = await AsyncStorage.getItem("todayTransaction");
+      const parsed = stored ? JSON.parse(stored) : null;
+      const transactionId = parsed?.transactionId;
+
+      if (!transactionId) {
+        setLoading(false);
+        Alert.alert(
+          "No transaction",
+          "Please create or fetch a transaction first."
+        );
+        return;
+      }
+
+      const payload = {
+        materialType,
+        weight,
+        weightSource,
+        image: photo.base64,
+      };
+
+      const res = await api.post(
+        `/manager/transaction/transaction-items/${transactionId}`,
+        payload
+      );
+
+      setLoading(false);
+
+      if (res.data?.success) {
+        const returnedItems = res.data.items || [];
+        setItemsList(returnedItems);
+
+        // reset fields for next item
+        setPhoto(null);
+        setMaterialType("");
+        setFetchWeight("");
+        setEnterWeight("");
+
+        Alert.alert("Success", "Item added successfully!");
+      } else {
+        console.log("Add item response:", res.data);
+        Alert.alert("Failed", res.data?.message || "Item not added.");
+      }
+    } catch (err) {
+      setLoading(false);
+      console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
+      Alert.alert(
+        "Error",
+        err?.response?.data?.message || "Error adding item."
+      );
+    }
+  };
+
+  // Helper to show image for item (either data URI or server filename)
+  const getItemImageUri = (imageField) => {
+    if (!imageField) return null;
+    if (typeof imageField !== "string") return null;
+
+    // If server returned a data: URI (base64 included)
+    if (imageField.startsWith("data:")) return imageField;
+
+    // If server returned a base64 string without prefix (rare), detect by length
+    if (/^[A-Za-z0-9+/=]+$/.test(imageField) && imageField.length > 200) {
+      // assume base64 PNG
+      return `data:image/png;base64,${imageField}`;
+    }
+
+    // Otherwise treat it as filename on server uploads folder
+    const base = api?.defaults?.baseURL || "";
+    // adjust path if server stores uploads in /uploads/ or /public/uploads/
+    return `${base.replace(/\/$/, "")}/uploads/${imageField}`;
+  };
+
+  // Permission states
   if (hasPermission === null) {
     return (
       <View style={styles.centerScreen}>
@@ -46,9 +233,12 @@ export default function ItemsTransactionScreen({ navigation }) {
   if (hasPermission === false) {
     return (
       <View style={styles.centerScreen}>
-        <Text>No access to camera</Text>
+        <Text style={{ marginBottom: 12 }}>No access to camera</Text>
         <TouchableOpacity
-          onPress={() => Camera.requestCameraPermissionsAsync()}
+          onPress={async () => {
+            const { status } = await Camera.requestCameraPermissionsAsync();
+            setHasPermission(status === "granted");
+          }}
           style={styles.permissionBtn}
         >
           <Text style={{ color: "#fff" }}>Allow Camera</Text>
@@ -57,123 +247,24 @@ export default function ItemsTransactionScreen({ navigation }) {
     );
   }
 
-  // CAPTURE IMAGE + OCR
-  const handleCapture = async () => {
-    try {
-      const picture = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.5,
-      });
-
-      setPhoto(picture); 
-      setLoading(true);
-
-      // OCR
-      const ocrText = await runOcrOnImage(picture.uri);
-      const cleanWeight = parseWeight(ocrText);
-
-      if (cleanWeight) {
-        setFetchWeight(cleanWeight.toString());
-      } else {
-        alert("Unable to detect weight! Please enter manually.");
-        setFetchWeight("");
-      }
-
-      setLoading(false);
-    } catch (e) {
-      console.log("Error capturing:", e);
-      setLoading(false);
-      alert("Capture failed. Try again.");
-    }
-  };
-
- // Add Item
-const handleAddItem = async () => {
-  if (!materialType) {
-    alert("Please select material type.");
-    return;
-  }
-
-  if (!photo) {
-    alert("Please capture an image.");
-    return;
-  }
-
-  // Determine weight + weightSource
-  let weight = "";
-  let weightSource = "";
-
-  if (enterWeight.trim() !== "") {
-    weight = enterWeight;
-    weightSource = "manually";   // ✅ FIXED SPELLING
-  } else {
-    weight = fetchWeight;
-    weightSource = "system";     // ✅ VALID
-  }
-
-  if (!weight) {
-    alert("No weight detected or entered.");
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const stored = await AsyncStorage.getItem("todayTransaction");
-    const parsed = JSON.parse(stored);
-    const transactionId = parsed?.transactionId;
-
-    const res = await api.post(
-      `/manager/transaction/transaction-items/${transactionId}`,
-      {
-        materialType,
-        weight,
-        weightSource,
-        image: photo.base64,
-      }
-    );
-
-    setLoading(false);
-
-    if (res.data.success) {
-      alert("Item added successfully!");
-      // Reset UI
-      setPhoto(null);
-      setMaterialType("");
-      setFetchWeight("");
-      setEnterWeight("");
-    } else {
-      alert("Item not added.");
-    }
-  } catch (err) {
-    setLoading(false);
-    console.log("ADD ITEM ERROR:", err?.response?.data || err);
-    alert(err?.response?.data?.message || "Error adding item.");
-  }
-};
-
-
   return (
     <View style={styles.container}>
-      
-      {/* HEADER */}
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Material Photo</Text>
-        <View style={{ width: 26 }} />
-         <TouchableOpacity
+
+        <Text style={styles.headerTitle}>Add Materials</Text>
+
+        <TouchableOpacity
           onPress={() => navigation.navigate("VendorSignatureScreen")}
         >
-          <MaterialIcons name="assignment" size={35} color="#007AFF" />
+          <MaterialIcons name="assignment" size={32} color="#2563eb" />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={{ paddingBottom: 40 }}
-        keyboardShouldPersistTaps="handled"
-      >
+      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
         {/* CAMERA SECTION */}
         <View style={styles.cameraBox}>
           {photo ? (
@@ -183,46 +274,40 @@ const handleAddItem = async () => {
           )}
         </View>
 
-        {/* CAPTURE BUTTON */}
         <TouchableOpacity style={styles.captureBtn} onPress={handleCapture}>
-          <MaterialIcons name="photo-camera" size={22} color="#fff" />
+          <MaterialIcons name="camera-alt" size={22} color="#fff" />
           <Text style={styles.captureText}>Capture</Text>
         </TouchableOpacity>
 
-        {/* MATERIAL DROPDOWN */}
+        {/* Material dropdown */}
         <TouchableOpacity
           style={styles.dropdownBox}
           onPress={() => setShowDropdown(!showDropdown)}
         >
           <Text style={styles.dropdownText}>
-            {materialType || "Choose material"}
+            {materialType || "Select Material Type"}
           </Text>
           <MaterialIcons
             name={showDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
             size={24}
-            color="#374151"
           />
         </TouchableOpacity>
 
         {showDropdown && (
           <View style={styles.dropdownList}>
             {[
-              "Defective Products",
-              "Hazardous Waste",
-              "Recycling Cardboard",
-              "Recycling E Waste",
-              "Recycling Glass",
-              "Recycling Hangers",
               "Recycling Metal",
-              "Recycling Mixed Packaging",
-              "Recycling Organic",
-              "Recycling Paper",
               "Recycling Rubber",
-              "Recycling Soft Plastics",
+              "Recycling Paper",
+              "Recycling Glass",
+              "Recycling E Waste",
+              "Recycling Cardboard",
               "Recycling Textile",
-              "Waste Incineration",
-              "Waste incineration energy recovery",
-              "Waste Landfill",
+              "Recycling Soft Plastics",
+              "Hazardous Waste",
+              "Recycling Organic",
+              "Mixed Packaging",
+              "Defective Products",
             ].map((item) => (
               <TouchableOpacity
                 key={item}
@@ -238,19 +323,17 @@ const handleAddItem = async () => {
           </View>
         )}
 
-        {/* FETCHED WEIGHT (READ ONLY) */}
+        {/* Weights */}
         <View style={styles.inputBox}>
           <TextInput
             placeholder="Fetched Weight (auto)"
             style={[styles.input, { color: "#6B7280" }]}
-            keyboardType="numeric"
             value={fetchWeight}
-            editable={false} 
+            editable={false}
           />
-          <Text style={styles.gmText}>kg</Text>
+          <Text style={styles.unit}>kg</Text>
         </View>
 
-        {/* ENTER WEIGHT (OPTIONAL) */}
         <View style={styles.inputBox}>
           <TextInput
             placeholder="Enter Weight (manual)"
@@ -259,20 +342,58 @@ const handleAddItem = async () => {
             value={enterWeight}
             onChangeText={setEnterWeight}
           />
-          <Text style={styles.gmText}>kg</Text>
+          <Text style={styles.unit}>kg</Text>
         </View>
 
-        {/* ADD MATERIAL */}
-        <TouchableOpacity style={styles.calibrateBtn} onPress={handleAddItem}>
-          <Text style={styles.calibrateText}>Add Material</Text>
+        <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
+          <Text style={styles.addText}>Add Material</Text>
         </TouchableOpacity>
+
+        <Text style={styles.listTitle}>Added Items</Text>
+
+        {itemsLoading ? (
+          <ActivityIndicator
+            style={{ marginTop: 15 }}
+            size="small"
+            color="#2563eb"
+          />
+        ) : itemsList.length === 0 ? (
+          <Text style={styles.noItems}>No items added yet.</Text>
+        ) : (
+          <View style={{ marginTop: 10 }}>
+            {itemsList.map((item) => {
+              const imgUri = getItemImageUri(item.image);
+              return (
+                <View key={item.itemNo} style={styles.card}>
+                  <Image
+                    source={
+                      imgUri
+                        ? { uri: imgUri }
+                        : require("../../../../assets/icon.png")
+                    }
+                    style={styles.cardImage}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>
+                      {item.itemNo}. {item.materialType}
+                    </Text>
+                    <Text style={styles.cardSub}>Weight: {item.weight} kg</Text>
+                    <Text style={styles.cardTag}>
+                      {item.weightSource === "system" ? "System" : "Manual"}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
 
-      {/* LOADING */}
+      {/* Loading overlay */}
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
-          <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
+          <Text style={{ color: "#fff", marginTop: 6 }}>Processing...</Text>
         </View>
       )}
     </View>
@@ -291,22 +412,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#fff",
     elevation: 5,
+    alignItems: "center",
   },
 
-  headerTitle: { fontSize: 22, fontWeight: "700", color: "#2563eb" },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#2563eb",
+  },
 
   cameraBox: {
     width: "90%",
-    height: 280,
+    height: 260,
     backgroundColor: "#fff",
     borderRadius: 18,
     alignSelf: "center",
     marginTop: 20,
     overflow: "hidden",
+    elevation: 4,
   },
 
   camera: { flex: 1 },
-
   capturedImage: { width: "100%", height: "100%" },
 
   captureBtn: {
@@ -340,15 +466,14 @@ const styles = StyleSheet.create({
     marginTop: 5,
     borderRadius: 12,
     paddingVertical: 5,
+    elevation: 3,
   },
 
   dropdownItem: {
     padding: 12,
   },
 
-  dropdownItemText: {
-    fontSize: 16,
-  },
+  dropdownItemText: { fontSize: 16 },
 
   inputBox: {
     flexDirection: "row",
@@ -367,33 +492,82 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  gmText: {
+  unit: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "bold",
     color: "#2563eb",
   },
 
-  calibrateBtn: {
+  addBtn: {
     backgroundColor: "#4f46e5",
     paddingVertical: 16,
     borderRadius: 14,
-    marginTop: 30,
+    marginTop: 25,
     width: "85%",
     alignSelf: "center",
   },
 
-  calibrateText: {
-    color: "white",
+  addText: {
+    color: "#fff",
     textAlign: "center",
     fontSize: 18,
     fontWeight: "800",
   },
 
+  listTitle: {
+    marginTop: 30,
+    marginLeft: 25,
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1e3a8a",
+  },
+
+  noItems: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#6b7280",
+  },
+
+  card: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    padding: 12,
+    marginHorizontal: 20,
+    marginVertical: 8,
+    borderRadius: 14,
+    elevation: 3,
+    alignItems: "center",
+  },
+
+  cardImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 12,
+    backgroundColor: "#f3f4f6",
+  },
+
+  cardTitle: { fontSize: 17, fontWeight: "700" },
+  cardSub: { fontSize: 15, color: "#6b7280", marginTop: 4 },
+
+  cardTag: {
+    marginTop: 6,
+    fontSize: 13,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    alignSelf: "flex-start",
+    backgroundColor: "#e0e7ff",
+    borderRadius: 8,
+    color: "#4338ca",
+    fontWeight: "600",
+  },
+
   loadingOverlay: {
     position: "absolute",
+    top: 0,
     left: 0,
     right: 0,
-    top: 0,
     bottom: 0,
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",

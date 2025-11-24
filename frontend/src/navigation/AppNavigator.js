@@ -45,6 +45,8 @@ import CredentialVerificationScreen from "../screens/Manager/TransactionScreens/
 import VendorSignatureScreen from "../screens/Manager/TransactionScreens/VendorSignatureScreen";
 import BillingExportTransactionScreen from "../screens/Manager/TransactionScreens/BillingExportTransactionScreen";
 import ItemsTransactionScreen from "../screens/Manager/TransactionScreens/ItemsTransactionScreen";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoadingScreen from "../Components/LoadingScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -52,7 +54,7 @@ const Stack = createNativeStackNavigator();
 export default function AppNavigator() {
   const { user, loading } = useContext(AuthContext);
 
-  if (loading) return null;
+if (loading) return <LoadingScreen />;
 
   return (
     <NavigationContainer>
@@ -117,8 +119,3 @@ export default function AppNavigator() {
   );
 }
 
-{/* <Stack.Screen
-  name="AddStoreScreen"
-  component={AddStoreScreen}
-  options={{ headerShown: true, title: "Add Store" }}
-/> */}

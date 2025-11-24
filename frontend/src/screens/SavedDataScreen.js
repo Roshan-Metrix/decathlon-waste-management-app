@@ -67,7 +67,7 @@ export default function SavedDataScreen({ navigation }) {
             </View>
             <TouchableOpacity
               style={styles.viewButton}
-              onPress={() => alert(`Viewing details for ${item.title}`)}
+              onPress={() => navigation.navigate('UserScreen')}
             >
               <Text style={styles.viewButtonText}>View Details</Text>
             </TouchableOpacity>

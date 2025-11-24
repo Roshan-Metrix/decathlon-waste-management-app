@@ -71,7 +71,7 @@ export default function ProfileScreen({ navigation }) {
         {/* Show Manager Data */}
         {user?.role === "manager" && (
           <>
-            <Text style={styles.nameText}>Manager</Text>
+            <Text style={styles.nameText}>{managerData?.name || user.name}</Text>
             <Text style={styles.emailText}>{managerData?.email || user.email}</Text>
             <Text style={styles.roleText}>
               Role: <Text style={styles.roleHighlight}>MANAGER</Text>

@@ -1,121 +1,17 @@
-// import * as FileSystem from "expo-file-system/legacy";
-// import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-
-// const GEMINI_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
-
-// // ---------------------- GEMINI OCR ----------------------
-
-// async function recognizeWithGemini(base64) {
-//   if (!GEMINI_API_KEY) {
-//     throw new Error("Missing EXPO_PUBLIC_GOOGLE_API_KEY in app config.");
-//   }
-
-//   console.log("🌐 Calling Gemini OCR API...");
-
-//   try {
-//     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-//     const response = await fetch(url, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//       },
-
-//       body: JSON.stringify({
-//         contents: [
-//           {
-//             parts: [
-//               {
-//                 inline_data: {
-//                   mime_type: "image/jpeg",
-//                   data: base64,
-//                 },
-//               },
-//               {
-//                 text:
-//                   "Extract the WEIGHT value shown on this scale image. " +
-//                   "Return ONLY the numeric value (int or decimal). No units, no words.",
-//               },
-//             ],
-//           },
-//         ],
-//       }),
-//     });
-
-//     const json = await response.json();
-
-//     if (!response.ok) {
-//       console.warn("⚠️ Gemini OCR error:", json);
-//       throw new Error(`Gemini OCR failed: ${response.status} ${JSON.stringify(json)}`);
-//     }
-
-//     const extracted =
-//       json?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-
-//     return extracted;
-//   } catch (err) {
-//     console.warn("⚠️ Gemini OCR error:", err);
-//     throw err;
-//   }
-// }
-
-// // ---------------------- MAIN ENTRY ----------------------
-
-// export async function runOcrOnImage(uri) {
-//   try {
-//     console.log("🔍 Starting OCR on:", uri);
-
-//     // Resize & compress image
-//     const manip = await manipulateAsync(
-//       uri,
-//       [{ resize: { width: 900 } }],
-//       { compress: 0.7, format: SaveFormat.JPEG }
-//     );
-
-//     console.log("🖼️ Preprocessed image, converting to Base64…");
-
-//     const base64 = await FileSystem.readAsStringAsync(manip.uri, {
-//       encoding: "base64",
-//     });
-
-//     console.log("📏 Base64 length:", base64.length);
-
-//     // ---- GEMINI OCR ----
-//     const rawWeight = await recognizeWithGemini(base64);
-
-//     console.log("🎯 Gemini OCR Raw Result:", rawWeight);
-
-//     if (!rawWeight) {
-//       return "Unable to detect weight.";
-//     }
-
-//     // extract only number safely
-//     const numMatch = rawWeight.match(/\d+\.?\d*/);
-
-//     if (!numMatch) {
-//       return "Unable to detect numeric weight.";
-//     }
-
-//     return `Detected Weight: ${numMatch[0]}`;
-//   } catch (err) {
-//     console.error("❌ OCR Error:", err);
-//     throw new Error("OCR failed: " + err);
-//   }
-// }
-
-// export async function terminateOcrWorker() {
-//   console.log("Gemini OCR: No cleanup required");
-// }
-
-
-
 import * as FileSystem from 'expo-file-system/legacy';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+// Assuming the path to your helper files is correct
 import { analyzeImageForWeights, extractWeightFromAnalysis, getSmartWeightSuggestions } from './clientOcrService';
 
-/**
- * OCR.space API with timeout and better handling
- */
+// --- Environment Variable Access ---
+const GOOGLE_VISION_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+const GOOGLE_VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate';
+// -----------------------------------
+
+
+  // OCR.space API with timeout and better handling
+  // (Kept for fallback demonstration but will be skipped for Google Vision)
+ 
 async function recognizeWithOCRSpace(base64Image) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 15000);
@@ -133,7 +29,7 @@ async function recognizeWithOCRSpace(base64Image) {
     const response = await fetch('https://api.ocr.space/parse/image', {
       method: 'POST',
       headers: {
-        'apikey': 'helloworld',
+        'apikey': 'helloworld', 
         'Content-Type': 'multipart/form-data',
       },
       body: formData,
@@ -171,15 +67,95 @@ async function recognizeWithOCRSpace(base64Image) {
   }
 }
 
-/**
- * Alternative OCR using Google Cloud Vision API (requires API key)
- */
+
+  // Alternative OCR using Google Cloud Vision API
+
 async function recognizeWithGoogleVision(base64Image) {
-  throw new Error('Google Vision API not configured');
+  if (!GOOGLE_VISION_API_KEY) {
+    throw new Error('Google Vision API key is not configured in .env file.');
+  }
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const payload = {
+      requests: [
+        {
+          image: {
+            content: base64Image,
+          },
+          features: [
+            {
+              type: 'TEXT_DETECTION', 
+              maxResults: 1,
+            },
+          ],
+        },
+      ],
+    };
+
+    console.log('🌐 Calling Google Vision API...');
+    
+    const response = await fetch(`${GOOGLE_VISION_ENDPOINT}?key=${GOOGLE_VISION_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Google Vision HTTP Error:', errorText);
+      throw new Error(`Google Vision API request failed: ${response.status} - ${errorText.substring(0, 100)}...`);
+    }
+
+    const result = await response.json();
+    console.log('📥 Google Vision response:', JSON.stringify(result, null, 2));
+
+    const textAnnotations = result.responses?.[0]?.textAnnotations;
+
+    // The first element of textAnnotations is the full text recognized in the image
+    if (textAnnotations && textAnnotations.length > 0) {
+      const fullText = textAnnotations[0].description.trim();
+      console.log('✅ Google Vision raw text:', fullText);
+      
+      if (fullText.length > 0) {
+        // Use your smart weight extractor on the raw text
+        const weightText = extractWeightFromText(fullText);
+        
+        if (weightText) {
+            console.log('✅ Smart weight extraction successful from Google Vision result.');
+            return weightText;
+        } else {
+            console.log('📝 No weight pattern detected in Google Vision result, returning raw text.');
+            return `Raw OCR Text (Google Vision): ${fullText}
+            
+⚠️ No clear weight pattern detected. Please check the manual entry field below.`;
+        }
+      }
+    }
+
+    // Fallback if no text annotations are present
+    throw new Error('Google Vision API detected no text.');
+
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('Google Vision request timed out');
+    }
+    console.warn('Google Vision API failed:', error);
+    throw error;
+  }
 }
 
 /**
  * Smart weight extraction from OCR text
+ * (Keep this function as is, it's used by both OCR services)
  */
 function extractWeightFromText(text) {
   console.log('🔍 Analyzing OCR text for weight patterns:', text);
@@ -293,6 +269,17 @@ export async function runOcrOnImage(uri) {
 
     let ocrResult = null;
 
+    // --- PRIORITY 1: Google Vision API ---
+    try {
+      const text = await recognizeWithGoogleVision(base64);
+      console.log('✅ Google Vision successful:', text);
+      return text;
+    } catch (visionError) {
+      console.log('⚠️ Google Vision failed, falling back:', visionError.message);
+      ocrResult = visionError.message;
+    }
+
+    // --- PRIORITY 2: OCR.space (if you wish to keep it as a fallback) ---
     try {
       const rawText = await recognizeWithOCRSpace(base64);
       console.log('✅ OCR.space raw text:', rawText);
@@ -308,18 +295,11 @@ export async function runOcrOnImage(uri) {
 ⚠️ No clear weight pattern detected. Please check the manual entry field below.`;
       }
     } catch (ocrError) {
-      console.log('⚠️ OCR.space failed:', ocrError.message);
+      console.log('⚠️ OCR.space failed, falling back:', ocrError.message);
       ocrResult = ocrError.message;
     }
 
-    try {
-      const text = await recognizeWithGoogleVision(base64);
-      console.log('✅ Google Vision complete:', text);
-      return text;
-    } catch (visionError) {
-      console.log('⚠️ Google Vision failed:', visionError.message);
-    }
-
+    // --- PRIORITY 3: Client-side analysis ---
     try {
       console.log('🔍 Trying client-side image analysis...');
       const analysis = await analyzeImageForWeights(uri);
@@ -335,6 +315,7 @@ export async function runOcrOnImage(uri) {
       console.log('⚠️ Client-side analysis failed:', analysisError.message);
     }
 
+    // --- LAST RESORT: Mock detection ---
     console.log('📋 Using enhanced mock detection...');
     const mockText = detectNumbersInImage();
     const suggestions = getSmartWeightSuggestions();
@@ -347,6 +328,7 @@ export async function runOcrOnImage(uri) {
 ${suggestions.join('\n')}
 
 [DEBUG: All OCR methods failed - ${ocrResult}]`;
+
   } catch (error) {
     console.error('❌ OCR Error:', error);
     throw new Error(`OCR failed: ${error}`);

@@ -145,7 +145,7 @@ export const TransactionCalibrationController = async (req, res) => {
     if (Math.abs(fetchWeight - enterWeight) > 0.1) {
       return res
         .status(400)
-        .json({ success: false, message: "Error must be < 0.1 kg" });
+        .json({ success: false, message: "Failed : Error must be less than 0.1 kg" });
     }
 
     const transaction = await transactionModel.findOne({ transactionId });

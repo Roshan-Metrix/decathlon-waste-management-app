@@ -10,14 +10,14 @@ import transactionRouter from './routes/transactionRoutes.js';
 const app = express();
 const port = process.env.PORT || 3000;
 connectDB();
-const allowedOrigins = process.env.FRONTEND_URI;
+// const allowedOrigins = process.env.FRONTEND_URI;
 
 app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use(cookieParser());
-// app.use(cors({credentials: true}));
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({credentials: true}));
+// app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 // API Endpoints
 app.get('/',(req,res) => {

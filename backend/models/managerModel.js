@@ -16,6 +16,7 @@ const managerSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      trim:true,
     },
     storeId: {
       type: String,

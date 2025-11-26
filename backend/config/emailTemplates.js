@@ -41,18 +41,10 @@ export const PASSWORD_RESET_TEMPLATE = `<!DOCTYPE html>
     }
     @media only screen and (max-width: 480px) {
       .container {
-        width: 80% !important;
+        width: 80%;
       }
       .button {
-        width: 50% !important;
-      }
-    }
-  </style>
-</head>
-
-<body>
-      .button {
-        width: 50% !important;
+        width: 50%;
       }
     }
   </style>
@@ -70,7 +62,7 @@ export const PASSWORD_RESET_TEMPLATE = `<!DOCTYPE html>
                   <table width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tbody>
                       <tr>
-                        <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
+                        <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/splash-icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
                       </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
@@ -160,11 +152,11 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE = `
 
     @media only screen and (max-width: 480px) {
       .container {
-        width: 80% !important;
+        width: 80%;
       }
 
       .button {
-        width: 50% !important;
+        width: 50%;
       }
     }
   </style>
@@ -178,7 +170,7 @@ export const PASSWORD_RESET_SUCCESSFULLY_TEMPLATE = `
           <table class="container" width="600" cellspacing="0" cellpadding="0" border="0">
             <tbody>
              <tr>
-               <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
+               <td><img src="https://raw.githubusercontent.com/Roshan-Metrix/Waste_Managment_Authority_MobileApp/refs/heads/master/frontend/assets/splash-icon.png" alt="Decathron Waste Manage" width="340" height="60" /></td>
                       </tr>
               <tr>
                 <td class="main-content">

@@ -1,8 +1,11 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import {
+  ADMIN_ADDED_TEMPLATE,
+  MANAGER_ADDED_TEMPLATE,
   PASSWORD_RESET_SUCCESSFULLY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
+  STORE_ADDED_TEMPLATE,
 } from "../config/emailTemplates.js";
 import transporter from "../config/nodemailer.js";
 import adminModel from "../models/adminModel.js";
@@ -17,6 +20,8 @@ export const registerAdmin = async (req, res) => {
   if (!name || !email || !password) {
     return res.json({ success: false, message: "Missing details" });
   }
+
+  const PasswordSavedToSendEmail = password;
 
   try {
     const existingUser = await adminModel.findOne({ email });
@@ -45,6 +50,18 @@ export const registerAdmin = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
+
+    const mailOption = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Welcome To Decathlon",
+      html: ADMIN_ADDED_TEMPLATE.replace("{{email}}", email).replace(
+        "{{password}}",
+       PasswordSavedToSendEmail
+      ),
+    };
+
+    await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -86,6 +103,8 @@ export const registerStore = async (req, res) => {
       return res.json({ success: false, message: "Store already exists" });
     }
 
+    const PasswordSavedToSendEmail = password;
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const store = new storeModel({
@@ -109,6 +128,18 @@ export const registerStore = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
+
+    const mailOption = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Welcome To Decathlon",
+      html: STORE_ADDED_TEMPLATE.replace("{{email}}", email).replace(
+        "{{password}}",
+       PasswordSavedToSendEmail
+      ),
+    };
+
+    await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -137,6 +168,8 @@ export const registerManager = async (req, res) => {
   if ((!storeId, !name, !email, !password)) {
     return res.json({ success: false, message: "Missing details" });
   }
+
+  const PasswordSavedToSendEmail = password;
 
   try {
     const existingManager = await managerModel.findOne({ email });
@@ -174,6 +207,18 @@ export const registerManager = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "15d" }
     );
+
+    const mailOption = {
+      from: process.env.SENDER_EMAIL,
+      to: email,
+      subject: "Welcome To Decathlon",
+      html: MANAGER_ADDED_TEMPLATE.replace("{{email}}", email).replace(
+        "{{password}}",
+       PasswordSavedToSendEmail
+      ),
+    };
+
+    await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,

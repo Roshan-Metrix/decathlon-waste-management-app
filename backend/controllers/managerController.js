@@ -45,7 +45,8 @@ export const getManagerProfile = async (req, res) => {
 // Get Managers of a Particular Store --> For Managers
 export const getParticularStoreManagers = async (req, res) => {
   try {
-    const storeId = req.store.storeId;
+    
+    const { storeId } = req.params;
 
     const managers = await managerModel
       .find({ storeId })

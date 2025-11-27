@@ -33,10 +33,10 @@ authRouter.get('/get-all-managers',adminMiddleware,getAllManagers);
 
 //manager
 authRouter.post('/registerManager',authMiddleware,registerManager);
-authRouter.get('/manager/get-store-managers',authMiddleware,managerMiddleware,getParticularStoreManagers);
 authRouter.get('/manager/profile',authMiddleware,managerMiddleware,getManagerProfile);
 
 // store
+authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticularStoreManagers);
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 //vendor

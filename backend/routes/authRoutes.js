@@ -6,7 +6,7 @@ import { getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } f
 import { getAllAdmins } from '../controllers/adminController.js';
 import { getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
-import { deleteStore, getAllStores } from '../controllers/storeController.js';
+import { deleteStore, getAllStores, getStoreProfile } from '../controllers/storeController.js';
 import managerMiddleware from '../middlewares/managerMiddleware.js';
 
 const authRouter = express.Router();
@@ -35,6 +35,9 @@ authRouter.get('/get-all-managers',adminMiddleware,getAllManagers);
 authRouter.post('/registerManager',authMiddleware,registerManager);
 authRouter.get('/manager/get-store-managers',authMiddleware,managerMiddleware,getParticularStoreManagers);
 authRouter.get('/manager/profile',authMiddleware,managerMiddleware,getManagerProfile);
+
+// store
+authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 //vendor
 authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);

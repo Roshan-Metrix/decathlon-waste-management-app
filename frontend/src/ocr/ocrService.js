@@ -4,7 +4,8 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import { analyzeImageForWeights, extractWeightFromAnalysis, getSmartWeightSuggestions } from './clientOcrService';
 
 // --- Environment Variable Access ---
-const GOOGLE_VISION_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+// const GOOGLE_VISION_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_API_KEY;
+const GOOGLE_VISION_API_KEY = "AIzaSyC6q74k2ISglwhacSSs1MvgurH47Y";
 const GOOGLE_VISION_ENDPOINT = 'https://vision.googleapis.com/v1/images:annotate';
 // -----------------------------------
 

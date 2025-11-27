@@ -39,6 +39,7 @@ const transactionSchema = new mongoose.Schema(
     },
     managerName: {
       type: String,
+      default:"store",
       required: true,
     },
     vendorName: {

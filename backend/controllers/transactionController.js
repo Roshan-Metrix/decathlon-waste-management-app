@@ -1,7 +1,5 @@
 import transactionModel from "../models/transactionModel.js";
-import {
-  generateTransactionId,
-} from "../utils/generateTransactionId.js";
+import { generateTransactionId } from "../utils/generateTransactionId.js";
 
 // Add Transaction Detail Controller
 export const AddTransactionDetailController = async (req, res) => {
@@ -20,7 +18,7 @@ export const AddTransactionDetailController = async (req, res) => {
         .status(400)
         .json({ success: false, message: "All fields are required" });
     }
-    
+
     // Generate unique transactionId
     const transactionId = await generateTransactionId(storeId);
 
@@ -94,7 +92,7 @@ export const TransactionItemsController = async (req, res) => {
       itemNo,
       materialType,
       image,
-      weight : weight - transaction.calibration.error,
+      weight: weight - transaction.calibration.error,
       weightSource,
     });
 
@@ -126,7 +124,12 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    const error = Math.abs(fetchWeight - enterWeight);
+    // const error = Math.abs(fetchWeight - enterWeight);
+
+    // Always subtract greater number from smaller
+    const fw = parseFloat(fetchWeight) || 0;
+    const ew = parseFloat(enterWeight) || 0;
+    const error = fw > ew ? fw - ew : ew - fw;
 
     const transaction = await transactionModel.findOne({ transactionId });
 
@@ -136,7 +139,7 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "Transaction not found" });
     }
 
-    transaction.calibration = { image,error };
+    transaction.calibration = { image, error };
 
     await transaction.save();
 
@@ -201,15 +204,17 @@ export const TodaysTransactionController = async (req, res) => {
 
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
-  
+
   try {
-    const transactions = await transactionModel.find({ "store.storeId": storeId });
-    
-    if(!transactions){
+    const transactions = await transactionModel.find({
+      "store.storeId": storeId,
+    });
+
+    if (!transactions) {
       return res.status(400).json({
         success: false,
         message: "Store Id not present",
-      })
+      });
     }
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
@@ -290,4 +295,3 @@ export const AllTransactionsController = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
-

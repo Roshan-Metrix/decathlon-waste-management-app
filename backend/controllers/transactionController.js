@@ -204,7 +204,7 @@ export const TodaysTransactionController = async (req, res) => {
 
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
-
+  
   try {
     const transactions = await transactionModel.find({ "store.storeId": storeId });
     
@@ -252,18 +252,9 @@ export const StoreTotalTransactionController = async (req, res) => {
   }
 };
 
-// Not is use , but kept for reference or future use
-// All Today's Transactions Controller
-export const AllStoreTodaysTransactionsController = async (req, res) => {
+export const AllTransactionsController = async (req, res) => {
   try {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date();
-    endOfDay.setHours(23, 59, 59, 999);
-
-    const transactions = await transactionModel.find({
-      createdAt: { $gte: startOfDay, $lte: endOfDay },
-    });
+    const transactions = await transactionModel.find().select("-password -__v");
 
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
@@ -292,13 +283,14 @@ export const AllStoreTodaysTransactionsController = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Today's transactions fetched successfully",
+      message: "All transactions fetched successfully",
       transactions: formattedTransactions,
     });
   } catch (error) {
-    console.log("Error in AllStoreTodaysTransactionsController:", error);
+    console.log("Error in AllTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+

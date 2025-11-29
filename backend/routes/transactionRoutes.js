@@ -1,6 +1,6 @@
 import express from 'express'
 import authMiddleware from '../middlewares/authMiddleware.js';
-import { AddTransactionDetailController, AllStoreTodaysTransactionsController, StoreTotalTransactionController, TodaysTransactionController, TransactionCalibrationController, TransactionItemsController } from '../controllers/transactionController.js';
+import { AddTransactionDetailController, AllTransactionsController, StoreTotalTransactionController, TodaysTransactionController, TransactionCalibrationController, TransactionItemsController } from '../controllers/transactionController.js';
 
 const transactionRouter = express.Router();
 
@@ -12,9 +12,7 @@ transactionRouter.post('/transaction-items/:transactionId',authMiddleware, Trans
 transactionRouter.post('/transaction-calibration/:transactionId', authMiddleware, TransactionCalibrationController);
 transactionRouter.get('/todays-transactions/:transactionId', authMiddleware, TodaysTransactionController);
 transactionRouter.get('/store-total-transactions/:storeId', authMiddleware, StoreTotalTransactionController);
-
-// Not in use , but kept for reference or future use
-transactionRouter.get('/all-store-todays-transactions', authMiddleware, AllStoreTodaysTransactionsController);
+transactionRouter.get('/all-transactions', authMiddleware, AllTransactionsController);
 
 
 export default transactionRouter;

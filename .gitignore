@@ -35,7 +35,9 @@ android
 # local env files
 .env*.local
 backend/.env
+backend/.env.production
 frontend/.env
+frontend/.env.production
 
 # typescript
 *.tsbuildinfo

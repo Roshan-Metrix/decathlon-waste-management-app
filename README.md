@@ -24,6 +24,7 @@ A comprehensive mobile application for warehouse waste management operations for
 ## Status
 - Development: In active development (work in progress)
 - Platform: Expo (React Native)
+- Backend: Node.js/Express (REST API)
 
 ## Highlights
 - Clean, mobile-first UI optimized for shopping and product discovery
@@ -35,17 +36,30 @@ A comprehensive mobile application for warehouse waste management operations for
 Prerequisites:
 - Node LTS
 - npm or yarn
+- Docker (optional — for backend)
 - Expo CLI: `npm install -g expo-cli` (optional — you can use `npx`)
 
-Steps:
+<b>Steps:</b>
+### npm or yarn install
 1. Clone the repo
 2. cd into the project root
 3. Install dependencies
     - npm: `npm install`
     - yarn: `yarn`
-4. Start the app
+4. Start the backend server
+    - `cd backend`
+    - `node server.js`
+5. Start the app
+    - `cd frontend`
     - `npx expo start`
-5. Open on device or simulator using the Expo app / emulator
+6. Open on device or simulator using the Expo app / emulator
+
+Or Docker (Backend):
+### Docker
+1. Ensure Docker is installed and running
+2. From the project root, build and start containers:
+   - `docker-compose up --build`
+3. Access the app via Expo as above
 
 ## Development tips
 - Use the Expo dev tools to reload and debug

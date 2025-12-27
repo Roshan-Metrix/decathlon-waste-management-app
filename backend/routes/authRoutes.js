@@ -40,10 +40,10 @@ authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticul
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 //vendor
-authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
 authRouter.post('/vendor/register', vendorRegister);
 authRouter.post('/vendor/login', vendorLogin);
 authRouter.post('/vendor/logout', logoutVendor);
+authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
 
 export default authRouter;
 

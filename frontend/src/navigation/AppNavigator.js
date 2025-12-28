@@ -25,6 +25,9 @@ import ViewManagersScreen from "../screens/Admin/ManageManagers/ViewManagersScre
 import RemoveStoresScreen from "../screens/Admin/ManageStores/RemoveStoresScreen";
 import ViewAllStoresScreen from "../screens/Admin/ManageStores/ViewAllStoresScreen";
 import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen";
+import ManageVendorScreen from "../screens/Admin/ManageVendorScreen";
+import ViewVendorsScreen from "../screens/Admin/VendorManagers/ViewVendorsScreen";
+import AddVendorsScreen from "../screens/Admin/VendorManagers/AddVendorsScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
@@ -90,6 +93,9 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ViewManagersScreen" component={ViewManagersScreen} />
             <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
             <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />
+            <Stack.Screen name="ManageVendorScreen" component={ManageVendorScreen} />
+            <Stack.Screen name="AddVendorsScreen" component={AddVendorsScreen} />
+            <Stack.Screen name="ViewVendorsScreen" component={ViewVendorsScreen} />
 
             {/* Manager & Store Screens */}
             <Stack.Screen name="ManageDataScreen" component={ManageDataScreen} />

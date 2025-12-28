@@ -74,8 +74,7 @@ export const vendorRegister = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: "Vendor registered successfully.",
-      token,
+      message: "Vendor registered successfully."
     });
   } catch (error) {
     console.error("Vendor Registration Error:", error.message);

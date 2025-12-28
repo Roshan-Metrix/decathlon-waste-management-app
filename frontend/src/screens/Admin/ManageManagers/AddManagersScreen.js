@@ -113,7 +113,8 @@ export default function AddManagersScreen({ navigation }) {
 
       if (!registerRes.data.success) {
         setLoading(false);
-        alert(registerRes.data.message);
+        setAlertMessage(registerRes.data.message);
+        setAlertVisible(true);
         return;
       }
 

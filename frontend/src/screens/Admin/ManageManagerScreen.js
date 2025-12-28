@@ -1,13 +1,14 @@
 import React from "react";
+import { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert, 
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import Alert from "../../Components/Alert";
 
 // Reusable component for the action cards
 const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
@@ -33,6 +34,13 @@ const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
 );
 
 export default function ManageManagerScreen({ navigation }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const showAlert = () => {
+    setAlertMessage("This feature is coming soon!");
+    setAlertVisible(true);
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -91,10 +99,8 @@ export default function ManageManagerScreen({ navigation }) {
             title="Remove Manager"
             description="Deactivate or permanently delete a staff account."
             iconName="person-remove"
-            iconColor="#ef4444" 
-            onPress={() =>
-              Alert.alert("Warning", "On development process . . .")
-            }
+            iconColor="#ef4444"
+            onPress={() => showAlert()}
           />
         </View>
 
@@ -107,6 +113,11 @@ export default function ManageManagerScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -114,14 +125,14 @@ export default function ManageManagerScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f4f7fc", 
+    backgroundColor: "#f4f7fc",
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 50, 
+    paddingTop: 50,
     paddingBottom: 15,
     backgroundColor: "#ffffff",
     // Enhanced Shadow
@@ -137,7 +148,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: "800",
-    color: "#1e40af", 
+    color: "#1e40af",
   },
   content: {
     paddingHorizontal: 20,
@@ -151,7 +162,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   iconCircle: {
-    backgroundColor: "#dbeafe", 
+    backgroundColor: "#dbeafe",
     padding: 25,
     borderRadius: 50,
     marginBottom: 15,
@@ -178,7 +189,7 @@ const styles = StyleSheet.create({
   actionsContainer: {
     width: "100%",
     paddingTop: 10,
-    gap: 12, 
+    gap: 12,
   },
   actionSectionTitle: {
     fontSize: 16,
@@ -193,8 +204,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#ffffff",
     padding: 16,
-    borderRadius: 16, 
-    borderLeftWidth: 6, 
+    borderRadius: 16,
+    borderLeftWidth: 6,
     // Prominent Shadow
     shadowColor: "#000",
     shadowOpacity: 0.08,
@@ -227,7 +238,7 @@ const styles = StyleSheet.create({
   calloutBox: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#e0e7ff", 
+    backgroundColor: "#e0e7ff",
     padding: 16,
     borderRadius: 12,
     marginTop: 40,

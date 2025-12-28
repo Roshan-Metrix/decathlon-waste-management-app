@@ -1,4 +1,5 @@
 import React from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -6,9 +7,9 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
-  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import Alert from "../../Components/Alert";
 
 // Reusable component for the action cards (for consistent UI across screens)
 const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
@@ -34,6 +35,13 @@ const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
 );
 
 export default function ManageAdminScreen({ navigation }) {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const showAlert = () => {
+    setAlertMessage("This feature is coming soon!");
+    setAlertVisible(true);
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -89,9 +97,7 @@ export default function ManageAdminScreen({ navigation }) {
             description="Remove administrative privileges from an existing account."
             iconName="no-accounts"
             iconColor="#ef4444"
-            onPress={() =>
-              Alert.alert("Security Action", "On development phase. . .")
-            }
+            onPress={() => showAlert()}
           />
         </View>
 
@@ -108,6 +114,11 @@ export default function ManageAdminScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }

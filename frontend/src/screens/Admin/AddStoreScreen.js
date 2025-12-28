@@ -177,6 +177,7 @@ export default function AddStoreScreen({ navigation }) {
                   onChangeText={setContactNumber}
                   keyboardType="numeric"
                   style={styles.input}
+                  maxLength={10}
                 />
               </View>
 

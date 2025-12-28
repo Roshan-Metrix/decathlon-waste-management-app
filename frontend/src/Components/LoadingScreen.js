@@ -5,7 +5,7 @@ export default function LoadingScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.box}>
-        <ActivityIndicator size="large" color="#4f46e5" />
+        <ActivityIndicator size="large" color="#1e40af" />
         <Text style={styles.text}>Loading...</Text>
       </View>
     </View>
@@ -28,6 +28,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 18,
     fontWeight: "700",
-    color: "#4f46e5",
+    color: "#1e40af",
   },
 });

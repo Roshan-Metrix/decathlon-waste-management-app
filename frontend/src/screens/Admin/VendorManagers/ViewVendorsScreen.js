@@ -1,0 +1,210 @@
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  TextInput,
+} from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import api from "../../../api/api";
+
+export default function ViewVendorsScreen({ navigation }) {
+  const [vendors, setVendors] = useState([]);
+  const [filteredVendors, setFilteredVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  const fetchVendors = async () => {
+    try {
+      const { data } = await api.get("/auth/vendor/get-all-vendors");
+
+      if (data.success) {
+        setVendors(data.vendors);
+        setFilteredVendors(data.vendors);
+      }
+    } catch (err) {
+      console.log("Fetch Vendors Error:", err.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchVendors();
+  }, []);
+
+  //  Filter vendors on search
+  useEffect(() => {
+    const s = search.toLowerCase();
+
+    const filtered = vendors.filter((v) => {
+      return (
+        v.name.toLowerCase().includes(s) ||
+        v.email.toLowerCase().includes(s) ||
+        v.vendorLocation.toLowerCase().includes(s)
+      );
+    });
+
+    setFilteredVendors(filtered);
+  }, [search]);
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+        </TouchableOpacity>
+
+        <Text style={styles.headerTitle}>Vendors List</Text>
+
+        <View style={{ width: 30 }} />
+      </View>
+
+      {/* Search Box */}
+      <View style={styles.searchBox}>
+        <MaterialIcons name="search" size={22} color="#2563eb" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by name, location, email..."
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      {/* Loading */}
+      {loading ? (
+        <ActivityIndicator size="large" color="#2563eb" style={{ marginTop: 40 }} />
+      ) : filteredVendors.length === 0 ? (
+        <Text style={styles.noData}>No vendors found.</Text>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Total Vendors */}
+          <View style={styles.countBox}>
+            <MaterialIcons name="people" size={50} color="#2563eb" />
+            <Text style={styles.countText}>Total Vendors</Text>
+            <Text style={styles.countNumber}>{filteredVendors.length}</Text>
+          </View>
+
+          {/* Vendor Cards */}
+          {filteredVendors.map((v, index) => (
+            <View key={index} style={styles.card}>
+              <View style={styles.row}>
+                <MaterialIcons name="person" size={22} color="#2563eb" />
+                <Text style={styles.value}>{v.name}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="email" size={22} color="#2563eb" />
+                <Text style={styles.value}>{v.email}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="call" size={22} color="#2563eb" />
+                <Text style={styles.value}>{v.contactNumber}</Text>
+              </View>
+
+              <View style={styles.row}>
+                <MaterialIcons name="location-pin" size={22} color="#2563eb" />
+                <Text style={styles.value}>{v.vendorLocation}</Text>
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      )}
+    </View>
+  );
+}
+
+/* ---------------------- STYLES ---------------------- */
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#f9fafb" },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingTop: 55,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    justifyContent: "space-between",
+    backgroundColor: "#fff",
+    elevation: 3,
+  },
+
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "700",
+    color: "#2563eb",
+  },
+
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#eef2ff",
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+  },
+
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    marginLeft: 8,
+  },
+
+  scrollContent: { padding: 20 },
+
+  countBox: {
+    backgroundColor: "#e0e7ff",
+    paddingVertical: 25,
+    borderRadius: 15,
+    alignItems: "center",
+    marginBottom: 25,
+  },
+
+  countText: {
+    fontSize: 18,
+    color: "#2563eb",
+    fontWeight: "600",
+    marginTop: 10,
+  },
+
+  countNumber: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#1e3a8a",
+    marginTop: 5,
+  },
+
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 15,
+    padding: 18,
+    marginBottom: 18,
+    elevation: 2,
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  value: {
+    fontSize: 16,
+    marginLeft: 10,
+    color: "#111827",
+    fontWeight: "500",
+  },
+
+  noData: {
+    textAlign: "center",
+    fontSize: 16,
+    marginTop: 40,
+    color: "#777",
+  },
+});

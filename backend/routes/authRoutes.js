@@ -46,7 +46,7 @@ authRouter.post('/vendor/logout', logoutVendor);
 authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
 // Get total transaction of all store related to particular vendor
 authRouter.get('/vendor/get-all-related-transactions',authVendorMiddleware, AllTransactionsVendorController);
-authRouter.get('/vendor/get-all-vendors',adminMiddleware,getAllVendors);
+authRouter.get('/vendor/get-all-vendors',getAllVendors);
 
 export default authRouter;
 

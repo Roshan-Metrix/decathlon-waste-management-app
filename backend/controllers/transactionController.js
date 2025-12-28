@@ -84,6 +84,9 @@ export const TransactionItemsController = async (req, res) => {
         .json({ success: false, message: "Transaction not found" });
     }
 
+    // Converting weight to positive number
+    const positiveWeight = Math.abs(weight);
+
     // Auto-generate item number
     const itemNo = transaction.items.length + 1;
 
@@ -92,7 +95,7 @@ export const TransactionItemsController = async (req, res) => {
       itemNo,
       materialType,
       image,
-      weight: weight - transaction.calibration.error,
+      weight: positiveWeight - transaction.calibration.error,
       weightSource,
     });
 
@@ -157,51 +160,6 @@ export const TransactionCalibrationController = async (req, res) => {
   }
 };
 
-// Today's Transaction Controller
-export const TodaysTransactionController = async (req, res) => {
-  const transactionId = req.params.transactionId;
-
-  try {
-    const transactions = await transactionModel.find({ transactionId });
-
-    const formattedTransactions = transactions.map((txn) => ({
-      transactionId: txn.transactionId,
-      managerName: txn.managerName,
-      vendorName: txn.vendorName,
-      calibration: {
-        image: txn.calibration?.image || null,
-      },
-      store: {
-        storeId: txn.store?.storeId || null,
-        storeName: txn.store?.storeName || null,
-        storeLocation: txn.store?.storeLocation || null,
-      },
-      items: txn.items.map((item) => ({
-        itemNo: item.itemNo,
-        materialType: item.materialType,
-        image: item.image,
-        weight: item.weight,
-        weightSource: item.weightSource,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })),
-      createdAt: txn.createdAt,
-      updatedAt: txn.updatedAt,
-    }));
-
-    return res.status(200).json({
-      success: true,
-      message: "Today's transactions fetched successfully",
-      transactions: formattedTransactions,
-    });
-  } catch (error) {
-    console.log("Error in TodaysTransactionController:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
-  }
-};
-
 // Get total transaction of all particular store
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
@@ -249,6 +207,51 @@ export const StoreTotalTransactionController = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in StoreTotalTransactionController:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Today's Transaction Controller
+export const TodaysTransactionController = async (req, res) => {
+  const transactionId = req.params.transactionId;
+
+  try {
+    const transactions = await transactionModel.find({ transactionId });
+
+    const formattedTransactions = transactions.map((txn) => ({
+      transactionId: txn.transactionId,
+      managerName: txn.managerName,
+      vendorName: txn.vendorName,
+      calibration: {
+        image: txn.calibration?.image || null,
+      },
+      store: {
+        storeId: txn.store?.storeId || null,
+        storeName: txn.store?.storeName || null,
+        storeLocation: txn.store?.storeLocation || null,
+      },
+      items: txn.items.map((item) => ({
+        itemNo: item.itemNo,
+        materialType: item.materialType,
+        image: item.image,
+        weight: item.weight,
+        weightSource: item.weightSource,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+      createdAt: txn.createdAt,
+      updatedAt: txn.updatedAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Today's transactions fetched successfully",
+      transactions: formattedTransactions,
+    });
+  } catch (error) {
+    console.log("Error in TodaysTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

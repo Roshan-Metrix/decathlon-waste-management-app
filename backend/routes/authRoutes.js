@@ -2,7 +2,7 @@ import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
 import authVendorMiddleware from '../middlewares/authVendorMiddleware.js';
-import { getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
+import { AllTransactionsVendorController, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import { getAllAdmins } from '../controllers/adminController.js';
 import { getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
@@ -40,10 +40,12 @@ authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticul
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 //vendor
-authRouter.post('/vendor/register', vendorRegister);
+authRouter.post('/vendor/register',adminMiddleware,vendorRegister);
 authRouter.post('/vendor/login', vendorLogin);
 authRouter.post('/vendor/logout', logoutVendor);
 authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
+// Get total transaction of all store related to particular vendor
+authRouter.get('/vendor/get-all-related-transactions',authVendorMiddleware, AllTransactionsVendorController);
 
 export default authRouter;
 

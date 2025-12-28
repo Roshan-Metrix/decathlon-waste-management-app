@@ -14,7 +14,6 @@ import ProfileScreen from "../screens/ProfileScreen";
 import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 
 // Admin Screens
-import AddStoreScreen from "../screens/Admin/AddStoreScreen";
 import ManageStoresScreen from "../screens/Admin/ManageStoresScreen";
 import NotifyStoresScreen from "../screens/Admin/NotifyStoresScreen";
 import ManageManagerScreen from "../screens/Admin/ManageManagerScreen";
@@ -28,6 +27,7 @@ import AddManagersScreen from "../screens/Admin/ManageManagers/AddManagersScreen
 import ManageVendorScreen from "../screens/Admin/ManageVendorScreen";
 import ViewVendorsScreen from "../screens/Admin/VendorManagers/ViewVendorsScreen";
 import AddVendorsScreen from "../screens/Admin/VendorManagers/AddVendorsScreen";
+import AddStoreScreen from "../screens/Admin/ManageStores/AddStoreScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";

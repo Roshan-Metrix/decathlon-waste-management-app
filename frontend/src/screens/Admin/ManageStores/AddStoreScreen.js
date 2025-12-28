@@ -13,8 +13,8 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import api from "../../api/api";
-import Alert from "../../Components/Alert";
+import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function AddStoreScreen({ navigation }) {
   const [storeId, setStoreId] = useState("");

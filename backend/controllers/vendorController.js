@@ -265,3 +265,21 @@ export const AllTransactionsVendorController = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+// Get all vendors for Admin
+export const getAllVendors = async (req, res) => {
+  try {
+    const vendors = await vendorModel.find().select("-password -__v");
+
+    return res.json({
+      success: true,
+      message: "Vendors fetched successfully",
+      count: vendors.length,
+      vendors: vendors,
+    });
+
+  } catch (error) {
+    console.log("Error in getAllVendors Controller:", error);
+    return res.json({ success: false, message: error.message });
+  }
+};

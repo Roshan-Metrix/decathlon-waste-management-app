@@ -64,6 +64,7 @@ Or Docker (Backend):
 ## Development tips
 - Use the Expo dev tools to reload and debug
 - Keep environment secrets out of source; use `.env` and `.env.example`
+> **Note:** Use [Gmail App Passwords](https://support.google.com/accounts/answer/185833) for secure email sending.
 - Follow feature-branch workflow and open PRs for review
 
 ## Project structure (high level)

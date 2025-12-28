@@ -1,9 +1,11 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import vendorModel from "../models/vendorModel.js";
+import transactionModel from "../models/transactionModel.js";
 import transporter from "../config/nodemailer.js";
 import { VENDOR_ADDED_TEMPLATE } from "../config/emailTemplates.js";
 
+// Vendor Registration by Admin only 
 export const vendorRegister = async (req, res) => {
   const { name, email, password, vendorLocation, contactNumber } = req.body;
 
@@ -174,6 +176,7 @@ export const logoutVendor = async (req, res) => {
   }
 };
 
+//  Get logged in vendor details 
 export const getVendorLoggedInDetails = async (req, res) => {
   try {
     const vendorId = req.user.id;
@@ -208,5 +211,58 @@ export const getVendorLoggedInDetails = async (req, res) => {
   } catch (error) {
     console.error("Error in Get Vendor Details:", error.message);
     return res.json({ success: false, message: error.message });
+  }
+};
+
+// Get total transaction of all store related to particular vendor
+export const AllTransactionsVendorController = async (req, res) => {
+  try {
+     const vendorId = req.user.id;
+
+    const vendor = await vendorModel.findById(vendorId).select("-password -__v");
+
+    if (!vendor) {
+      return res.json({ success: false, message: "Vendor not found" });
+    }
+
+    const transactions = await transactionModel.find({ vendorName: vendor.name }).select("-password -__v");
+
+    const formattedTransactions = transactions.map((txn) => ({
+      transactionId: txn.transactionId,
+      managerName: txn.managerName,
+      vendorName: txn.vendorName,
+      calibration: {
+        image: txn.calibration?.image || null,
+      },
+      store: {
+        storeId: txn.store?.storeId || null,
+        storeName: txn.store?.storeName || null,
+        storeLocation: txn.store?.storeLocation || null,
+      },
+      items: txn.items.map((item) => ({
+        itemNo: item.itemNo,
+        materialType: item.materialType,
+        image: item.image,
+        weight: item.weight,
+        weightSource: item.weightSource,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+      createdAt: txn.createdAt,
+      updatedAt: txn.updatedAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "All transactions fetched successfully",
+      totalTransactions: formattedTransactions.length,
+      totalItems: formattedTransactions.reduce((acc, txn) => acc + txn.items.length, 0),
+      transactions: formattedTransactions,
+    });
+  } catch (error) {
+    console.log("Error in AllTransactionsVendors\Controller:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };

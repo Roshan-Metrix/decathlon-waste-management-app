@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  ScrollView,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../../api/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   clearOldTransaction,
   saveTodayTransaction,
@@ -21,28 +23,45 @@ import Alert from "../../../Components/Alert";
 
 export default function AddTransactionScreen({ navigation }) {
   const { user } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(true);
+  const [sendingLoading, setSendingLoading] = useState(false);
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
-  const [sendingLoading, setSendingLoading] = useState(false);
+
   const [storeId, setStoreId] = useState("");
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
-
   // Vendor Dropdown
   const [vendorOpen, setVendorOpen] = useState(false);
-  const [vendor, setVendor] = useState(null);
-  const [vendorItems, setVendorItems] = useState([
-    { label: "Hulas Steel", value: "Hulas Steel" },
-    { label: "CG Suppliers", value: "CG Suppliers" },
-    { label: "Global Traders", value: "Global Traders" },
-    { label: "Others", value: "Others" },
-  ]);
+  const [vendorName, setVendorName] = useState(null);
+  const [vendorItems, setVendorItems] = useState([]);
+  const [vendorsLoading, setVendorsLoading] = useState(false);
 
-  const [otherVendor, setOtherVendor] = useState("");
+  const fetchVendors = async () => {
+    try {
+      setVendorsLoading(true);
+      const res = await api.get("/auth/vendor/get-all-vendors");
 
-  // Fetch manager profile
+      if (res.data?.success && Array.isArray(res.data.vendors)) {
+        const vendors = res.data.vendors.map((v) => ({
+          label: v.name,
+          value: v.name,
+        }));
+
+        setVendorItems(vendors);
+      }
+    } catch (error) {
+      console.error("Vendor fetch error:", error);
+      setAlertMessage("Failed to fetch vendors.");
+      setAlertVisible(true);
+    } finally {
+      setVendorsLoading(false);
+    }
+  };
+
   const fetchProfile = async () => {
     try {
       if (user?.role === "manager") {
@@ -61,31 +80,25 @@ export default function AddTransactionScreen({ navigation }) {
           setStoreId(res.data.store.storeId);
           setStoreName(res.data.store.name);
           setStoreLocation(res.data.store.storeLocation);
-          setManagerName("store");
+          setManagerName("Store");
         }
       }
-    } catch (err) {
-      // Alert.alert("Error", "Failed to load profile.");
+    } catch (error) {
       setAlertMessage("Failed to load profile.");
       setAlertVisible(true);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
+    fetchVendors();
     fetchProfile();
   }, []);
 
   const handleProcess = async () => {
-    if (!vendor) {
+    if (!vendorName) {
       setAlertMessage("Please select Vendor Name.");
-      setAlertVisible(true);
-      return;
-    }
-
-    if (vendor === "Others" && !otherVendor.trim()) {
-      // return Alert.alert("Missing Field", "Please enter Vendor Name.");
-      setAlertMessage("Please enter Vendor Name.");
       setAlertVisible(true);
       return;
     }
@@ -98,37 +111,24 @@ export default function AddTransactionScreen({ navigation }) {
         storeName,
         storeLocation,
         managerName,
-        vendorName: vendor === "Others" ? otherVendor : vendor,
+        vendorName,
       });
 
-      // console.log("API Response:", res.data);
-
       const transactionId = res.data?.transactionId;
-
       if (!transactionId) {
-        setSendingLoading(false);
-        // return Alert.alert("Error", "Failed to create transaction.");
-        setAlertMessage("Failed to create transaction.");
-        setAlertVisible(true);
-        return;
+        throw new Error("Transaction failed");
       }
 
-      // Clear old transaction
       await clearOldTransaction();
-
-      // SAVE New transaction TO ASYNC STORAGE
       await saveTodayTransaction(transactionId);
-
-      setSendingLoading(false);
 
       navigation.navigate("ProcessTransactionScreen");
     } catch (error) {
-      console.log("Transaction Error:", error.response?.data || error.message);
-      // Alert.alert("Transaction Error:", error.response?.data.message);
-      setAlertMessage("Transaction Error!");
+      console.log("Transaction error:", error);
+      setAlertMessage("Transaction failed!");
       setAlertVisible(true);
+    } finally {
       setSendingLoading(false);
-      return navigation.navigate("UserScreen");
     }
   };
 
@@ -140,103 +140,116 @@ export default function AddTransactionScreen({ navigation }) {
     );
   }
 
-  // Get Today date
   const today = new Date()
-    .toLocaleString("en-CA", { timeZone: "Asia/Kolkata" })
-    .split(",")[0];
+    .toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <MaterialIcons name="arrow-back" size={26} color={colors.primary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Transaction</Text>
-        <View style={{ width: 26 }} />
-      </View>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.scrollContent}
+      >
+        <View style={styles.container}>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+              <MaterialIcons
+                name="arrow-back"
+                size={26}
+                color={colors.primary}
+              />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>Add Transaction</Text>
+            <View style={{ width: 26 }} />
+          </View>
 
-      <View style={styles.form}>
-        {/* Date */}
-        <Text style={styles.label}>Date</Text>
-        <TextInput style={styles.input} value={today} editable={false} />
+          <View style={styles.form}>
+            <Text style={styles.label}>Date</Text>
+            <TextInput style={styles.input} value={today} editable={false} />
 
-        {/* Store ID */}
-        <Text style={styles.label}>Store ID</Text>
-        <TextInput style={styles.input} value={storeId} editable={false} />
+            <Text style={styles.label}>Store ID</Text>
+            <TextInput style={styles.input} value={storeId} editable={false} />
 
-        {/* Store Name */}
-        <Text style={styles.label}>Store Name</Text>
-        <TextInput style={styles.input} value={storeName} editable={false} />
+            <Text style={styles.label}>Store Name</Text>
+            <TextInput style={styles.input} value={storeName} editable={false} />
 
-        {/* Store Location */}
-        <Text style={styles.label}>Store Location</Text>
-        <TextInput
-          style={styles.input}
-          value={storeLocation}
-          editable={false}
-        />
+            <Text style={styles.label}>Store Location</Text>
+            <TextInput
+              style={styles.input}
+              value={storeLocation}
+              editable={false}
+            />
 
-        {/* Manager Name */}
-        <Text style={styles.label}>Manager Name</Text>
-        <TextInput style={styles.input} value={managerName} editable={false} />
-        {/* Vendor */}
-        <Text style={styles.label}>Vendor Name</Text>
+            <Text style={styles.label}>Manager Name</Text>
+            <TextInput
+              style={styles.input}
+              value={managerName}
+              editable={false}
+            />
 
-        <View style={{ zIndex: 1000 }}>
-          <DropDownPicker
-            open={vendorOpen}
-            value={vendor}
-            items={vendorItems}
-            setOpen={setVendorOpen}
-            setValue={setVendor}
-            setItems={setVendorItems}
-            placeholder="Select Vendor"
-            style={styles.dropdown}
-            dropDownContainerStyle={styles.dropdownContainer}
-          />
+            <Text style={styles.label}>Vendor Name</Text>
+
+            <View style={{ zIndex: 3000, elevation: 3000 }}>
+              <DropDownPicker
+                open={vendorOpen}
+                value={vendorName}
+                items={vendorItems}
+                setOpen={setVendorOpen}
+                setValue={setVendorName}
+                setItems={setVendorItems}
+                loading={vendorsLoading}
+                placeholder={
+                  vendorsLoading ? "Loading vendors..." : "Select Vendor"
+                }
+                listMode="SCROLLVIEW"
+                style={styles.dropdown}
+                dropDownContainerStyle={styles.dropdownContainer}
+                zIndex={3000}
+                zIndexInverse={1000}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.processButton}
+              onPress={handleProcess}
+            >
+              <MaterialIcons name="account-balance" size={22} color="#fff" />
+              <Text style={styles.processText}>Process Transaction</Text>
+            </TouchableOpacity>
+          </View>
         </View>
+      </ScrollView>
 
-        {vendor === "Others" && (
-          <TextInput
-            style={[styles.input, { marginTop: 10 }]}
-            placeholder="Enter Vendor Name"
-            value={otherVendor}
-            onChangeText={setOtherVendor}
-          />
-        )}
-
-        {/* Submit Button */}
-        <TouchableOpacity
-          style={styles.processButton}
-          onPress={() => handleProcess()}
-        >
-          <MaterialIcons name="account-balance" size={22} color="#fff" />
-          <Text style={styles.processText}>Process Transaction</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* LOADING OVERLAY */}
       {sendingLoading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size="large" color="#fff" />
-          <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
+          <Text style={{ color: "#fff", marginTop: 10 }}>
+            Processing...
+          </Text>
         </View>
       )}
+
       <Alert
         visible={alertVisible}
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
-// Styles
+/* ---------- Styles ----------- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f9fafb",
+  },
+
+  scrollContent: {
+    paddingBottom: 60,
   },
 
   loader: {
@@ -244,10 +257,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-
-  scrollContent: {
-  paddingBottom: 40,
-},
 
   header: {
     flexDirection: "row",
@@ -299,7 +308,6 @@ const styles = StyleSheet.create({
 
   dropdownContainer: {
     borderColor: "#d1d5db",
-    zIndex: 1000,
   },
 
   processButton: {

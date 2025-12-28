@@ -58,7 +58,16 @@ useEffect(() => {
 
   const roleBoxes = {
     admin: [
-      { title: "Add Store", icon: "store", screen: "AddStoreScreen" },
+      { 
+        title: "Add Store", 
+        icon: "store", 
+        screen: "AddStoreScreen" 
+      },
+      {
+        title: "Data Analysis",
+        icon: "query-stats",
+        screen: "ViewAllStoresScreen",
+      },
       {
         title: "Manage Stores",
         icon: "storefront",
@@ -66,7 +75,7 @@ useEffect(() => {
       },
       {
         title: "Manage Admins",
-        icon: "manage-accounts",
+        icon: "admin-panel-settings",
         screen: "ManageAdminScreen",
       },
       {
@@ -75,14 +84,14 @@ useEffect(() => {
         screen: "ManageManagerScreen",
       },
       {
+        title: "Manage Vendors",
+        icon: "manage-accounts",
+        screen: "ManageVendorScreen",
+      },
+      {
         title: "Notify Stores",
         icon: "notifications",
         screen: "NotifyStoresScreen",
-      },
-      {
-        title: "Data Analysis",
-        icon: "query-stats",
-        screen: "ViewAllStoresScreen",
       },
     ],
 

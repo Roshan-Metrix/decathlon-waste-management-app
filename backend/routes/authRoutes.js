@@ -1,13 +1,14 @@
 import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-import authVendorMiddleware from '../middlewares/authVendorMiddleware.js';
 import { AllTransactionsVendorController, getAllVendors, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import { getAllAdmins } from '../controllers/adminController.js';
 import { getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, getAllStores, getStoreProfile } from '../controllers/storeController.js';
 import managerMiddleware from '../middlewares/managerMiddleware.js';
+import vendorMiddleware from '../middlewares/vendorMiddleware.js';
+import { ParticularTransactionController } from '../controllers/transactionController.js';
 
 const authRouter = express.Router();
 
@@ -43,10 +44,11 @@ authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 authRouter.post('/vendor/register',adminMiddleware,vendorRegister);
 authRouter.post('/vendor/login', vendorLogin);
 authRouter.post('/vendor/logout', logoutVendor);
-authRouter.get('/vendor/profile',authVendorMiddleware,getVendorLoggedInDetails);
+authRouter.get('/vendor/profile',vendorMiddleware,getVendorLoggedInDetails);
 // Get total transaction of all store related to particular vendor
-authRouter.get('/vendor/get-all-related-transactions',authVendorMiddleware, AllTransactionsVendorController);
+authRouter.get('/vendor/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
 authRouter.get('/vendor/get-all-vendors',getAllVendors);
+authRouter.get('/vendor/particular-transactions/:transactionId', vendorMiddleware, ParticularTransactionController);
 
 export default authRouter;
 

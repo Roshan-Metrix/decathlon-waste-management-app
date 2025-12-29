@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import vendorModel from "../models/vendorModel.js";
 import transactionModel from "../models/transactionModel.js";
+import storeModel from "../models/storeModel.js";
 import transporter from "../config/nodemailer.js";
 import { VENDOR_ADDED_TEMPLATE } from "../config/emailTemplates.js";
 
@@ -188,13 +189,8 @@ export const getVendorLoggedInDetails = async (req, res) => {
 
     return res.json({
       success: true,
-      user: {
-        id: vendor._id,
-        name: vendor.name,
-        email: vendor.email,
-        role: vendor.role,
-        isApproved: vendor.isApproved,
-        vendor: {
+      message: "Vendor details fetched successfully",
+      vendor: {
         id: vendor._id,
         name: vendor.name,
         email: vendor.email,
@@ -205,8 +201,7 @@ export const getVendorLoggedInDetails = async (req, res) => {
         },
         createdAt: vendor.createdAt,
         updatedAt: vendor.updatedAt,
-      },
-    });
+      });
   } catch (error) {
     console.error("Error in Get Vendor Details:", error.message);
     return res.json({ success: false, message: error.message });
@@ -228,8 +223,8 @@ export const AllTransactionsVendorController = async (req, res) => {
 
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
+      storeName: txn.store.storeName,
       managerName: txn.managerName,
-      vendorName: txn.vendorName,
       calibration: {
         image: txn.calibration?.image || null,
       },
@@ -255,7 +250,8 @@ export const AllTransactionsVendorController = async (req, res) => {
       success: true,
       message: "All transactions fetched successfully",
       totalTransactions: formattedTransactions.length,
-      totalItems: formattedTransactions.reduce((acc, txn) => acc + txn.items.length, 0),
+      totalStores: new Set(formattedTransactions.map(txn => txn.store.storeId)).size || 0,
+      totalItems: formattedTransactions.reduce((acc, txn) => acc + txn.items.length, 0) || 0,
       transactions: formattedTransactions,
     });
   } catch (error) {

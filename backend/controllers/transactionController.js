@@ -213,8 +213,8 @@ export const StoreTotalTransactionController = async (req, res) => {
   }
 };
 
-// Today's Transaction Controller
-export const TodaysTransactionController = async (req, res) => {
+// Particular Transaction Controller
+export const ParticularTransactionController = async (req, res) => {
   const transactionId = req.params.transactionId;
 
   try {
@@ -247,11 +247,11 @@ export const TodaysTransactionController = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Today's transactions fetched successfully",
+      message: "Transactions fetched successfully",
       transactions: formattedTransactions,
     });
   } catch (error) {
-    console.log("Error in TodaysTransactionController:", error);
+    console.log("Error in ParticularTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

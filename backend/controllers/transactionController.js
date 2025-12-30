@@ -226,6 +226,7 @@ export const ParticularTransactionController = async (req, res) => {
       vendorName: txn.vendorName,
       calibration: {
         image: txn.calibration?.image || null,
+        error: txn.calibration?.error || null,
       },
       store: {
         storeId: txn.store?.storeId || null,

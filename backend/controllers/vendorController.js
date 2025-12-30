@@ -227,6 +227,7 @@ export const AllTransactionsVendorController = async (req, res) => {
       managerName: txn.managerName,
       calibration: {
         image: txn.calibration?.image || null,
+        error: txn.calibration?.error || null,
       },
       store: {
         storeId: txn.store?.storeId || null,

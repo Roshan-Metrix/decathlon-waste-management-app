@@ -11,6 +11,7 @@ import transporter from "../config/nodemailer.js";
 import adminModel from "../models/adminModel.js";
 import storeModel from "../models/storeModel.js";
 import managerModel from "../models/managerModel.js";
+import vendorModel from "../models/vendorModel.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -384,6 +385,11 @@ export const sendPasswordResetOtp = async (req, res) => {
       user = await managerModel.findOne({ email });
     }
 
+    // Check Vendor
+    if (!user){
+      user = await vendorModel.findOne({ email });
+    }
+
     if (!user) return res.json({ success: false, message: "User Not Found" });
 
     const otp = String(Math.floor(100000 + Math.random() * 900000));
@@ -423,7 +429,25 @@ export const resetPassword = async (req, res) => {
     return res.json({ success: false, message: "Password is required" });
 
   try {
-    const user = await userModel.findOne({ email });
+    let user = null;
+
+    // Check Admin
+    user = await adminModel.findOne({ email });
+
+    // Check Store
+    if (!user) {
+      user = await storeModel.findOne({ email });
+    }
+
+    // Check Manager
+    if (!user) {
+      user = await managerModel.findOne({ email });
+    }
+
+    // Check Vendor
+    if (!user){
+      user = await vendorModel.findOne({ email });
+    }
 
     if (!user) return res.json({ success: false, message: "User Not Found" });
 
@@ -459,7 +483,7 @@ export const resetPassword = async (req, res) => {
 
     return res.json({
       success: true,
-      message: "Password has been reset successfully",
+      message: "Password reset successfully",
     });
   } catch (error) {
     console.log("Error in resetPassword Controller : ", error);
@@ -487,6 +511,11 @@ export const changePassword = async (req, res) => {
     // Check Manager
     if (!user) {
       user = await managerModel.findOne({ _id: userId });
+    }
+
+    // Check Vendor
+    if (!user){
+      user = await vendorModel.findOne({ _id: userId });
     }
 
     if (!user) {

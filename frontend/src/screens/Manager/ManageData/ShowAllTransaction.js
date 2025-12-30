@@ -67,7 +67,6 @@ export default function ShowAllTransaction({ navigation }) {
       }
     } catch (error) {
       console.error("Fetch Transactions Error:", error);
-      //   Alert.alert("Network Error", "Could not connect to the server.");
       setAlertMessage("Network Error");
       setAlertVisible(true);
     } finally {

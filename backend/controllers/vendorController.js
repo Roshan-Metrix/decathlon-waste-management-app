@@ -143,6 +143,7 @@ export const vendorLogin = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Vendor login successful.",
+      token,
       vendor: {
         id: vendor._id,
         name: vendor.name,
@@ -204,6 +205,85 @@ export const getVendorLoggedInDetails = async (req, res) => {
       });
   } catch (error) {
     console.error("Error in Get Vendor Details:", error.message);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+// Get all stores related to particular vendor
+export const getAllRelatedStores = async (req, res) => {
+  try {
+    
+    const vendorId = req.user.id;
+
+    const vendor = await vendorModel.findById(vendorId).select("-password -__v");
+
+    if (!vendor) {
+      return res.json({ success: false, message: "Vendor not found" });
+    }
+
+    const transactions = await transactionModel.find({ vendorName: vendor.name }).select("-password -__v");
+
+    const uniqueStores = [];
+    const seenStoreIds = new Set();
+
+    transactions.forEach(txn => {
+      if (!seenStoreIds.has(txn.store.storeId)) {
+      seenStoreIds.add(txn.store.storeId);
+      uniqueStores.push({
+        storeId: txn.store.storeId,
+        storeName: txn.store.storeName,
+        storeLocation: txn.store.storeLocation,
+        transactionCount: transactions.filter(t => t.store.storeId === txn.store.storeId).length,
+      });
+      }
+    });
+
+    return res.json({
+      success: true,
+      message: "Related stores fetched successfully",
+      totalStores: uniqueStores.length,
+      stores: uniqueStores,
+    });
+  } catch (error) {
+    console.log("Error in getAllStores Controller : ", error);
+    return res.json({ success: false, message: error.message });
+  }
+};
+
+// Get all transactions of particular stores
+export const getAllRelatedStoresTransactions = async (req, res) => {
+  try {
+    const vendorId = req.user.id;
+
+    const vendor = await vendorModel.findById(vendorId).select("-password -__v");
+    if (!vendor) {
+      return res.json({ success: false, message: "Vendor not found" });
+    }
+
+    const storeId = req.params.storeId;
+
+    const transactions = await transactionModel.find({ "store.storeId": storeId, vendorName: vendor.name }).select("-password -__v");
+
+    if (transactions.length === 0) {
+      return res.json({ success: false, message: "No transactions found for this store" });
+    }
+
+    const formattedTransactions = transactions.map((txn) => ({
+      transactionId: txn.transactionId,
+      storeName: txn.store.storeName,
+      managerName: txn.managerName,
+      createdAt: txn.createdAt,
+      updatedAt: txn.updatedAt,
+      totalItems: txn.items.length || 0,
+    }));
+
+    return res.json({
+      success: true,
+      message: "Related transactions fetched successfully",
+      transactions: formattedTransactions,
+    });
+  } catch (error) {
+    console.log("Error in getAllStores Controller : ", error);
     return res.json({ success: false, message: error.message });
   }
 };

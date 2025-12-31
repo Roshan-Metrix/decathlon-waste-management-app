@@ -135,7 +135,8 @@ export default function AddOtherManagersScreen({ navigation }) {
       });
 
       if (!registerRes.data.success) {
-        alert(registerRes.data.message);
+      setAlertMessage(registerRes.data.message);
+      setAlertVisible(true);
         setLoading(false);
         return;
       }
@@ -178,7 +179,7 @@ export default function AddOtherManagersScreen({ navigation }) {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={90}
+        keyboardVerticalOffset={30}
       >
         <ScrollView
           contentContainerStyle={styles.content}

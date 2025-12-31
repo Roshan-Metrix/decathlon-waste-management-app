@@ -48,7 +48,7 @@ authRouter.get('/vendor/profile',vendorMiddleware,getVendorLoggedInDetails);
 // Get total transaction of all store related to particular vendor
 authRouter.get('/vendor/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
 authRouter.get('/vendor/get-all-vendors',getAllVendors);
-authRouter.get('/vendor/particular-transactions/:transactionId', vendorMiddleware, ParticularTransactionController);
+authRouter.get('/vendor/particular-transactions/:transactionId', vendorMiddleware,ParticularTransactionController);
 
 export default authRouter;
 

@@ -10,10 +10,14 @@ import transactionRouter from './routes/transactionRoutes.js';
 const app = express();
 const port = process.env.PORT || 3000;
 connectDB();
-const allowedOrigins = process.env.FRONTEND_URI;
 
 app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+const allowedOrigins = [
+  process.env.FRONTEND_URI,
+  'http://localhost:5173',
+];
 
 app.use(cookieParser());
 app.use(cors({ origin: allowedOrigins, credentials: true }));

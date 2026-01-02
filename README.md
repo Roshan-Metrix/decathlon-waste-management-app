@@ -1,4 +1,4 @@
-# ![Decathlon Logo](frontend/assets/splash-icon.png) Decathlon Mobile (Expo)
+# ![Decathlon Logo](frontend/assets/splash-icon.png) Decathlon Mobile
 
 A comprehensive mobile application for warehouse waste management operations for Decathlon Company featuring **advanced OCR (Optical Character Recognition)** for automated weight detection from digital scales and measuring devices.
 
@@ -87,9 +87,15 @@ MIT — see LICENSE file for details. [MIT License](license.txt)
 ## Contact
 For product or design queries, link to Decathlon stakeholders or internal channels.
 
-Note: This is an internal-in-development app for Decathlon. Assets and branding are provided in the repository (frontend/assets/icon.png).
+Note: This is an internal-in-development app for Decathlon.
 
-Contact <i><u>roshanpatel12309@gmail.com</u></i>
+> **Contact Information**
+>
+> For any inquiries or support, please reach out to:
+>
+> - **Email:** roshanpatel12309@gmail.com
+> - **GitHub:** [Roshan-Metrix](https://github.com/Roshan-Metrix)
+> - **LinkedIn:** [Roshan Patel](https://www.linkedin.com/in/roshannnn/)
 
 ---
-*This README was generated to provide an overview of the Decathlon Mobile (Expo) app prototype.*
+*This README was generated to provide an overview of the Decathlon Mobile app prototype.*

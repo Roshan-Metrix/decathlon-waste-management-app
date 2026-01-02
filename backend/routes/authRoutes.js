@@ -49,7 +49,7 @@ authRouter.get('/vendor/profile',vendorMiddleware,getVendorLoggedInDetails);
 authRouter.get('/vendor/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
 authRouter.get('/vendor/get-related-stores',vendorMiddleware,getAllRelatedStores);
 authRouter.get('/vendor/get-all-vendors',getAllVendors);
-authRouter.get('/vendor/particular-transactions/:transactionId', vendorMiddleware,ParticularTransactionController);
+authRouter.get('/vendor/particular-transactions/:transactionId',vendorMiddleware,ParticularTransactionController);
 authRouter.get('/vendor/transactions-particular-store/:storeId', vendorMiddleware,getAllRelatedStoresTransactions);
 
 export default authRouter;

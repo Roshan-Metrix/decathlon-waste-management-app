@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Decathlon",
-    "slug": "Decathlon",
+    "slug": "decathlon",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.roshanpatel150.Decathlon",
+      "bundleIdentifier": "com.decathlon.weightreader",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -30,7 +30,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.roshanpatel150.Decathlon",
+      "package": "com.decathlon.weightreader",
       "versionCode": 1
     },
     "web": {

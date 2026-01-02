@@ -91,7 +91,7 @@ Note: This is an internal-in-development app for Decathlon.
 
 > **Contact Information**
 >
-> For any inquiries or support, please reach out to:
+> For any inquiries or support, please reach out to developer:
 >
 > - **Email:** roshanpatel12309@gmail.com
 > - **GitHub:** [Roshan-Metrix](https://github.com/Roshan-Metrix)

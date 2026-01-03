@@ -16,8 +16,9 @@ react {
             .execute(null, rootDir).text.trim()
     ).parentFile
 
+    // ✅ FIXED LINE (Gradle 8 compatible)
     hermesCommand =
-        reactNativeDir.absolutePath + "/sdks/hermesc/%OS-BIN%/hermesc"
+        reactNativeDir.toString() + "/sdks/hermesc/%OS-BIN%/hermesc"
 
     codegenDir = new File(
         ["node", "--print",

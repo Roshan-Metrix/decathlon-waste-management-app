@@ -1,25 +1,25 @@
-android {
-    compileSdkVersion 33   // Latest recommended SDK
-    namespace 'com.decathlon.weightreader'
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-    defaultConfig {
-        applicationId "com.decathlon.weightreader"
-        minSdkVersion 21      // Minimum supported Android version
-        targetSdkVersion 33   // Target latest Android
-        versionCode 2         // Increment as needed
-        versionName "1.0.0"
-        multiDexEnabled true  // Optional if you have many methods
-
-        ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64" // Supports 32-bit + 64-bit
-        }
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
     }
-
-    buildTypes {
-        release {
-            signingConfig signingConfigs.release // Use EAS keystore
-            minifyEnabled false
-            shrinkResources false
-        }
+    dependencies {
+        // Make sure to use recent versions compatible with Android 12+
+        classpath("com.android.tools.build:gradle:8.1.1")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.10")
     }
 }
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://www.jitpack.io' }
+    }
+}
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"

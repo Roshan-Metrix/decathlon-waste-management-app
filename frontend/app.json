@@ -31,7 +31,8 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.decathlon.weightreader",
-      "versionCode": 1
+      "versionCode": 1,
+      "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"

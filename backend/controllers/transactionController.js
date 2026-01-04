@@ -134,6 +134,12 @@ export const TransactionCalibrationController = async (req, res) => {
     const ew = parseFloat(enterWeight) || 0;
     const error = fw > ew ? fw - ew : ew - fw;
 
+    if(error >= 0.1){
+      return res
+        .status(400)
+        .json({ success: false, message: "Zero error must be less than or equal to 0.1 kg" });
+    }
+
     const transaction = await transactionModel.findOne({ transactionId });
 
     if (!transaction) {

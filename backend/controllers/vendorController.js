@@ -241,6 +241,9 @@ export const getAllRelatedStores = async (req, res) => {
     return res.json({
       success: true,
       message: "Related stores fetched successfully",
+      totalTransactions: transactions.length,
+      totalStores: new Set(transactions.map(txn => txn.store.storeId)).size || 0,
+      totalItems: transactions.reduce((acc, txn) => acc + txn.items.length, 0) || 0,
       totalStores: uniqueStores.length,
       stores: uniqueStores,
     });

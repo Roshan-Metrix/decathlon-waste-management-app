@@ -78,50 +78,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
     setCanCalibrate(false);
   };
 
-  // const handleCalibrate = async () => {
-  //   if (!fetchWeight || !enterWeight || !photo) {
-  //     // alert("Weight missing.");
-  //     setAlertMessage("Weight missing!");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     const stored = await AsyncStorage.getItem("todayTransaction");
-  //     const parsed = JSON.parse(stored);
-  //     const transactionId = parsed?.transactionId;
-
-  //     const payload = {
-  //       fetchWeight,
-  //       enterWeight,
-  //       image: `data:image/jpeg;base64,${photo.base64}`,
-  //     };
-
-  //     const res = await api.post(
-  //       `/manager/transaction/transaction-calibration/${transactionId}`,
-  //       payload
-  //     );
-
-  //     setLoading(false);
-
-  //     if (res.data.success) {
-  //       await AsyncStorage.setItem("calibrationStatus", "Completed");
-  //       navigation.navigate("ProcessTransactionScreen");
-  //     } else {
-  //       // alert("Calibration failed.");
-  //       setAlertMessage("Calibration failed!");
-  //     setAlertVisible(true);
-  //     }
-  //   } catch (err) {
-  //     console.log(err?.response?.data?.message);
-  //     setAlertMessage("Something Went Wrong!");
-  //     setAlertVisible(true);
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleCalibrate = async () => {
   if (!photo) {
     setAlertMessage("Please capture image first!");
@@ -162,13 +118,10 @@ export default function CalibrationPhaseScreen({ navigation }) {
     if (res.data.success) {
       await AsyncStorage.setItem("calibrationStatus", "Completed");
       navigation.navigate("ProcessTransactionScreen");
-    } else {
-      setAlertMessage("Calibration failed!");
-      setAlertVisible(true);
     }
   } catch (err) {
     console.log(err?.response?.data?.message);
-    setAlertMessage("Something went wrong!");
+    setAlertMessage(err?.response?.data?.message || "Calibration failed!");
     setAlertVisible(true);
     setLoading(false);
   }

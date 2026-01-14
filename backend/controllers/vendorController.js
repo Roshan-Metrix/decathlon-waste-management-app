@@ -56,7 +56,7 @@ export const vendorRegister = async (req, res) => {
     res.cookie("vendorToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -116,14 +116,6 @@ export const vendorLogin = async (req, res) => {
       });
     }
 
-    // Check approval
-    // if (!vendor.isApproved) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "Vendor account not approved yet.",
-    //   });
-    // }
-
     // Generate token
     const token = jwt.sign(
       { id: vendor._id, role: vendor.role },
@@ -135,7 +127,7 @@ export const vendorLogin = async (req, res) => {
     res.cookie("vendorToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "None",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
@@ -165,7 +157,7 @@ export const logoutVendor = async (req, res) => {
     res.clearCookie("vendorToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
     });
 
     return res.json({

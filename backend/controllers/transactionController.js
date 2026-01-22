@@ -1,3 +1,4 @@
+import { runOcrOnImage } from "../lib/ocrService.js";
 import transactionModel from "../models/transactionModel.js";
 import { generateTransactionId } from "../utils/generateTransactionId.js";
 
@@ -115,6 +116,28 @@ export const TransactionItemsController = async (req, res) => {
   }
 };
 
+// Calibration GEMINI OCR Recognition
+export const recognizeWithGeminiController = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'Image is required' });
+    }
+
+    const weight = await runOcrOnBuffer(req.file.buffer);
+
+    res.json({
+      success: true,
+      weight
+    });
+
+  } catch (err) {
+    console.error("Error in recognizeWithGeminiController:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+}
 // Calibration Controller
 export const TransactionCalibrationController = async (req, res) => {
   try {
@@ -134,10 +157,13 @@ export const TransactionCalibrationController = async (req, res) => {
     const ew = parseFloat(enterWeight) || 0;
     const error = fw > ew ? fw - ew : ew - fw;
 
-    if(error >= 0.1){
+    if (error >= 0.1) {
       return res
         .status(400)
-        .json({ success: false, message: "Zero error must be less than or equal to 0.1 kg" });
+        .json({
+          success: false,
+          message: "Zero error must be less than or equal to 0.1 kg",
+        });
     }
 
     const transaction = await transactionModel.findOne({ transactionId });
@@ -166,10 +192,9 @@ export const TransactionCalibrationController = async (req, res) => {
   }
 };
 
-// Get total transaction of all particular store
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
-  
+
   try {
     const transactions = await transactionModel.find({
       "store.storeId": storeId,
@@ -181,35 +206,23 @@ export const StoreTotalTransactionController = async (req, res) => {
         message: "Store Id not present",
       });
     }
+
+    const StoreDetail = {
+      storeId: transactions[0].store.storeId,
+      storeName: transactions[0].store.storeName,
+    };
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
       managerName: txn.managerName,
-      vendorName: txn.vendorName,
-      calibration: {
-        image: txn.calibration?.image || null,
-      },
-      store: {
-        storeId: txn.store?.storeId || null,
-        storeName: txn.store?.storeName || null,
-        storeLocation: txn.store?.storeLocation || null,
-      },
-      items: txn.items.map((item) => ({
-        itemNo: item.itemNo,
-        materialType: item.materialType,
-        image: item.image,
-        weight: item.weight,
-        weightSource: item.weightSource,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })),
+      item: txn.items.length,
       createdAt: txn.createdAt,
-      updatedAt: txn.updatedAt,
     }));
 
     return res.status(200).json({
       success: true,
       message: "ALl Store transactions fetched successfully",
       transactions: formattedTransactions,
+      store: StoreDetail,
     });
   } catch (error) {
     console.log("Error in StoreTotalTransactionController:", error);

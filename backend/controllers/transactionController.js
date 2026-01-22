@@ -123,7 +123,7 @@ export const recognizeWithGeminiController = async (req, res) => {
       return res.status(400).json({ error: 'Image is required' });
     }
 
-    const weight = await runOcrOnBuffer(req.file.buffer);
+    const weight = await runOcrOnImage(req.file.buffer);
 
     res.json({
       success: true,

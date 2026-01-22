@@ -16,7 +16,7 @@ app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const allowedOrigins = [
-  'http://ec2-3-109-207-206.ap-south-1.compute.amazonaws.com:3000',
+  process.env.FRONTEND_URI,
   'http://localhost:5173',
 ];
 

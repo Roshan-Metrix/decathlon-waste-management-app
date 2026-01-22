@@ -1,14 +1,11 @@
 import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-import { AllTransactionsVendorController, getAllRelatedStores, getAllRelatedStoresTransactions, getAllVendors, getTotalWeightsByDates, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import { getAllAdmins } from '../controllers/adminController.js';
 import { getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, getAllStores, getStoreProfile } from '../controllers/storeController.js';
 import managerMiddleware from '../middlewares/managerMiddleware.js';
-import vendorMiddleware from '../middlewares/vendorMiddleware.js';
-import { ParticularTransactionController } from '../controllers/transactionController.js';
 
 const authRouter = express.Router();
 
@@ -16,6 +13,7 @@ authRouter.get('/', (req, res) => {
     res.send('Auth API Endpoint Running...');
 });
 
+// ----- APP routes -------
 //common routes
 authRouter.post('/login', loginUser);
 authRouter.post('/logout', logoutUser);
@@ -39,20 +37,6 @@ authRouter.get('/manager/profile',authMiddleware,managerMiddleware,getManagerPro
 // store
 authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticularStoreManagers);
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
-
-//vendor
-authRouter.post('/vendor/register',adminMiddleware,vendorRegister);
-authRouter.post('/vendor/login', vendorLogin);
-authRouter.post('/vendor/logout', logoutVendor);
-authRouter.get('/vendor/profile',vendorMiddleware,getVendorLoggedInDetails);
-// Get total transaction of all store related to particular vendor
-authRouter.get('/vendor/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
-authRouter.get('/vendor/get-related-stores',vendorMiddleware,getAllRelatedStores);
-authRouter.get('/vendor/get-all-vendors',getAllVendors);
-authRouter.get('/vendor/particular-transactions/:transactionId',vendorMiddleware,ParticularTransactionController);
-authRouter.get('/vendor/transactions-particular-store/:storeId', vendorMiddleware,getAllRelatedStoresTransactions);
-// Get total transactions according to material type of a particular store
-authRouter.get('/vendor/transactions-particular-store/:storeId/:from/:to', vendorMiddleware,getTotalWeightsByDates);
 
 export default authRouter;
 

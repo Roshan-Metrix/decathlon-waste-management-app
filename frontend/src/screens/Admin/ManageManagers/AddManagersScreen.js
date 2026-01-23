@@ -166,6 +166,7 @@ export default function AddManagersScreen({ navigation }) {
             <TextInput
               style={styles.inputField}
               placeholder="Store Id"
+              placeholderTextColor="#7e7c7c"
               value={storeId}
               onChangeText={setStoreId}
             />
@@ -177,6 +178,7 @@ export default function AddManagersScreen({ navigation }) {
             <TextInput
               style={styles.inputField}
               placeholder="Manager Name"
+              placeholderTextColor="#7e7c7c"
               value={name}
               onChangeText={setName}
             />
@@ -188,6 +190,7 @@ export default function AddManagersScreen({ navigation }) {
             <TextInput
               style={styles.inputField}
               placeholder="Manager Email"
+              placeholderTextColor="#7e7c7c"
               value={email}
               keyboardType="email-address"
               onChangeText={setEmail}
@@ -230,6 +233,7 @@ export default function AddManagersScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Your Email"
+              placeholderTextColor="#7e7c7c"
               value={adminEmail}
               onChangeText={setAdminEmail}
             />
@@ -237,6 +241,7 @@ export default function AddManagersScreen({ navigation }) {
             <TextInput
               style={[styles.input, { marginTop: 10 }]}
               placeholder="Your Password"
+              placeholderTextColor="#7e7c7c"
               secureTextEntry
               value={adminPassword}
               onChangeText={setAdminPassword}
@@ -272,7 +277,7 @@ export default function AddManagersScreen({ navigation }) {
   );
 }
 
-/* ---------------- STYLES ---------------- */
+/*  STYLES  */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },

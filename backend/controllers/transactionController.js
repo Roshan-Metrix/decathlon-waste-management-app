@@ -334,6 +334,7 @@ export const SelectedTransactionItemsController = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Transaction fetched successfully",
+      vendorName: transaction.vendorName,
       items: transaction.items,
     });
   }

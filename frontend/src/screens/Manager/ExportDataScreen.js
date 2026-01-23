@@ -140,7 +140,7 @@ const generatePDF = (data) => {
                     th, td { border: 1px solid #ddd; padding: 8px; font-size: 10px; }
                     th { background-color: #eef2ff; color: #1e40af; }
                     .total-row { background-color: #e0f2fe; font-weight: bold; font-size: 12px; }
-                    .signature-area { display: flex; justify-content: space-around; width: 100%; margin-top: 40px; }
+                    .signature-area { width: 100%; margin-top: 40px;position: relative; right: 0; }
                     .signature-box { text-align: center; width: 40%; }
                     .sig-placeholder { height: 60px; border-bottom: 1px solid #aaa; margin-top: 5px; }
                 </style>
@@ -210,18 +210,6 @@ const generatePDF = (data) => {
                             }
                         </div>
                         <div style="font-weight: bold;">Manager Signature</div>
-                    </div>
-                    <div class="signature-box">
-                        <div class="sig-placeholder">
-                            ${
-                              data.vendorSignature
-                                ? '<img src="' +
-                                  data.vendorSignature +
-                                  '" style="height:100%; width:100%; object-fit:contain;">'
-                                : ""
-                            }
-                        </div>
-                        <div style="font-weight: bold;">Vendor Signature</div>
                     </div>
                 </div>
             </body>

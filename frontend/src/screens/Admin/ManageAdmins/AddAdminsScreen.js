@@ -165,6 +165,7 @@ export default function AddAdminsScreen({ navigation }) {
             <TextInput
               style={styles.inputField}
               placeholder="Admin Name"
+              placeholderTextColor="#7e7c7c"
               value={name}
               onChangeText={setName}
             />
@@ -176,6 +177,7 @@ export default function AddAdminsScreen({ navigation }) {
             <TextInput
               style={styles.inputField}
               placeholder="Admin Email"
+              placeholderTextColor="#7e7c7c"
               value={email}
               keyboardType="email-address"
               onChangeText={setEmail}

@@ -320,3 +320,27 @@ export const AllTransactionsController = async (req, res) => {
       .json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const SelectedTransactionItemsController = async (req, res) => {
+  const { transactionId } = req.params;
+  try { 
+    const transaction = await transactionModel.findOne({ transactionId });
+
+    if (!transaction) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Transaction not found" });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Transaction fetched successfully",
+      items: transaction.items,
+    });
+  }
+  catch (error) {
+    console.log("Error in SelectedTransactionItemsController:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};

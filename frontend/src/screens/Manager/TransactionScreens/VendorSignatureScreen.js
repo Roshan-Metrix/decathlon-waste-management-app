@@ -1,3 +1,5 @@
+// This screen is currently not in use but kept for potential future needs.
+
 import React, { useRef, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
@@ -23,7 +25,6 @@ export default function VendorSignatureScreen({ navigation }) {
 
     try {
       await AsyncStorage.setItem("vendorSignature", sig);
-      console.log("Vendor Signature saved!");
     } catch (err) {
       console.log("Error saving signature: ", err);
     }

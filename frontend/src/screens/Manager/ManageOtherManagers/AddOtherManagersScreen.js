@@ -199,6 +199,7 @@ export default function AddOtherManagersScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Manager Name"
+                placeholderTextColor="#7e7c7c"
                 value={name}
                 onChangeText={setName}
               />
@@ -210,6 +211,7 @@ export default function AddOtherManagersScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Manager Email"
+                placeholderTextColor="#7e7c7c"
                 value={email}
                 keyboardType="email-address"
                 onChangeText={setEmail}

@@ -19,7 +19,7 @@ export default function ViewVendorsScreen({ navigation }) {
 
   const fetchVendors = async () => {
     try {
-      const { data } = await api.get("/auth/vendor/get-all-vendors");
+      const { data } = await api.get("/vendor/get-all-vendors");
 
       if (data.success) {
         setVendors(data.vendors);

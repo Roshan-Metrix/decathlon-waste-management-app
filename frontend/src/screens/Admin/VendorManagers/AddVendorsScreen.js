@@ -107,7 +107,7 @@ export default function AddVendorsScreen({ navigation }) {
       }
 
       // Register new vendor
-      const registerRes = await api.post("/auth/vendor/register", {
+      const registerRes = await api.post("/vendor/register", {
         name,
         email,
         vendorLocation,
@@ -178,6 +178,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Vendor Name"
+                placeholderTextColor="#7e7c7c"
                 value={name}
                 onChangeText={setName}
               />
@@ -189,6 +190,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Vendor Email"
+                placeholderTextColor="#7e7c7c"
                 value={email}
                 keyboardType="email-address"
                 onChangeText={setEmail}
@@ -201,6 +203,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Vendor Location"
+                placeholderTextColor="#7e7c7c"
                 value={vendorLocation}
                 onChangeText={setVendorLocation}
               />
@@ -212,6 +215,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={styles.inputField}
                 placeholder="Contact Number"
+                placeholderTextColor="#7e7c7c"
                 value={contactNumber}
                 keyboardType="phone-pad"
                 onChangeText={setContactNumber}
@@ -255,6 +259,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Your Email"
+                placeholderTextColor="#7e7c7c"
                 value={adminEmail}
                 onChangeText={setAdminEmail}
               />
@@ -262,6 +267,7 @@ export default function AddVendorsScreen({ navigation }) {
               <TextInput
                 style={[styles.input, { marginTop: 10 }]}
                 placeholder="Your Password"
+                placeholderTextColor="#7e7c7c"
                 secureTextEntry
                 value={adminPassword}
                 onChangeText={setAdminPassword}
@@ -298,7 +304,7 @@ export default function AddVendorsScreen({ navigation }) {
   );
 }
 
-/* ---------------- STYLES ---------------- */
+/*  STYLES  */
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },

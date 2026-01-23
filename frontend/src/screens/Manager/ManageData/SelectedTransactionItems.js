@@ -1,4 +1,4 @@
-import React from "react";
+import React, { use, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,10 @@ import {
   Dimensions,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { formatTimeStamp } from "../../../lib/formatTimeStamp";
+import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
+
 const PRIMARY_COLOR = "#1e40af";
 const ACCENT_COLOR = "#00bcd4";
 const LIGHT_BACKGROUND = "#f9fafb";
@@ -16,37 +20,55 @@ const CARD_COLOR = "#ffffff";
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 export default function SelectedTransactionItems({ route, navigation }) {
-  const { transactionData } = route.params;
 
-  const {
-    transactionId,
-    managerName,
-    vendorName,
-    items,
-    createdAt,
-    updatedAt,
-  } = transactionData;
+  const transactionId = route.params?.transactionId || "N/A";
+  const NoOfitems = route.params?.NoOfitems || [];
+  const managerName = route.params?.managerName || "N/A";
+  const createdAt = route.params?.createdAt || "N/A";
 
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return "N/A";
-    const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const [transaction, setTransaction] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const fetchTransactions = async () => {
+    setIsLoading(true);
+    try {
+      const response = await api.get(
+        `/manager/transaction/selected-transactions-items/${transactionId}`,
+      );
+      if (response.data?.success) {
+        setTransaction(response.data);
+      } else {
+        setAlertMessage(response.data?.message || "Failed to load.");
+        setAlertVisible(true);
+      }
+    } catch (error) {
+      console.error("Fetch error", error);
+      setAlertMessage("Network Error");
+      setAlertVisible(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+  const items = transaction?.items || [];
+
+  const totalWeight = items.reduce(
+    (sum, item) => sum + Number(item.weight || 0),
+    0,
+  );
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [transactionId]);
 
   const getImageSource = (base64Data) => {
     if (!base64Data || typeof base64Data !== "string") return null;
     if (base64Data.length < 50 || base64Data.includes(".")) {
       return {
         uri: `https://placehold.co/400x200/${PRIMARY_COLOR.substring(
-          1
+          1,
         )}/ffffff?text=Image+Placeholder+for+${base64Data}`,
       };
     }
@@ -98,7 +120,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
             </Text>
           </View>
           <Text style={styles.itemDate}>
-            Added: {formatTimestamp(item.createdAt)}
+            Added: {formatTimeStamp(item.createdAt)}
           </Text>
         </View>
       </View>
@@ -116,7 +138,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
           <MaterialIcons name="arrow-back" size={26} color={PRIMARY_COLOR} />
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>
-          Details: {transactionId}
+         {transactionId || "Data"}
         </Text>
         <View style={{ width: 26 }} />
       </View>
@@ -131,25 +153,39 @@ export default function SelectedTransactionItems({ route, navigation }) {
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Vendor:</Text>
-            <Text style={styles.summaryValue}>{vendorName}</Text>
+            {/* <Text style={styles.summaryValue}>{transaction.vendorName || "N/A"}</Text> */}
+            <Text style={styles.summaryValue}>{transaction?.vendorName || "N/A"}</Text>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Total Items:</Text>
-            <Text style={styles.summaryValue}>{items.length}</Text>
+            <Text style={styles.summaryValue}>{NoOfitems}</Text>
           </View>
           <View style={styles.summaryRowTotal}>
             <Text style={styles.totalLabel}>TOTAL WEIGHT:</Text>
             <Text style={styles.totalValue}>{totalWeight.toFixed(2)} kg</Text>
           </View>
           <Text style={styles.dateText}>
-            Created On: {formatTimestamp(createdAt)}
+            Created On: {formatTimeStamp(createdAt)}
           </Text>
         </View>
 
-        {/* Items Section */}
-        <Text style={styles.sectionTitle}>Items ({items.length})</Text>
-        {items.map(renderItemCard)}
+        {isLoading ? (
+          <View style={{ alignItems: "center" }}>
+            <Text style={{ fontSize: 16, color: "#787575" }}>Loading transaction items...</Text>
+          </View>
+        ) : (
+          <View>
+            <Text style={styles.sectionTitle}>Items ({items.length})</Text>
+            {items.map(renderItemCard)}
+          </View>
+        )}
+
       </ScrollView>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
@@ -204,7 +240,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     borderWidth: 2,
-    borderColor: PRIMARY_COLOR + "30", 
+    borderColor: PRIMARY_COLOR + "30",
   },
   summaryTitle: {
     fontSize: 18,
@@ -293,8 +329,8 @@ const styles = StyleSheet.create({
   },
   itemImage: {
     width: "100%",
-    height: SCREEN_WIDTH * 0.4, 
-    backgroundColor: "#e0e0e0", 
+    height: SCREEN_WIDTH * 0.4,
+    backgroundColor: "#e0e0e0",
   },
   imagePlaceholder: {
     width: "100%",

@@ -43,7 +43,7 @@ export default function AddTransactionScreen({ navigation }) {
   const fetchVendors = async () => {
     try {
       setVendorsLoading(true);
-      const res = await api.get("/auth/vendor/get-all-vendors");
+      const res = await api.get("/vendor/get-all-vendors");
 
       if (res.data?.success && Array.isArray(res.data.vendors)) {
         const vendors = res.data.vendors.map((v) => ({
@@ -241,7 +241,7 @@ export default function AddTransactionScreen({ navigation }) {
   );
 }
 
-/* ---------- Styles ----------- */
+/* Styles  */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

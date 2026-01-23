@@ -15,6 +15,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
+import { formatTimeStamp } from "../../../lib/formatTimeStamp";
 
 const PRIMARY_COLOR = "#1e40af";
 const LIGHT_BACKGROUND = "#f9fafb";
@@ -60,7 +61,7 @@ export default function ShowAllTransaction({ route, navigation }) {
   }, []);
 
   useEffect(() => {
-    // animate dropdown open/close
+    // dropdown open/close
     Animated.timing(animHeight, {
       toValue: sortOpen ? 1 : 0,
       duration: 240,
@@ -104,7 +105,7 @@ export default function ShowAllTransaction({ route, navigation }) {
 
         setStoreInfo({
           id: storeId,
-          name: txns[0]?.store?.storeName || "Store",
+          name: response.data?.store?.storeName || "Store",
         });
       } else {
         setAlertMessage(response.data?.message || "Failed to load.");
@@ -178,18 +179,6 @@ export default function ShowAllTransaction({ route, navigation }) {
     }
   };
 
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return "N/A";
-    const date = new Date(timestamp);
-    return date.toLocaleString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   // Export individual transaction
   const handleExportPress = (transactionId) => {
     navigation.navigate("BillingExportTransactionScreen", { transactionId });
@@ -202,7 +191,10 @@ export default function ShowAllTransaction({ route, navigation }) {
         style={styles.transactionCard}
         onPress={() =>
           navigation.navigate("SelectedTransactionItems", {
-            transactionData: txn,
+            transactionId: txn.transactionId,
+            items: txn.item,
+            managerName: txn.managerName,
+            createdAt: txn.createdAt,
           })
         }
       >
@@ -212,7 +204,7 @@ export default function ShowAllTransaction({ route, navigation }) {
           </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            {/* Export Button - kept inside card (unchanged as requested) */}
+            {/* Export Button */}
             <TouchableOpacity
               onPress={(e) => {
                 // stop propagation so it doesn't navigate
@@ -239,19 +231,19 @@ export default function ShowAllTransaction({ route, navigation }) {
 
           <Text style={styles.detailText}>
             Date:{" "}
-            <Text style={styles.bold}>{formatTimestamp(txn.createdAt)}</Text>
+            <Text style={styles.bold}>{formatTimeStamp(txn.createdAt)}</Text>
           </Text>
 
           <Text style={styles.detailText}>
             Total Items:{" "}
-            <Text style={styles.bold}>{txn.items?.length ?? 0}</Text>
+            <Text style={styles.bold}>{txn.item ?? 0}</Text>
           </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
-  // Animated dropdown styles (interpolate)
+  // Animated dropdown styles
   const dropdownHeight = animHeight.interpolate({
     inputRange: [0, 1],
     outputRange: [0, 110],
@@ -318,7 +310,7 @@ export default function ShowAllTransaction({ route, navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Animated dropdown */}
+        {/* Dropdown */}
         <Animated.View style={[styles.dropdown, { height: dropdownHeight }]}>
           {sortOpen && (
             <View style={styles.dropdownInner}>
@@ -364,7 +356,7 @@ export default function ShowAllTransaction({ route, navigation }) {
           )}
         </Animated.View>
 
-        {/* Date Filters (native pickers) */}
+        {/* Date Filters */}
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.dateInput}
@@ -448,7 +440,7 @@ const styles = StyleSheet.create({
     backgroundColor: LIGHT_BACKGROUND,
   },
 
-  /* ---------- HEADER ---------- */
+  /*  HEADER  */
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -472,7 +464,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
 
-  /* ---------- STORE INFO CARD ---------- */
+  /*  STORE INFO CARD  */
   storeInfoCard: {
     marginHorizontal: 16,
     marginTop: 20,
@@ -494,7 +486,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  /* ---------- FILTERS ---------- */
+  /*  FILTERS  */
   filterContainer: {
     marginHorizontal: 16,
     marginTop: 20,
@@ -600,7 +592,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
 
-  /* ---------- LIST ---------- */
+  /*  LIST  */
   content: {
     paddingHorizontal: 16,
     paddingTop: 14,

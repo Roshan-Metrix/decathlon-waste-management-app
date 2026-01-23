@@ -143,6 +143,7 @@ export default function AddStoreScreen({ navigation }) {
                 <MaterialIcons name="badge" size={22} color="#2563eb" />
                 <TextInput
                   placeholder="Store ID"
+                  placeholderTextColor="#7e7c7c"
                   value={storeId}
                   onChangeText={setStoreId}
                   style={styles.input}
@@ -153,6 +154,7 @@ export default function AddStoreScreen({ navigation }) {
                 <MaterialIcons name="storefront" size={22} color="#2563eb" />
                 <TextInput
                   placeholder="Store Name"
+                  placeholderTextColor="#7e7c7c"
                   value={name}
                   onChangeText={setName}
                   style={styles.input}
@@ -163,6 +165,7 @@ export default function AddStoreScreen({ navigation }) {
                 <MaterialIcons name="location-on" size={22} color="#2563eb" />
                 <TextInput
                   placeholder="Location"
+                  placeholderTextColor="#7e7c7c"
                   value={storeLocation}
                   onChangeText={setStoreLocation}
                   style={styles.input}
@@ -173,6 +176,7 @@ export default function AddStoreScreen({ navigation }) {
                 <MaterialIcons name="call" size={22} color="#2563eb" />
                 <TextInput
                   placeholder="Contact Number"
+                  placeholderTextColor="#7e7c7c"
                   value={contactNumber}
                   onChangeText={setContactNumber}
                   keyboardType="numeric"
@@ -185,6 +189,7 @@ export default function AddStoreScreen({ navigation }) {
                 <MaterialIcons name="email" size={22} color="#2563eb" />
                 <TextInput
                   placeholder="Store Email"
+                  placeholderTextColor="#7e7c7c"
                   value={email}
                   onChangeText={setEmail}
                   style={styles.input}
@@ -203,6 +208,7 @@ export default function AddStoreScreen({ navigation }) {
                   <MaterialIcons name="lock" size={22} color="#1d4ed8" />
                   <TextInput
                     placeholder="Password"
+                    placeholderTextColor="#7e7c7c"
                     value={password}
                     onChangeText={setPassword}
                     style={[styles.input, { marginLeft: 10 }]}
@@ -286,7 +292,7 @@ export default function AddStoreScreen({ navigation }) {
   );
 }
 
-/* ---------- STYLES ---------- */
+/*  STYLES  */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },
 
@@ -347,7 +353,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
-  input: { flex: 1, fontSize: 15, marginLeft: 8 },
+  input: { flex: 1, fontSize: 15, marginLeft: 8, color: "#333" },
 
   addButton: {
     flexDirection: "row",

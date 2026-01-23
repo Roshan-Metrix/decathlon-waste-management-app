@@ -13,7 +13,6 @@ import {
 import { CameraView, Camera } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import colors from "../../../colors";
@@ -41,36 +40,65 @@ export default function CalibrationPhaseScreen({ navigation }) {
   }, []);
 
   const handleCapture = async () => {
-    try {
-      const picture = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.5,
-      });
+  if (!cameraRef.current) {
+    setAlertMessage("Camera not ready.");
+    setAlertVisible(true);
+    return;
+  }
 
-      setPhoto(picture);
-      setLoading(true);
+  setLoading(true);
+  try {
+    const picture = await cameraRef.current.takePictureAsync({
+      base64: true,
+      quality: 0.5,
+    });
 
-      const ocrText = await runOcrOnImage(picture.uri);
-      const cleanWeight = parseWeight(ocrText);
+    setPhoto(picture);
 
-      if (cleanWeight) {
-        setFetchWeight(cleanWeight.toString());
-      } else {
-        setAlertMessage("Unable to detect weight!");
-        setAlertVisible(true);
-        setFetchWeight("");
+    const formData = new FormData();
+    formData.append("image", {
+      uri: picture.uri,
+      name: "photo.jpg",
+      type: "image/jpeg",
+    });
+
+    const res = await api.post(
+      "/manager/transaction/transaction-calibration/ocr",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
+    );
 
-      setCanCalibrate(true);
-      setLoading(false);
-    } catch (e) {
-      console.log("Capture error:", e);
-      setLoading(false);
-      // alert("Capture failed.");
-      setAlertMessage("Capture failed.");
+    const ocrText = res.data.weight;
+    const cleanWeight = parseWeight(ocrText);
+
+    if (cleanWeight) {
+      setFetchWeight(cleanWeight.toString());
+    } else {
+      setAlertMessage("Unable to detect weight!");
       setAlertVisible(true);
+      setFetchWeight("");
     }
-  };
+
+    setCanCalibrate(true);
+  } 
+  catch (e) {
+  console.log("Capture error:", e.message);
+  if (e.response) {
+    console.log("Server responded with:", e.response.data);
+  } else if (e.request) {
+    console.log("No response received:", e.request);
+  } else {
+    console.log("Axios config error:", e.config);
+  }}
+   finally {
+    setLoading(false);
+  }
+};
+
 
   const handleRecapture = () => {
     setPhoto(null);

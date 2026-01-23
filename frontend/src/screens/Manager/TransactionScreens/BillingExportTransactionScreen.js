@@ -59,7 +59,7 @@ const [alertMessage, setAlertMessage] = useState("");
     }
   };
 
-  // * Helper to show image URI for item.
+  // Helper to show image URI for item.
   const getItemImageUri = (imageField) => {
     if (!imageField) return null;
     if (typeof imageField !== "string") return null;
@@ -89,16 +89,15 @@ const [alertMessage, setAlertMessage] = useState("");
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        // const res = await api.get("/auth/manager/profile");
          let transactionId;
       if (route.params?.transactionId) {
         transactionId = route.params.transactionId;
-        console.log("Using transaction ID from route params:", transactionId);
+        // console.log("Using transaction ID from route params:", transactionId);
       } else {
         const stored = await AsyncStorage.getItem("todayTransaction");
         const parsed = JSON.parse(stored);
         transactionId = parsed?.transactionId;
-        console.log("Using transaction ID from AsyncStorage:", transactionId);
+        // console.log("Using transaction ID from AsyncStorage:", transactionId);
       }
 
       const res = await api.get(
@@ -122,12 +121,12 @@ const [alertMessage, setAlertMessage] = useState("");
       let transactionId;
       if (route.params?.transactionId) {
         transactionId = route.params.transactionId;
-        console.log("Using transaction ID from route params:", transactionId);
+        // console.log("Using transaction ID from route params:", transactionId);
       } else {
         const stored = await AsyncStorage.getItem("todayTransaction");
         const parsed = JSON.parse(stored);
         transactionId = parsed?.transactionId;
-        console.log("Using transaction ID from AsyncStorage:", transactionId);
+        // console.log("Using transaction ID from AsyncStorage:", transactionId);
       }
 
       if (!transactionId) {
@@ -437,8 +436,9 @@ setAlertVisible(true);
             Grand Total (in words): _______________________________________
           </Text> */}
 
+{/*
           <View style={styles.signatureRow}>
-            {/* MANAGER SIGNATURE */}
+            // Manager Sign
             <View style={{ alignItems: "center" }}>
               <Text style={styles.signatureLabel}>Manager Signature</Text>
               {managerSignature ? (
@@ -451,7 +451,7 @@ setAlertVisible(true);
               )}
             </View>
 
-            {/* VENDOR SIGNATURE */}
+            // Vendor Sign
             <View style={{ alignItems: "center" }}>
               <Text style={styles.signatureLabel}>Vendor Signature</Text>
               {vendorSignature ? (
@@ -464,6 +464,7 @@ setAlertVisible(true);
               )}
             </View>
           </View>
+*/}
 
           <Text style={styles.disclaimer}>
             * Above bill is true and correct *

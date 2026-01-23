@@ -11,7 +11,6 @@ import {
 } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
-import { runOcrOnImage } from "../../../ocr/ocrService";
 import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -71,7 +70,7 @@ export default function ItemsTransactionScreen({ navigation }) {
       }
 
       const res = await api.get(
-        `/manager/transaction/todays-transactions/${transactionId}`
+        `/manager/transaction/todays-transactions/${transactionId}`,
       );
 
       if (res.data?.success) {
@@ -90,42 +89,67 @@ export default function ItemsTransactionScreen({ navigation }) {
 
   // Capture image and run OCR
   const handleCapture = async () => {
-    try {
-      if (!cameraRef.current) {
-        setAlertMessage("Camera not ready!");
-        setAlertVisible(true);
-        return;
-      }
-
-      const picture = await cameraRef.current.takePictureAsync({
-        base64: true,
-        quality: 0.5,
-      });
-
-      setPhoto(picture);
-      setLoading(true);
-
-      // OCR
-
-      const ocrText = await runOcrOnImage(picture.uri);
-      const cleanWeight = parseWeight(ocrText);
-
-      if (cleanWeight) setFetchWeight(cleanWeight.toString());
-      else {
-        setAlertMessage(
-          "OCR couldn't detect weight.\nPlease enter weight manually or capture again."
-        );
-        setAlertVisible(true);
-        setFetchWeight("");
-      }
-      setLoading(false);
-    } catch (e) {
-      console.log("Capture Error:", e);
-      setLoading(false);
-      setAlertMessage("Capture Failed. \n Try again.");
+  try {
+    if (!cameraRef.current) {
+      setAlertMessage("Camera not ready!");
       setAlertVisible(true);
+      return;
     }
-  };
+
+    setLoading(true);
+
+    const picture = await cameraRef.current.takePictureAsync({
+      base64: true, 
+      quality: 0.5,
+    });
+
+    setPhoto(picture);
+
+    const formData = new FormData();
+    formData.append("image", {
+      uri: picture.uri,
+      name: "photo.jpg",
+      type: "image/jpeg",
+    });
+
+    const res = await api.post(
+      "/manager/transaction/transaction-calibration/ocr",
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    const ocrText = res.data.weight;
+    const cleanWeight = parseWeight(ocrText);
+
+    if (cleanWeight) {
+      setFetchWeight(cleanWeight.toString());
+    } else {
+      setAlertMessage(
+        "OCR couldn't detect weight.\nPlease enter weight manually or capture again."
+      );
+      setAlertVisible(true);
+      setFetchWeight("");
+    }
+  } catch (e) {
+    console.log("Capture Error:", e.message);
+    if (e.response) {
+      console.log("Server responded with:", e.response.data);
+    } else if (e.request) {
+      console.log("No response received:", e.request);
+    } else {
+      console.log("Axios config error:", e.config);
+    }
+
+    setAlertMessage("Capture Failed.\nTry again.");
+    setAlertVisible(true);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Add item to backend
   const handleAddItem = async () => {
@@ -181,7 +205,7 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       const res = await api.post(
         `/manager/transaction/transaction-items/${transactionId}`,
-        payload
+        payload,
       );
 
       setLoading(false);
@@ -298,7 +322,8 @@ export default function ItemsTransactionScreen({ navigation }) {
         <Text style={styles.headerTitle}>Add Materials</Text>
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("VendorSignatureScreen")}
+          // onPress={() => navigation.navigate("VendorSignatureScreen")}
+          onPress={() => navigation.navigate("BillingExportTransactionScreen")}
         >
           <MaterialIcons name="assignment" size={32} color="#1e40af" />
         </TouchableOpacity>
@@ -404,7 +429,7 @@ export default function ItemsTransactionScreen({ navigation }) {
             {itemsList.map((item) => {
               const imgUri = getItemImageUri(item.image);
               const { formattedDate, formattedTime } = formatDateTime(
-                item.createdAt
+                item.createdAt,
               );
               return (
                 <View key={item.itemNo} style={styles.card}>

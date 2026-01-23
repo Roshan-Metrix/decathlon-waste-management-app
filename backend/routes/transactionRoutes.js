@@ -5,6 +5,7 @@ import {
   AllTransactionsController,
   ParticularTransactionController,
   recognizeWithGeminiController,
+  SelectedTransactionItemsController,
   StoreTotalTransactionController,
   TransactionCalibrationController,
   TransactionItemsController,
@@ -26,12 +27,14 @@ transactionRouter.post(
   AddTransactionDetailController,
 );
 
+// Material add controller
 transactionRouter.post(
   "/transaction-items/:transactionId",
   authMiddleware,
   TransactionItemsController,
 );
 
+// OCR recognition with Gemini
 transactionRouter.post(
   "/transaction-calibration/ocr",
   upload.single("image"),
@@ -55,6 +58,12 @@ transactionRouter.get(
   "/store-total-transactions/:storeId",
   authMiddleware,
   StoreTotalTransactionController,
+);
+
+transactionRouter.get(
+  "/selected-transactions-items/:transactionId",
+  authMiddleware,
+  SelectedTransactionItemsController,
 );
 
 transactionRouter.get(

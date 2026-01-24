@@ -192,7 +192,7 @@ export default function ShowAllTransaction({ route, navigation }) {
         onPress={() =>
           navigation.navigate("SelectedTransactionItems", {
             transactionId: txn.transactionId,
-            items: txn.item,
+            NoOfitems: txn.item,
             managerName: txn.managerName,
             createdAt: txn.createdAt,
           })

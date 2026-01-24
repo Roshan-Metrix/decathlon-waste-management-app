@@ -22,7 +22,7 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 export default function SelectedTransactionItems({ route, navigation }) {
 
   const transactionId = route.params?.transactionId || "N/A";
-  const NoOfitems = route.params?.NoOfitems || [];
+  const NoOfitems = route.params?.NoOfitems || 0;
   const managerName = route.params?.managerName || "N/A";
   const createdAt = route.params?.createdAt || "N/A";
 

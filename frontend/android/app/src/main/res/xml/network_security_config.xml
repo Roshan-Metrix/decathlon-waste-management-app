@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+
+  <!-- Allow HTTP for your AWS backend -->
+  <domain-config cleartextTrafficPermitted="true">
+    <domain includeSubdomains="true">ec2-3-109-207-206.ap-south-1.compute.amazonaws.com</domain>
+  </domain-config>
+
+</network-security-config>

@@ -283,6 +283,7 @@ export default function ShowAllTransaction({ route, navigation }) {
           <TextInput
             style={styles.searchInput}
             placeholder="Search by ID or Manager Name..."
+            placeholderTextColor="#7e7c7c"
             value={searchText}
             onChangeText={setSearchText}
           />

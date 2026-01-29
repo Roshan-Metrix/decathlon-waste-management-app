@@ -71,6 +71,7 @@ export default function ViewManagersScreen({ navigation }) {
         <TextInput
           style={styles.searchInput}
           placeholder="Search by name, store, email..."
+          placeholderTextColor="#7e7c7c"
           value={search}
           onChangeText={setSearch}
         />

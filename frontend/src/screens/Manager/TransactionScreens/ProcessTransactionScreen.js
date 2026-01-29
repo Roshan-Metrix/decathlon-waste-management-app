@@ -91,7 +91,7 @@ export default function ProcessTransactionScreen({ navigation }) {
 
       {/* CONTENT */}
       <View style={styles.container}>
-        <Text style={styles.label}>Transaction ID</Text>
+        <Text style={styles.label}>Transaction ID </Text>
         {transactionId ? (
           <View style={styles.inputRow}>
             <TextInput

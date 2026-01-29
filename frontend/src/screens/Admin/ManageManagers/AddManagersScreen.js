@@ -14,6 +14,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
+import { generatePassword } from "../../../lib/generatePassword";
 
 export default function AddManagersScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -31,17 +32,6 @@ export default function AddManagersScreen({ navigation }) {
   const [adminPassword, setAdminPassword] = useState("");
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  // Generate 12-char random password
-  const generatePassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let pass = "";
-    for (let i = 0; i < 10; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pass;
-  };
 
   // Auto-generate password on screen open
   useEffect(() => {
@@ -67,6 +57,8 @@ export default function AddManagersScreen({ navigation }) {
   const copyPassword = async () => {
     await Clipboard.setStringAsync(password);
     blink();
+    setAlertMessage("Password copied to clipboard");
+    setAlertVisible(true);
   };
 
   // Press Create -> show popup

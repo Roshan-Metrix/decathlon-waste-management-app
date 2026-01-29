@@ -88,6 +88,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
             <TextInput
               style={styles.searchInput}
               placeholder="Search by name or email..."
+              placeholderTextColor="#7e7c7c"
               value={searchText}
               onChangeText={handleSearch}
             />

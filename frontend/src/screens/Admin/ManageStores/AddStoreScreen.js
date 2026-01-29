@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  Animated,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
+import { generatePassword } from "../../../lib/generatePassword";
 
 export default function AddStoreScreen({ navigation }) {
   const [storeId, setStoreId] = useState("");
@@ -32,23 +34,33 @@ export default function AddStoreScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  const generatePassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let pass = "";
-    for (let i = 0; i < 10; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pass;
-  };
-
   useEffect(() => {
     setPassword(generatePassword());
   }, []);
 
   const copyPassword = async () => {
     await Clipboard.setStringAsync(password);
+    blink();
+    setAlertMessage("Password copied to clipboard");
+    setAlertVisible(true);
   };
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const blink = () => {
+      Animated.sequence([
+        Animated.timing(fadeAnim, {
+          toValue: 0.2,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 120,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
 
   const handleAddStore = () => {
     if (
@@ -196,31 +208,21 @@ export default function AddStoreScreen({ navigation }) {
                 />
               </View>
 
-              <View style={styles.passwordRow}>
-                <TouchableOpacity
-                  onPress={copyPassword}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <MaterialIcons name="lock" size={22} color="#1d4ed8" />
-                  <TextInput
-                    placeholder="Password"
-                    placeholderTextColor="#7e7c7c"
-                    value={password}
-                    onChangeText={setPassword}
-                    style={[styles.input, { marginLeft: 10 }]}
-                  />
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  onPress={() => setPassword(generatePassword())}
-                >
-                  <MaterialIcons name="refresh" size={24} color="#2563eb" />
-                </TouchableOpacity>
-              </View>
+              <View style={styles.passwordBox}>
+                          <MaterialIcons name="lock" size={24} color="#2563eb" />
+              
+                          <TouchableOpacity onPress={copyPassword} style={{ flex: 1 }}>
+                            <Animated.Text
+                              style={[styles.passwordText, { opacity: fadeAnim }]}
+                            >
+                              {password}
+                            </Animated.Text>
+                          </TouchableOpacity>
+              
+                          <TouchableOpacity onPress={() => setPassword(generatePassword())}>
+                            <MaterialIcons name="refresh" size={26} color="#2563eb" />
+                          </TouchableOpacity>
+                        </View>
             </View>
 
             <TouchableOpacity style={styles.addButton} onPress={handleAddStore}>
@@ -295,7 +297,21 @@ export default function AddStoreScreen({ navigation }) {
 /*  STYLES  */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },
-
+  passwordText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#2563eb",
+  },
+  passwordBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#2563eb",
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: "#f8fafc",
+    gap: 10,
+  },
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -339,18 +355,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 10,
-  },
-
-  passwordRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ddd",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    borderRadius: 10,
-    justifyContent: "space-between",
   },
 
   input: { flex: 1, fontSize: 15, marginLeft: 8, color: "#333" },

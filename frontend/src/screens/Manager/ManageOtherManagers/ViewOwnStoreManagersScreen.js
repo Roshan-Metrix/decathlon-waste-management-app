@@ -64,12 +64,6 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
           <Text style={styles.meta}>
             Email: <Text style={styles.highlight}>{item.email}</Text>
           </Text>
-          {/* <Text style={styles.meta}>
-            Store: <Text style={styles.highlight}>{item.storeName}</Text>
-          </Text> */}
-          {/* <Text style={styles.meta}>
-            Location: <Text style={styles.highlight}>{item.storeLocation}</Text>
-          </Text> */}
         </View>
       </View>
     </View>
@@ -86,7 +80,6 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
         <View style={{ width: 26 }} />
       </View>
 
-      {/* Total Managers COUNT (Styled UI Card) */}
       <View style={styles.countCard}>
         <Ionicons name="people-outline" size={28} color={colors.primary} />
         <Text style={styles.countText}>Total Managers: </Text>

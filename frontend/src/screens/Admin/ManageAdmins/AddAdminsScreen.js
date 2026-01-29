@@ -67,6 +67,8 @@ export default function AddAdminsScreen({ navigation }) {
   const copyPassword = async () => {
     await Clipboard.setStringAsync(password);
     blink();
+    setAlertMessage("Password copied to clipboard");
+    setAlertVisible(true);
   };
 
   // Press Create -> show popup
@@ -219,6 +221,7 @@ export default function AddAdminsScreen({ navigation }) {
             <TextInput
               style={styles.input}
               placeholder="Your Email"
+              placeholderTextColor="#7e7c7c"
               value={adminEmail}
               onChangeText={setAdminEmail}
             />
@@ -226,6 +229,7 @@ export default function AddAdminsScreen({ navigation }) {
             <TextInput
               style={[styles.input, { marginTop: 10 }]}
               placeholder="Your Password"
+              placeholderTextColor="#7e7c7c"
               secureTextEntry
               value={adminPassword}
               onChangeText={setAdminPassword}

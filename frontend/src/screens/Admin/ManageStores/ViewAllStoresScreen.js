@@ -88,6 +88,7 @@ export default function ViewAllStoresScreen({ navigation }) {
         <TextInput
           style={styles.searchInput}
           placeholder="Search by Store ID or Name"
+          placeholderTextColor="#7e7c7c"
           value={search}
           onChangeText={setSearch}
         />
@@ -153,7 +154,7 @@ export default function ViewAllStoresScreen({ navigation }) {
   );
 }
 
-/* -------------------- STYLES -------------------- */
+/*  STYLES  */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

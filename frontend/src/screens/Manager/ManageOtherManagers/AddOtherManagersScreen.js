@@ -18,6 +18,7 @@ import api from "../../../api/api";
 import colors from "../../../colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Alert from "../../../Components/Alert";
+import { generatePassword } from "../../../lib/generatePassword";
 
 export default function AddOtherManagersScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -37,17 +38,6 @@ export default function AddOtherManagersScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
-
-  // Generate random password
-  const generatePassword = () => {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let pass = "";
-    for (let i = 0; i < 10; i++) {
-      pass += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return pass;
-  };
 
   // Auto generate password
   useEffect(() => {
@@ -73,6 +63,8 @@ export default function AddOtherManagersScreen({ navigation }) {
   const copyPassword = async () => {
     await Clipboard.setStringAsync(password);
     blink();
+    setAlertMessage("Password copied to clipboard");
+    setAlertVisible(true);
   };
 
   // Create → ask for admin credentials

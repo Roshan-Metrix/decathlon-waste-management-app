@@ -128,7 +128,6 @@ export default function RemoveStoresScreen({ navigation }) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.screenTitle}>All Stores</Text>
 
         {/*  Search Bar */}
         <View style={styles.searchBox}>
@@ -136,6 +135,7 @@ export default function RemoveStoresScreen({ navigation }) {
           <TextInput
             style={styles.searchInput}
             placeholder="Search by Store ID or Name..."
+            placeholderTextColor="#7e7c7c"
             value={search}
             onChangeText={setSearch}
           />
@@ -183,6 +183,7 @@ export default function RemoveStoresScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Admin Email"
+                placeholderTextColor="#7e7c7c"
                 value={adminEmail}
                 onChangeText={setAdminEmail}
               />
@@ -193,6 +194,7 @@ export default function RemoveStoresScreen({ navigation }) {
               <TextInput
                 style={styles.input}
                 placeholder="Admin Password"
+                placeholderTextColor="#7e7c7c"
                 secureTextEntry
                 value={adminPassword}
                 onChangeText={setAdminPassword}

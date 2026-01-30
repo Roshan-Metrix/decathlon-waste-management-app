@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
+// Middleware for App authentication
 const authMiddleware = (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;

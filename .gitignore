@@ -40,7 +40,14 @@ frontend/.env.production
 # typescript
 *.tsbuildinfo
 
-# generated native folders
-/ios
-/android
+# Ignore Gradle/Misc caches
+android/.gradle/
+android/app/build/
+android/build/
+# Ignore sensitive keys
+android/app/*.keystore
+# Node modules and Expo cache
+node_modules/
+.expo/
+.expo-shared/
 

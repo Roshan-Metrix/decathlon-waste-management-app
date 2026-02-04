@@ -38,6 +38,9 @@ export default function ShowAllTransaction({ route, navigation }) {
     name: "Loading Store...",
   });
 
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   // Filters & UI state
   const [searchText, setSearchText] = useState("");
   const [fromDate, setFromDate] = useState(null); // ISO yyyy-mm-dd
@@ -45,10 +48,9 @@ export default function ShowAllTransaction({ route, navigation }) {
   const [showFromPicker, setShowFromPicker] = useState(false);
   const [showToPicker, setShowToPicker] = useState(false);
 
-  // Sorting
   const [sortType, setSortType] = useState("latest"); // latest | highest | az
 
-  // Pagination (client-side)
+  // Pagination
   const [page, setPage] = useState(1);
   const [displayList, setDisplayList] = useState([]);
 
@@ -57,7 +59,7 @@ export default function ShowAllTransaction({ route, navigation }) {
   const animHeight = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    fetchTransactions();
+    fetchTransactions(true);
   }, []);
 
   useEffect(() => {
@@ -82,41 +84,40 @@ export default function ShowAllTransaction({ route, navigation }) {
     setDisplayList(slice);
   }, [transactions, searchText, fromDate, toDate, sortType, page]);
 
-  const fetchTransactions = async () => {
-    setIsLoading(true);
-    try {
-      if (!storeId) {
-        // Alert.alert("Error", "Store ID not found.");
-        setAlertMessage("Store ID not found.");
-        setAlertVisible(true);
-        setIsLoading(false);
-        return;
-      }
+  const fetchTransactions = async (reset = false) => {
+    if (loadingMore || (!hasMore && !reset)) return;
 
-      setStoreInfo((prev) => ({ ...prev, id: storeId }));
+    reset ? setIsLoading(true) : setLoadingMore(true);
+
+    try {
+      const currentPage = reset ? 1 : page;
 
       const response = await api.get(
-        `/manager/transaction/store-total-transactions/${storeId}`
+        `/manager/transaction/store-total-transactions/${storeId}?page=${currentPage}&limit=4`,
       );
 
       if (response.data?.success) {
-        const txns = response.data.transactions || [];
-        setTransactions(txns);
+        const newTxns = response.data.transactions || [];
+
+        setTransactions((prev) => (reset ? newTxns : [...prev, ...newTxns]));
 
         setStoreInfo({
           id: storeId,
           name: response.data?.store?.storeName || "Store",
         });
+
+        setHasMore(response.data.hasMore);
+        setPage(currentPage + 1);
       } else {
         setAlertMessage(response.data?.message || "Failed to load.");
         setAlertVisible(true);
       }
     } catch (error) {
-      console.error("Fetch error", error);
       setAlertMessage("Network Error");
       setAlertVisible(true);
     } finally {
       setIsLoading(false);
+      setLoadingMore(false);
     }
   };
 
@@ -145,7 +146,7 @@ export default function ShowAllTransaction({ route, navigation }) {
         return new Date(b.createdAt) - new Date(a.createdAt);
       }
       if (sortType === "highest") {
-        return b.items.length - a.items.length;
+        return (b.item ?? 0) - (a.item ?? 0);
       }
       if (sortType === "az") {
         // transactionId is string per your confirmation
@@ -159,7 +160,7 @@ export default function ShowAllTransaction({ route, navigation }) {
 
   const loadMore = () => {
     const full = getFilteredAndSorted();
-    if (displayList.length >= full.length) return; // nothing more
+    if (displayList.length >= full.length) return;
     setPage((p) => p + 1);
   };
 
@@ -169,7 +170,6 @@ export default function ShowAllTransaction({ route, navigation }) {
   };
 
   const selectDate = (event, d, isFrom) => {
-    // On Android event may be 'dismissed' -> d === undefined
     if (isFrom) {
       setShowFromPicker(false);
       if (d) setFromDate(d.toISOString().split("T")[0]);
@@ -235,8 +235,7 @@ export default function ShowAllTransaction({ route, navigation }) {
           </Text>
 
           <Text style={styles.detailText}>
-            Total Items:{" "}
-            <Text style={styles.bold}>{txn.item ?? 0}</Text>
+            Total Items: <Text style={styles.bold}>{txn.item ?? 0}</Text>
           </Text>
         </View>
       </TouchableOpacity>
@@ -263,7 +262,7 @@ export default function ShowAllTransaction({ route, navigation }) {
         <Text style={styles.headerTitle}>Store Transactions</Text>
 
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <TouchableOpacity onPress={onRefresh}>
+          <TouchableOpacity onPress={() => fetchTransactions(true)}>
             <MaterialIcons name="refresh" size={24} color={PRIMARY_COLOR} />
           </TouchableOpacity>
         </View>
@@ -300,8 +299,8 @@ export default function ShowAllTransaction({ route, navigation }) {
               {sortType === "latest"
                 ? "Latest"
                 : sortType === "highest"
-                ? "Highest"
-                : "A–Z"}
+                  ? "Highest"
+                  : "A–Z"}
             </Text>
             <MaterialIcons
               name={sortOpen ? "keyboard-arrow-up" : "keyboard-arrow-down"}
@@ -407,13 +406,15 @@ export default function ShowAllTransaction({ route, navigation }) {
       ) : (
         <FlatList
           data={displayList}
-          keyExtractor={(item) => item.transactionId.toString()}
+          keyExtractor={(item, index) =>
+            `${item.transactionId}-${item.createdAt}-${index}`
+          }
           renderItem={renderTxn}
           contentContainerStyle={styles.content}
-          onEndReached={loadMore}
+          onEndReached={() => fetchTransactions()}
           onEndReachedThreshold={0.6}
           ListFooterComponent={() =>
-            displayList.length < getFilteredAndSorted().length ? (
+            loadingMore ? (
               <View style={{ padding: 12, alignItems: "center" }}>
                 <ActivityIndicator size="small" color={PRIMARY_COLOR} />
               </View>
@@ -434,7 +435,6 @@ export default function ShowAllTransaction({ route, navigation }) {
 }
 
 //    STYLES
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -55,7 +55,7 @@ export const getAllStores = async (req, res) => {
   const skip = (page - 1) * limit;
 
   try {
-    const storeData = await storeModel
+    const allStore = await storeModel
       .find()
       .select("-password -__v")
       .skip(skip)
@@ -65,7 +65,7 @@ export const getAllStores = async (req, res) => {
     const totalCount = await storeModel.countDocuments();
 
     const stores = [
-      storeData.map((store) => ({
+      allStore.map((store) => ({
         storeId: store.storeId,
         name: store.name,
         storeLocation: store.storeLocation,
@@ -77,7 +77,7 @@ export const getAllStores = async (req, res) => {
 
     return res.json({
       success: true,
-      count: stores.length,
+      count: totalCount,
       page,
       hasMore: skip + stores.length < totalCount,
       stores,

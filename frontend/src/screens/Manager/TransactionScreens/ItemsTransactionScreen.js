@@ -15,11 +15,13 @@ import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Alert from "../../../Components/Alert";
+import useImagePreview from "../../../lib/useImagePreview";
 
 export default function ItemsTransactionScreen({ navigation }) {
   const cameraRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
+  const { openImage, ImagePreviewModal } = useImagePreview();
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -322,7 +324,6 @@ export default function ItemsTransactionScreen({ navigation }) {
         <Text style={styles.headerTitle}>Add Materials</Text>
 
         <TouchableOpacity
-          // onPress={() => navigation.navigate("VendorSignatureScreen")}
           onPress={() => navigation.navigate("BillingExportTransactionScreen")}
         >
           <MaterialIcons name="assignment" size={32} color="#1e40af" />
@@ -333,7 +334,12 @@ export default function ItemsTransactionScreen({ navigation }) {
         {/* CAMERA SECTION */}
         <View style={styles.cameraBox}>
           {photo ? (
-            <Image source={{ uri: photo.uri }} style={styles.capturedImage} />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => openImage({ uri: photo.uri })}
+            >
+              <Image source={{ uri: photo.uri }} style={styles.capturedImage} />
+            </TouchableOpacity>
           ) : (
             <CameraView style={styles.camera} facing="back" ref={cameraRef} />
           )}
@@ -433,14 +439,25 @@ export default function ItemsTransactionScreen({ navigation }) {
               );
               return (
                 <View key={item.itemNo} style={styles.card}>
-                  <Image
-                    source={
-                      imgUri
-                        ? { uri: imgUri }
-                        : require("../../../../assets/icon.png")
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      openImage(
+                        imgUri
+                          ? { uri: imgUri }
+                          : require("../../../../assets/icon.png"),
+                      )
                     }
-                    style={styles.cardImage}
-                  />
+                  >
+                    <Image
+                      source={
+                        imgUri
+                          ? { uri: imgUri }
+                          : require("../../../../assets/icon.png")
+                      }
+                      style={styles.cardImage}
+                    />
+                  </TouchableOpacity>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.cardTitle}>
                       {/* {item.itemNo}.  */}
@@ -474,11 +491,12 @@ export default function ItemsTransactionScreen({ navigation }) {
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
+      <ImagePreviewModal />
     </View>
   );
 }
 
-// ---------------- STYLES ----------------
+//  STYLES 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#eef2ff" },
 

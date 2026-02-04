@@ -1,5 +1,4 @@
 import storeModel from "../models/storeModel.js";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -32,22 +31,6 @@ export const getStoreProfile = async (req, res) => {
       .json({ success: false, message: "Server error" });
   }
 };
-
-
-// export const getAllStores = async (req, res) => {
-//   try {
-//     const stores = await storeModel.find().select("-password -__v");
-
-//     return res.json({
-//       success: true,
-//       count: stores.length,
-//       stores,
-//     });
-//   } catch (error) {
-//     console.log("Error in getAllStores Controller : ", error);
-//     return res.json({ success: false, message: error.message });
-//   }
-// };
 
 export const getAllStores = async (req, res) => {
   const page = Math.max(Number(req.query.page) || 1, 1);

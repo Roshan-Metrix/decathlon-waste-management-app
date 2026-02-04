@@ -192,46 +192,6 @@ export const TransactionCalibrationController = async (req, res) => {
   }
 };
 
-// export const StoreTotalTransactionController = async (req, res) => {
-//   const storeId = req.params.storeId;
-
-//   try {
-//     const transactions = await transactionModel.find({
-//       "store.storeId": storeId,
-//     });
-
-//     if (!transactions) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Store Id not present",
-//       });
-//     }
-
-//     const StoreDetail = {
-//       storeId: transactions[0].store.storeId,
-//       storeName: transactions[0].store.storeName,
-//     };
-//     const formattedTransactions = transactions.map((txn) => ({
-//       transactionId: txn.transactionId,
-//       managerName: txn.managerName,
-//       item: txn.items.length,
-//       createdAt: txn.createdAt,
-//     }));
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "ALl Store transactions fetched successfully",
-//       transactions: formattedTransactions,
-//       store: StoreDetail,
-//     });
-//   } catch (error) {
-//     console.log("Error in StoreTotalTransactionController:", error);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Internal Server Error" });
-//   }
-// };
-
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
 

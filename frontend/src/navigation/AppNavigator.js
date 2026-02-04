@@ -9,13 +9,12 @@ import LoginScreen from "../screens/LoginScreen";
 import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 import ResetPasswordScreen from "../screens/ResetPasswordScreen";
 import UserScreen from "../screens/UserScreen";
-import SearchScreen from "../screens/SearchScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 
 // Admin Screens
 import ManageStoresScreen from "../screens/Admin/ManageStoresScreen";
-import NotifyStoresScreen from "../screens/Admin/NotifyStoresScreen";
+// import NotifyStoresScreen from "../screens/Admin/NotifyStoresScreen";
 import ManageManagerScreen from "../screens/Admin/ManageManagerScreen";
 import ManageAdminScreen from "../screens/Admin/ManageAdminScreen";
 import ViewOtherAdminsScreen from "../screens/Admin/ManageAdmins/ViewOtherAdminsScreen";
@@ -77,7 +76,6 @@ if (loading) return <LoadingScreen />;
           <>
             {/* Main user home */}
             <Stack.Screen name="UserScreen" component={UserScreen} />
-            <Stack.Screen name="SearchScreen" component={SearchScreen} />
             <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
             <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
 
@@ -86,7 +84,7 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ManageStoresScreen" component={ManageStoresScreen} />
             <Stack.Screen name="ManageManagerScreen" component={ManageManagerScreen} />
             <Stack.Screen name="ManageAdminScreen" component={ManageAdminScreen} />
-            <Stack.Screen name="NotifyStoresScreen" component={NotifyStoresScreen} />
+            {/* <Stack.Screen name="NotifyStoresScreen" component={NotifyStoresScreen} /> */}
             <Stack.Screen name="ViewOtherAdminsScreen" component={ViewOtherAdminsScreen} />
             <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
             <Stack.Screen name="AddManagersScreen" component={AddManagersScreen} />

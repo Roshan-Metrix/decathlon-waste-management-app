@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
   ActivityIndicator,
   TextInput,
+  FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
@@ -15,50 +15,106 @@ import Alert from "../../../Components/Alert";
 export default function ViewAllStoresScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+
   const [stores, setStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
-  const [count, setCount] = useState(0);
-  const [loading, setLoading] = useState(true);
 
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  const [count, setCount] = useState(0);
   const [search, setSearch] = useState("");
 
-  const fetchStores = async () => {
-    try {
-      const { data } = await api.get("/auth/admin/get-all-stores");
+  const LIMIT = 3;
 
+  const fetchStores = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+
+    try {
+      const { data } = await api.get(
+        `/auth/admin/get-all-stores?page=${page}&limit=${LIMIT}`,
+      );
       if (data.success) {
-        setStores(data.stores);
-        setFilteredStores(data.stores);
-        setCount(data.count);
+        const newStores = Array.isArray(data.stores[0])
+          ? data.stores.flat()
+          : data.stores;
+
+        setStores((prev) => [...prev, ...newStores]);
+        setFilteredStores((prev) => [...prev, ...newStores]);
+        setHasMore(data.hasMore);
+        setCount(data.count || count);
+        setPage((prev) => prev + 1);
       } else {
         setAlertMessage(data.message);
         setAlertVisible(true);
       }
     } catch (error) {
-      console.log("Error fetching stores: " + error.message);
       setAlertMessage("Error fetching stores!");
       setAlertVisible(true);
     }
+
     setLoading(false);
+    setInitialLoading(false);
   };
 
   useEffect(() => {
     fetchStores();
   }, []);
 
-  //  Filter stores
+  // Search filter (client-side)
   useEffect(() => {
     const s = search.toLowerCase();
 
     const filtered = stores.filter((store) => {
-      return (
-        store.storeId.toLowerCase().includes(s) ||
-        store.name.toLowerCase().includes(s)
-      );
+      const storeId = store.storeId?.toLowerCase() || "";
+      const name = store.name?.toLowerCase() || "";
+
+      return storeId.includes(s) || name.includes(s);
     });
 
     setFilteredStores(filtered);
-  }, [search]);
+  }, [search, stores]);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate("AllTransactionsScreen", {
+          storeId: item.storeId,
+        })
+      }
+      style={styles.card}
+    >
+      <View style={styles.row}>
+        <MaterialIcons name="confirmation-number" size={22} color="#2563eb" />
+        <Text style={styles.value}>{item.storeId || "N/A"}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <MaterialIcons name="store" size={22} color="#2563eb" />
+        <Text style={styles.value}>{item.name || "N/A"}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <MaterialIcons name="location-pin" size={22} color="#2563eb" />
+        <Text style={styles.value}>{item.storeLocation || "N/A"}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <MaterialIcons name="phone" size={22} color="#2563eb" />
+        <Text style={styles.value}>{item.contactNumber || "N/A"}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <MaterialIcons name="email" size={22} color="#2563eb" />
+        <Text style={styles.value}>{item.email || "N/A"}</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
@@ -67,9 +123,7 @@ export default function ViewAllStoresScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>All Stores</Text>
-
         <View style={{ width: 26 }} />
       </View>
 
@@ -94,57 +148,26 @@ export default function ViewAllStoresScreen({ navigation }) {
         />
       </View>
 
-      {loading ? (
+      {initialLoading ? (
         <ActivityIndicator
           size="large"
           color="#2563eb"
           style={{ marginTop: 50 }}
         />
       ) : (
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
-          {filteredStores.map((store, index) => (
-            <TouchableOpacity
-              key={index}
-              activeOpacity={0.8}
-              onPress={() =>
-                navigation.navigate("AllTransactionsScreen", {
-                  storeId: store.storeId,
-                })
-              }
-              style={styles.card}
-            >
-              <View style={styles.row}>
-                <MaterialIcons
-                  name="confirmation-number"
-                  size={22}
-                  color="#2563eb"
-                />
-                <Text style={styles.value}>{store.storeId}</Text>
-              </View>
-
-              <View style={styles.row}>
-                <MaterialIcons name="store" size={22} color="#2563eb" />
-                <Text style={styles.value}>{store.name}</Text>
-              </View>
-
-              <View style={styles.row}>
-                <MaterialIcons name="location-pin" size={22} color="#2563eb" />
-                <Text style={styles.value}>{store.storeLocation}</Text>
-              </View>
-
-              <View style={styles.row}>
-                <MaterialIcons name="phone" size={22} color="#2563eb" />
-                <Text style={styles.value}>{store.contactNumber}</Text>
-              </View>
-
-              <View style={styles.row}>
-                <MaterialIcons name="email" size={22} color="#2563eb" />
-                <Text style={styles.value}>{store.email}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        <FlatList
+          data={filteredStores}
+          keyExtractor={(item, index) => item.storeId ?? index.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{ padding: 20 }}
+          onEndReached={fetchStores}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="small" /> : null
+          }
+        />
       )}
+
       <Alert
         visible={alertVisible}
         message={alertMessage}

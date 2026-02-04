@@ -12,6 +12,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { formatTimeStamp } from "../../../lib/formatTimeStamp";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
+import useImagePreview from "../../../lib/useImagePreview";
 
 const PRIMARY_COLOR = "#1e40af";
 const ACCENT_COLOR = "#00bcd4";
@@ -30,6 +31,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
   const [isLoading, setIsLoading] = useState(true);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const { openImage, ImagePreviewModal } = useImagePreview();
 
   const fetchTransactions = async () => {
     setIsLoading(true);
@@ -89,11 +91,16 @@ export default function SelectedTransactionItems({ route, navigation }) {
 
         {/* Item Image */}
         {imageSource ? (
-          <Image
-            source={imageSource}
-            style={styles.itemImage}
-            resizeMode="cover"
-          />
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => openImage(imageSource)}
+          >
+            <Image
+              source={imageSource}
+              style={styles.itemImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         ) : (
           <View style={styles.imagePlaceholder}>
             <MaterialIcons name="image-not-supported" size={40} color="#999" />
@@ -186,6 +193,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
+      <ImagePreviewModal />
     </View>
   );
 }

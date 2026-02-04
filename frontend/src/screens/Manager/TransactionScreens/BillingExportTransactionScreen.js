@@ -14,6 +14,7 @@ import api from "../../../api/api";
 import { useFocusEffect, useRoute } from "@react-navigation/native";
 import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
+import useImagePreview from "../../../lib/useImagePreview";
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const route = useRoute();
@@ -22,11 +23,11 @@ export default function BillingExportTransactionScreen({ navigation }) {
   const [transactionData, setTransactionData] = useState(null);
   const [itemsList, setItemsList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { openImage, ImagePreviewModal } = useImagePreview();
 
   const [managerSignature, setManagerSignature] = useState(null);
-  const [vendorSignature, setVendorSignature] = useState(null);
   const [alertVisible, setAlertVisible] = useState(false);
-const [alertMessage, setAlertMessage] = useState("");
+  const [alertMessage, setAlertMessage] = useState("");
 
   // Converts ISO string to IST formatted date and time.
   const formatISTDateTime = (isoString) => {
@@ -89,21 +90,18 @@ const [alertMessage, setAlertMessage] = useState("");
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-         let transactionId;
-      if (route.params?.transactionId) {
-        transactionId = route.params.transactionId;
-        // console.log("Using transaction ID from route params:", transactionId);
-      } else {
-        const stored = await AsyncStorage.getItem("todayTransaction");
-        const parsed = JSON.parse(stored);
-        transactionId = parsed?.transactionId;
-        // console.log("Using transaction ID from AsyncStorage:", transactionId);
-      }
+        let transactionId;
+        if (route.params?.transactionId) {
+          transactionId = route.params.transactionId;
+        } else {
+          const stored = await AsyncStorage.getItem("todayTransaction");
+          const parsed = JSON.parse(stored);
+          transactionId = parsed?.transactionId;
+        }
 
-      const res = await api.get(
-        `/manager/transaction/todays-transactions/${transactionId}`
-      );
-// console.log(res.data.transactions[0].managerName);
+        const res = await api.get(
+          `/manager/transaction/todays-transactions/${transactionId}`,
+        );
         setProfile(res.data.transactions[0].managerName);
         setStore(res.data.transactions[0].store);
       } catch (err) {
@@ -132,12 +130,12 @@ const [alertMessage, setAlertMessage] = useState("");
       if (!transactionId) {
         setLoading(false);
         setAlertMessage("No active transaction ID found");
-setAlertVisible(true);
+        setAlertVisible(true);
         return;
       }
 
       const res = await api.get(
-        `/manager/transaction/todays-transactions/${transactionId}`
+        `/manager/transaction/todays-transactions/${transactionId}`,
       );
 
       if (res.data?.success && res.data?.transactions?.[0]) {
@@ -151,11 +149,10 @@ setAlertVisible(true);
     } catch (e) {
       console.log(
         "Fetch transaction data error:",
-        e?.response?.data || e.message
+        e?.response?.data || e.message,
       );
-      // Alert.alert("Error", "Failed to fetch transaction data.");
-       setAlertMessage("Failed to fetch transaction data.");
-setAlertVisible(true);
+      setAlertMessage("Failed to fetch transaction data.");
+      setAlertVisible(true);
     } finally {
       setLoading(false);
     }
@@ -166,19 +163,16 @@ setAlertVisible(true);
     useCallback(() => {
       const loadSignatures = async () => {
         const managerSig = await AsyncStorage.getItem("managerSignature");
-        const vendorSig = await AsyncStorage.getItem("vendorSignature");
         if (managerSig) setManagerSignature(managerSig);
-        if (vendorSig) setVendorSignature(vendorSig);
       };
 
       loadSignatures();
       fetchTransactionData();
-    }, [])
+    }, []),
   );
 
   const grandTotalWeight = calculateGrandTotal(itemsList);
 
-  // * NEW LOGIC: Group items by material type for summary
   const groupedItemsSummary = useMemo(() => {
     const summary = itemsList.reduce((acc, item) => {
       const type = item.materialType || "Unknown Material";
@@ -194,14 +188,12 @@ setAlertVisible(true);
       return acc;
     }, {});
 
-    // Convert to an array for easy mapping/rendering
     return Object.keys(summary).map((type) => ({
       materialType: type,
       itemCount: summary[type].count,
       totalWeight: summary[type].totalWeight.toFixed(2),
     }));
   }, [itemsList]);
-  // * END NEW LOGIC
 
   if (loading) {
     return (
@@ -239,7 +231,6 @@ setAlertVisible(true);
       })),
       itemSummary: groupedItemsSummary,
       managerSignature: managerSignature,
-      vendorSignature: vendorSignature,
     };
 
     navigation.navigate("ExportDataScreen", { transactionData: dataToExport });
@@ -344,14 +335,25 @@ setAlertVisible(true);
                       {serialNumber}
                     </Text>
                     <View style={[styles.itemDetailWrapper, { flex: 3 }]}>
-                      <Image
-                        source={
-                          imgUri
-                            ? { uri: imgUri }
-                            : require("../../../../assets/icon.png")
+                      <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() =>
+                          openImage(
+                            imgUri
+                              ? { uri: imgUri }
+                              : require("../../../../assets/icon.png"),
+                          )
                         }
-                        style={styles.itemImage}
-                      />
+                      >
+                        <Image
+                          source={
+                            imgUri
+                              ? { uri: imgUri }
+                              : require("../../../../assets/icon.png")
+                          }
+                          style={styles.itemImage}
+                        />
+                      </TouchableOpacity>
                       <Text style={styles.materialText}>
                         {item.materialType}
                       </Text>
@@ -412,7 +414,6 @@ setAlertVisible(true);
           </View>
           {/* END TABLE */}
 
-          {/* * NEW DISPLAY: Summary Section */}
           <Text style={styles.subHeading}>Material Type Summary</Text>
           <View style={styles.summaryContainer}>
             {groupedItemsSummary.map((summary, index) => (
@@ -429,42 +430,6 @@ setAlertVisible(true);
               </View>
             ))}
           </View>
-          {/* * END NEW DISPLAY */}
-
-          {/* Total Words - Placeholder */}
-          {/* <Text style={styles.totalWords}>
-            Grand Total (in words): _______________________________________
-          </Text> */}
-
-{/*
-          <View style={styles.signatureRow}>
-            // Manager Sign
-            <View style={{ alignItems: "center" }}>
-              <Text style={styles.signatureLabel}>Manager Signature</Text>
-              {managerSignature ? (
-                <Image
-                  source={{ uri: managerSignature }}
-                  style={styles.signatureImg}
-                />
-              ) : (
-                <View style={styles.signaturePlaceholder} />
-              )}
-            </View>
-
-            // Vendor Sign
-            <View style={{ alignItems: "center" }}>
-              <Text style={styles.signatureLabel}>Vendor Signature</Text>
-              {vendorSignature ? (
-                <Image
-                  source={{ uri: vendorSignature }}
-                  style={styles.signatureImg}
-                />
-              ) : (
-                <View style={styles.signaturePlaceholder} />
-              )}
-            </View>
-          </View>
-*/}
 
           <Text style={styles.disclaimer}>
             * Above bill is true and correct *
@@ -483,15 +448,16 @@ setAlertVisible(true);
         </TouchableOpacity>
       </ScrollView>
       <Alert
-  visible={alertVisible}
-  message={alertMessage}
-  onClose={() => setAlertVisible(false)}
-/>
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
+      <ImagePreviewModal />
     </View>
   );
 }
 
-/* ---------------- STYLES ---------------- */
+/*  STYLES  */
 const styles = StyleSheet.create({
   centerScreen: {
     flex: 1,

@@ -1,5 +1,3 @@
-import fs from "fs";
-import path from "path";
 import sharp from "sharp";
 import FormData from "form-data";
 import fetch from "node-fetch";

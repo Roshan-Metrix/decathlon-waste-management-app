@@ -4,7 +4,6 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Image,
 } from "react-native";
 import { useState, useEffect, useContext } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -58,20 +57,15 @@ useEffect(() => {
 
   const roleBoxes = {
     admin: [
-      { 
-        title: "Add Store", 
-        icon: "store", 
-        screen: "AddStoreScreen" 
+      {
+        title: "Manage Stores",
+        icon: "storefront",
+        screen: "ManageStoresScreen",
       },
       {
         title: "Data Analysis",
         icon: "query-stats",
         screen: "ViewAllStoresScreen",
-      },
-      {
-        title: "Manage Stores",
-        icon: "storefront",
-        screen: "ManageStoresScreen",
       },
       {
         title: "Manage Admins",
@@ -88,11 +82,11 @@ useEffect(() => {
         icon: "manage-accounts",
         screen: "ManageVendorScreen",
       },
-      {
-        title: "Notify Stores",
-        icon: "notifications",
-        screen: "NotifyStoresScreen",
-      },
+      // {
+      //   title: "Notify Stores",
+      //   icon: "notifications",
+      //   screen: "NotifyStoresScreen",
+      // },
     ],
 
     manager: [
@@ -111,7 +105,11 @@ useEffect(() => {
         icon: "supervisor-account",
         screen: "ManageOwnStoreManagersScreen",
       },
-      { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
+      { 
+        title: "View Tasks", 
+        icon: "assignment", 
+        screen: "ViewTasksScreen" 
+      },
     ],
     store: [
       {

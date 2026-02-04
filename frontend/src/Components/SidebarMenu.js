@@ -87,7 +87,6 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
         {/* Menu Items */}
         {[
           { label: "Home", screen: "UserScreen", icon: "home" },
-          { label: "Search", screen: "SearchScreen", icon: "search" },
         ].map((item, i) => (
           <TouchableOpacity
             key={i}
@@ -114,7 +113,11 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
         ))}
 
         {/* Profile Card */}
-        <View
+        <TouchableOpacity
+          onPress={() => {
+            onClose();
+            navigation.navigate("ProfileScreen");
+          }}
           style={{
             position: "absolute",
             bottom: 110,
@@ -135,7 +138,7 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
             </Text>
             <Text style={{ fontSize: 14, color: "#6b7280" }}>{user?.email}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity

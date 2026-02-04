@@ -17,6 +17,7 @@ import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
+import useImagePreview from "../../../lib/useImagePreview";
 
 export default function CalibrationPhaseScreen({ navigation }) {
   const cameraRef = useRef(null);
@@ -28,6 +29,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const { openImage, ImagePreviewModal } = useImagePreview();
 
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
@@ -113,7 +115,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
     return;
   }
 
-  // If user never touched enterWeight → default to 0
+  // If user never touched enterWeight => default to 0
   const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
 
   // Still require fetchWeight because image OCR should run
@@ -191,7 +193,12 @@ export default function CalibrationPhaseScreen({ navigation }) {
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }}>
         <View style={styles.card}>
           {photo ? (
-            <Image source={{ uri: photo.uri }} style={styles.capturedImage} />
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => openImage({ uri: photo.uri })}
+            >
+              <Image source={{ uri: photo.uri }} style={styles.capturedImage} />
+            </TouchableOpacity>
           ) : (
             <CameraView style={styles.camera} ref={cameraRef} facing="back" />
           )}
@@ -267,6 +274,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
+      <ImagePreviewModal />
     </View>
   );
 }

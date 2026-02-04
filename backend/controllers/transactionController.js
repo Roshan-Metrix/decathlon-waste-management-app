@@ -192,25 +192,80 @@ export const TransactionCalibrationController = async (req, res) => {
   }
 };
 
+// export const StoreTotalTransactionController = async (req, res) => {
+//   const storeId = req.params.storeId;
+
+//   try {
+//     const transactions = await transactionModel.find({
+//       "store.storeId": storeId,
+//     });
+
+//     if (!transactions) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Store Id not present",
+//       });
+//     }
+
+//     const StoreDetail = {
+//       storeId: transactions[0].store.storeId,
+//       storeName: transactions[0].store.storeName,
+//     };
+//     const formattedTransactions = transactions.map((txn) => ({
+//       transactionId: txn.transactionId,
+//       managerName: txn.managerName,
+//       item: txn.items.length,
+//       createdAt: txn.createdAt,
+//     }));
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "ALl Store transactions fetched successfully",
+//       transactions: formattedTransactions,
+//       store: StoreDetail,
+//     });
+//   } catch (error) {
+//     console.log("Error in StoreTotalTransactionController:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 export const StoreTotalTransactionController = async (req, res) => {
   const storeId = req.params.storeId;
 
-  try {
-    const transactions = await transactionModel.find({
-      "store.storeId": storeId,
-    });
+  // pagination params
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 4;
+  const skip = (page - 1) * limit;
 
-    if (!transactions) {
-      return res.status(400).json({
-        success: false,
-        message: "Store Id not present",
+  try {
+    // fetch paginated transactions
+    const transactions = await transactionModel
+      .find({ "store.storeId": storeId })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    if (!transactions || transactions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        transactions: [],
+        hasMore: false,
       });
     }
+
+    // total count (for hasMore)
+    const totalCount = await transactionModel.countDocuments({
+      "store.storeId": storeId,
+    });
 
     const StoreDetail = {
       storeId: transactions[0].store.storeId,
       storeName: transactions[0].store.storeName,
     };
+
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
       managerName: txn.managerName,
@@ -220,9 +275,11 @@ export const StoreTotalTransactionController = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "ALl Store transactions fetched successfully",
+      message: "Store transactions fetched successfully",
       transactions: formattedTransactions,
       store: StoreDetail,
+      page,
+      hasMore: skip + transactions.length < totalCount,
     });
   } catch (error) {
     console.log("Error in StoreTotalTransactionController:", error);

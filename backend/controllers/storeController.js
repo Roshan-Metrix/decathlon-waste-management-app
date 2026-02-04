@@ -34,17 +34,56 @@ export const getStoreProfile = async (req, res) => {
 };
 
 
+// export const getAllStores = async (req, res) => {
+//   try {
+//     const stores = await storeModel.find().select("-password -__v");
+
+//     return res.json({
+//       success: true,
+//       count: stores.length,
+//       stores,
+//     });
+//   } catch (error) {
+//     console.log("Error in getAllStores Controller : ", error);
+//     return res.json({ success: false, message: error.message });
+//   }
+// };
+
 export const getAllStores = async (req, res) => {
+  const page = Math.max(Number(req.query.page) || 1, 1);
+  const limit = Math.max(Number(req.query.limit) || 4, 1);
+  const skip = (page - 1) * limit;
+
   try {
-    const stores = await storeModel.find().select("-password -__v");
+    const storeData = await storeModel
+      .find()
+      .select("-password -__v")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 });
+
+    const totalCount = await storeModel.countDocuments();
+
+    const stores = [
+      storeData.map((store) => ({
+        storeId: store.storeId,
+        name: store.name,
+        storeLocation: store.storeLocation,
+        contactNumber: store.contactNumber,
+        email: store.email,
+        createdAt: store.createdAt,
+      })),
+    ]
 
     return res.json({
       success: true,
       count: stores.length,
+      page,
+      hasMore: skip + stores.length < totalCount,
       stores,
     });
   } catch (error) {
-    console.log("Error in getAllStores Controller : ", error);
+    console.log("Error in getAllStores Controller:", error);
     return res.json({ success: false, message: error.message });
   }
 };

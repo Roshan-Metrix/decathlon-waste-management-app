@@ -1,3 +1,5 @@
+// This screen is currently not in use , may be useful in upcoming version
+
 import React, { useState } from "react";
 import {
   View,

@@ -62,7 +62,7 @@ export const registerAdmin = async (req, res) => {
       ),
     };
 
-    await transporter.sendMail(mailOption);
+   const mailResult = await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -74,7 +74,7 @@ export const registerAdmin = async (req, res) => {
         role: admin.role,
         isApproved: admin.isApproved,
       },
-      message: "Registration successful",
+      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerAdmin Controller : ", error);
@@ -140,7 +140,7 @@ export const registerStore = async (req, res) => {
       ),
     };
 
-    await transporter.sendMail(mailOption);
+    const mailResult = await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -155,7 +155,7 @@ export const registerStore = async (req, res) => {
         isApproved: store.isApproved,
         storeLocation: store.storeLocation,
       },
-      message: "Registration successful",
+      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerStore Controller : ", error);
@@ -219,7 +219,7 @@ export const registerManager = async (req, res) => {
       ),
     };
 
-    await transporter.sendMail(mailOption);
+    const mailResult = await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -232,7 +232,7 @@ export const registerManager = async (req, res) => {
         role: manager.role,
         isApproved: manager.isApproved,
       },
-      message: "Registration successful",
+      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerManager Controller : ", error);

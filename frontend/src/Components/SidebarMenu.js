@@ -1,10 +1,24 @@
-import { View, Text, TouchableOpacity, Animated, Dimensions, Image } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+  Dimensions,
+  Image,
+} from "react-native";
 import { useRef, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const { width } = Dimensions.get("window");
 
-export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }) => {
+export const SidebarMenu = ({
+  visible,
+  onClose,
+  role,
+  navigation,
+  logout,
+  user,
+}) => {
   const slideAnim = useRef(new Animated.Value(-width)).current;
 
   useEffect(() => {
@@ -26,21 +40,20 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
       {/* Background Overlay */}
       {visible && (
         <TouchableOpacity
-        activeOpacity={1}
-        onPress={onClose}
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.35)",
-          zIndex: 5,
-        }}
+          activeOpacity={1}
+          onPress={onClose}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.35)",
+            zIndex: 5,
+          }}
         />
       )}
 
-        
       {/* Sidebar Panel */}
       <Animated.View
         style={{
@@ -57,7 +70,16 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
           elevation: 30,
         }}
       >
-        <Image source={require('../../assets/splash-icon.png')} style={{resizeMode:"contain",width:220,height:50,marginBottom:5,marginTop:-5}}/>
+        <Image
+          source={require("../../assets/splash-icon.png")}
+          style={{
+            resizeMode: "contain",
+            width: 220,
+            height: 50,
+            marginBottom: 5,
+            marginTop: -5,
+          }}
+        />
         {/* Role Header */}
         <View
           style={{
@@ -71,7 +93,6 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
             elevation: 4,
           }}
         >
-
           <Text
             style={{
               fontSize: 20,
@@ -85,32 +106,33 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
         </View>
 
         {/* Menu Items */}
-        {[
-          { label: "Home", screen: "UserScreen", icon: "home" },
-        ].map((item, i) => (
-          <TouchableOpacity
-            key={i}
-            onPress={() => {
-              onClose();
-              if (item.screen !== "UserScreen") navigation.navigate(item.screen);
-            }}
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              paddingVertical: 14,
-              paddingHorizontal: 12,
-              borderRadius: 14,
-              marginBottom: 12,
-              backgroundColor: "#f3f6ff",
-              elevation: 2,
-            }}
-          >
-            <MaterialIcons name={item.icon} size={22} color="#2563eb" />
-            <Text style={{ marginLeft: 12, fontSize: 16, color: "#1f2937" }}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        {[{ label: "Home", screen: "UserScreen", icon: "home" }].map(
+          (item, i) => (
+            <TouchableOpacity
+              key={i}
+              onPress={() => {
+                onClose();
+                if (item.screen !== "UserScreen")
+                  navigation.navigate(item.screen);
+              }}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                paddingVertical: 14,
+                paddingHorizontal: 12,
+                borderRadius: 14,
+                marginBottom: 12,
+                backgroundColor: "#f3f6ff",
+                elevation: 2,
+              }}
+            >
+              <MaterialIcons name={item.icon} size={22} color="#2563eb" />
+              <Text style={{ marginLeft: 12, fontSize: 16, color: "#1f2937" }}>
+                {item.label}
+              </Text>
+            </TouchableOpacity>
+          ),
+        )}
 
         {/* Profile Card */}
         <TouchableOpacity
@@ -132,11 +154,14 @@ export const SidebarMenu = ({ visible, onClose, role, navigation, logout, user }
           }}
         >
           <MaterialIcons name="account-circle" size={45} color="#2563eb" />
-          <View style={{ marginLeft: 10 }}>
+          <View style={{ marginLeft: 10, flex: 1 }}>
             <Text style={{ fontSize: 16, fontWeight: "700", color: "#111827" }}>
               {user?.name}
             </Text>
-            <Text style={{ fontSize: 14, color: "#6b7280" }}>{user?.email}</Text>
+
+            {/* <Text style={{ fontSize: 14, color: "#6b7280" }}>
+              {user?.email}
+            </Text> */}
           </View>
         </TouchableOpacity>
 

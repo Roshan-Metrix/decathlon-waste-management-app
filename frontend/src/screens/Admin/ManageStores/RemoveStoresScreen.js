@@ -1,13 +1,258 @@
+// import React, { useEffect, useState } from "react";
+// import {
+//   View,
+//   Text,
+//   StyleSheet,
+//   ScrollView,
+//   TouchableOpacity,
+//   Modal,
+//   TextInput,
+//   ActivityIndicator,
+// } from "react-native";
+// import { MaterialIcons } from "@expo/vector-icons";
+// import api from "../../../api/api";
+// import Alert from "../../../Components/Alert";
+
+// export default function RemoveStoresScreen({ navigation }) {
+//   const [stores, setStores] = useState([]);
+//   const [filteredStores, setFilteredStores] = useState([]);
+//   const [loading, setLoading] = useState(true);
+//   const [alertVisible, setAlertVisible] = useState(false);
+//   const [alertMessage, setAlertMessage] = useState("");
+
+//   const [modalVisible, setModalVisible] = useState(false);
+//   const [selectedStore, setSelectedStore] = useState(null);
+
+//   const [adminEmail, setAdminEmail] = useState("");
+//   const [adminPassword, setAdminPassword] = useState("");
+
+//   const [search, setSearch] = useState("");
+
+//   const [page, setPage] = useState(1);
+//   const [count, setCount] = useState(0);
+//   const [hasMore, setHasMore] = useState(true);
+//   const LIMIT = 3;
+
+//   // Fetch stores
+//   const getStores = async () => {
+//     try {
+//       const {data} = await api.get( `/auth/admin/get-all-stores?page=${page}&limit=${LIMIT}`);
+//       console.log(data);
+
+//       if (data.success) {
+//         setStores(data.stores);
+//         setFilteredStores(data.stores);
+//         setHasMore(data.hasMore);
+//         setCount(data.count || count);
+//         setPage((prev) => prev + 1);
+//       } else {
+//         setAlertMessage("Failed to fetch stores!");
+//         setAlertVisible(true);
+//       }
+//     } catch (err) {
+//       setAlertMessage("Error fetching stores!");
+//       setAlertVisible(true);
+//       console.log(err);
+//     }
+//     setLoading(false);
+//   };
+
+//   useEffect(() => {
+//     getStores();
+//   }, []);
+
+//   // Search filter
+//   useEffect(() => {
+//   const filtered = stores.filter((store) => {
+//     const text = search.toLowerCase();
+
+//     return (
+//       store?.storeId?.toString().toLowerCase().includes(text) ||
+//       store?.name?.toLowerCase().includes(text)
+//     );
+//   });
+
+//   setFilteredStores(filtered);
+// }, [search, stores]);
+
+//   // Remove Store
+//   const confirmRemoval = async () => {
+//     if (!adminEmail || !adminPassword) {
+//       setAlertMessage("Please enter your credentials!");
+//       setAlertVisible(true);
+//       return;
+//     }
+
+//     try {
+//       const res = await api.delete(
+//         `/auth/admin/delete-store/${selectedStore.storeId}`,
+//         {
+//           data: {
+//             adminEmail,
+//             adminPassword,
+//           },
+//         }
+//       );
+
+//       if (!res.data.success) {
+//         alert(res.data.message);
+//         return;
+//       }
+
+//       setAlertMessage("Store removed successfully!");
+//       setAlertVisible(true);
+
+//       const newList = stores.filter((s) => s.storeId !== selectedStore.storeId);
+
+//       setStores(newList);
+//       setFilteredStores(newList);
+
+//       setModalVisible(false);
+//       setAdminEmail("");
+//       setAdminPassword("");
+//     } catch (error) {
+//       console.log(error.message);
+//     }
+//   };
+
+//   if (loading) {
+//     return (
+//       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+//         <ActivityIndicator size="large" color="#2563eb" />
+//       </View>
+//     );
+//   }
+
+//   return (
+//     <View style={styles.container}>
+//       {/* Header */}
+//       <View style={styles.header}>
+//         <TouchableOpacity onPress={() => navigation.goBack()}>
+//           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
+//         </TouchableOpacity>
+
+//         <Text style={styles.headerTitle}>Remove Stores</Text>
+
+//         <View style={{ width: 26 }} />
+//       </View>
+
+//       <ScrollView contentContainerStyle={styles.content}>
+
+//         {/*  Search Bar */}
+//         <View style={styles.searchBox}>
+//           <MaterialIcons name="search" size={22} color="#2563eb" />
+//           <TextInput
+//             style={styles.searchInput}
+//             placeholder="Search by Store ID or Name..."
+//             placeholderTextColor="#7e7c7c"
+//             value={search}
+//             onChangeText={setSearch}
+//           />
+//         </View>
+
+//       {filteredStores.length === 0 ? (
+//         <View style={{ flex: 1, justifyContent: "center", alignItems: "center", marginTop: 10 }}>
+//           <MaterialIcons name="store" size={100} color="#555" />
+//           <Text style={{ textAlign: "center", color: "#555", fontSize: 21, marginTop: 1 }}>
+//             No stores found.
+//           </Text>
+//         </View>
+//       ) : (
+//         filteredStores.map((store, index) => (
+//           <View key={index} style={styles.card}>
+//             <View style={styles.row}>
+//               <MaterialIcons name="store" size={24} color="#2563eb" />
+//               <View style={{ marginLeft: 10 }}>
+//                 <Text style={styles.cardTitle}>{store.name}</Text>
+//                 <Text style={styles.cardSub}>ID: {store.storeId}</Text>
+//                 <Text style={styles.cardSub}>
+//                   Location: {store.storeLocation}
+//                 </Text>
+//                 <Text style={styles.cardSub}>
+//                   Contact: {store.contactNumber}
+//                 </Text>
+//                 <Text style={styles.cardSub}>Email: {store.email}</Text>
+//               </View>
+//             </View>
+
+//             <TouchableOpacity
+//               style={styles.removeBtn}
+//               onPress={() => {
+//                 setSelectedStore(store);
+//                 setModalVisible(true);
+//               }}
+//             >
+//               <MaterialIcons name="delete" size={22} color="#fff" />
+//               <Text style={styles.removeText}>Remove</Text>
+//             </TouchableOpacity>
+//           </View>
+//         )))}
+//       </ScrollView>
+
+//       {/* Verify Modal */}
+//       <Modal visible={modalVisible} transparent animationType="slide">
+//         <View style={styles.modalOverlay}>
+//           <View style={styles.modalBox}>
+//             <Text style={styles.modalTitle}>Verify Your Identity</Text>
+
+//             <View style={styles.inputBox}>
+//               <MaterialIcons name="email" size={22} color="#2563eb" />
+//               <TextInput
+//                 style={styles.input}
+//                 placeholder="Admin Email"
+//                 placeholderTextColor="#7e7c7c"
+//                 value={adminEmail}
+//                 onChangeText={setAdminEmail}
+//               />
+//             </View>
+
+//             <View style={styles.inputBox}>
+//               <MaterialIcons name="lock" size={22} color="#2563eb" />
+//               <TextInput
+//                 style={styles.input}
+//                 placeholder="Admin Password"
+//                 placeholderTextColor="#7e7c7c"
+//                 secureTextEntry
+//                 value={adminPassword}
+//                 onChangeText={setAdminPassword}
+//               />
+//             </View>
+
+//             <TouchableOpacity
+//               style={styles.confirmBtn}
+//               onPress={confirmRemoval}
+//             >
+//               <Text style={styles.confirmText}>Confirm Removal</Text>
+//             </TouchableOpacity>
+
+//             <TouchableOpacity
+//               style={styles.cancelBtn}
+//               onPress={() => setModalVisible(false)}
+//             >
+//               <Text style={styles.cancelText}>Cancel</Text>
+//             </TouchableOpacity>
+//           </View>
+//         </View>
+//       </Modal>
+//       <Alert
+//         visible={alertVisible}
+//         message={alertMessage}
+//         onClose={() => setAlertVisible(false)}
+//       />
+//     </View>
+//   );
+// }
+
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Modal,
   TextInput,
   ActivityIndicator,
+  FlatList,
+  StyleSheet,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
@@ -16,7 +261,15 @@ import Alert from "../../../Components/Alert";
 export default function RemoveStoresScreen({ navigation }) {
   const [stores, setStores] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
-  const [loading, setLoading] = useState(true);
+
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+
+  const [count, setCount] = useState(0);
+  const [search, setSearch] = useState("");
+
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
@@ -26,41 +279,75 @@ export default function RemoveStoresScreen({ navigation }) {
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
 
-  const [search, setSearch] = useState("");
+  const LIMIT = 3;
 
-  // Fetch stores
-  const getStores = async () => {
+  // Fetch Stores with Pagination
+  const fetchStores = async () => {
+    if (loading || !hasMore) return;
+
+    setLoading(true);
+
     try {
-      const res = await api.get("/auth/admin/get-all-stores");
+      const { data } = await api.get(
+        `/auth/admin/get-all-stores?page=${page}&limit=${LIMIT}`,
+      );
 
-      if (res.data.success) {
-        setStores(res.data.stores);
-        setFilteredStores(res.data.stores);
+      if (data.success) {
+        const newStores = Array.isArray(data.stores[0])
+          ? data.stores.flat()
+          : data.stores;
+
+        setStores((prev) => {
+          const combined = [...prev, ...newStores];
+
+          const unique = combined.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.storeId === item.storeId),
+          );
+
+          return unique;
+        });
+
+        setFilteredStores((prev) => {
+          const combined = [...prev, ...newStores];
+
+          const unique = combined.filter(
+            (item, index, self) =>
+              index === self.findIndex((t) => t.storeId === item.storeId),
+          );
+
+          return unique;
+        });
+
+        setHasMore(data.hasMore);
+        setCount(data.count || 0);
+        setPage((prev) => prev + 1);
       } else {
         setAlertMessage("Failed to fetch stores!");
         setAlertVisible(true);
       }
-    } catch (err) {
+    } catch (error) {
       setAlertMessage("Error fetching stores!");
       setAlertVisible(true);
-      console.log(err);
     }
+
     setLoading(false);
+    setInitialLoading(false);
   };
 
   useEffect(() => {
-    getStores();
-  }, []);
+    fetchStores();
+  }, [page]);
 
-  // Search filter
+  // Search Filter
   useEffect(() => {
-    const filtered = stores.filter((store) => {
-      const text = search.toLowerCase();
+    const text = search.toLowerCase();
 
-      return (
-        store.storeId.toString().toLowerCase().includes(text) ||
-        store.name.toLowerCase().includes(text)
-      );
+    const filtered = stores.filter((store) => {
+      const id = store?.storeId?.toLowerCase() || "";
+      const name = store?.name?.toLowerCase() || "";
+
+      return id.includes(text) || name.includes(text);
     });
 
     setFilteredStores(filtered);
@@ -78,41 +365,58 @@ export default function RemoveStoresScreen({ navigation }) {
       const res = await api.delete(
         `/auth/admin/delete-store/${selectedStore.storeId}`,
         {
-          data: {
-            adminEmail,
-            adminPassword,
-          },
-        }
+          data: { adminEmail, adminPassword },
+        },
       );
 
       if (!res.data.success) {
-        alert(res.data.message);
+        setAlertMessage(res.data.message);
+        setAlertVisible(true);
         return;
       }
 
-      setAlertMessage("Store removed successfully!");
-      setAlertVisible(true);
+      const updated = stores.filter((s) => s.storeId !== selectedStore.storeId);
 
-      const newList = stores.filter((s) => s.storeId !== selectedStore.storeId);
-
-      setStores(newList);
-      setFilteredStores(newList);
+      setStores(updated);
+      setFilteredStores(updated);
 
       setModalVisible(false);
       setAdminEmail("");
       setAdminPassword("");
+
+      setAlertMessage("Store removed successfully!");
+      setAlertVisible(true);
     } catch (error) {
-      console.log(error.message);
+      setAlertMessage("Error removing store!");
+      setAlertVisible(true);
     }
   };
 
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" color="#2563eb" />
+  const renderItem = ({ item }) => (
+    <View style={styles.card}>
+      <View style={styles.row}>
+        <MaterialIcons name="store" size={24} color="#2563eb" />
+        <View style={{ marginLeft: 10 }}>
+          <Text style={styles.cardTitle}>{item.name}</Text>
+          <Text style={styles.cardSub}>ID: {item.storeId}</Text>
+          <Text style={styles.cardSub}>Location: {item.storeLocation}</Text>
+          <Text style={styles.cardSub}>Contact: {item.contactNumber}</Text>
+          <Text style={styles.cardSub}>Email: {item.email}</Text>
+        </View>
       </View>
-    );
-  }
+
+      <TouchableOpacity
+        style={styles.removeBtn}
+        onPress={() => {
+          setSelectedStore(item);
+          setModalVisible(true);
+        }}
+      >
+        <MaterialIcons name="delete" size={22} color="#fff" />
+        <Text style={styles.removeText}>Remove</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
@@ -121,58 +425,54 @@ export default function RemoveStoresScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
-
         <Text style={styles.headerTitle}>Remove Stores</Text>
-
         <View style={{ width: 26 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      {/* Search */}
+      <View style={styles.searchBox}>
+        <MaterialIcons name="search" size={22} color="#2563eb" />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by Store ID or Name..."
+          placeholderTextColor="#7e7c7c"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
 
-        {/*  Search Bar */}
-        <View style={styles.searchBox}>
-          <MaterialIcons name="search" size={22} color="#2563eb" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by Store ID or Name..."
-            placeholderTextColor="#7e7c7c"
-            value={search}
-            onChangeText={setSearch}
-          />
+      {initialLoading ? (
+        <ActivityIndicator
+          size="large"
+          color="#2563eb"
+          style={{ marginTop: 50 }}
+        />
+      ) : filteredStores.length === 0 ? (
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
+          <MaterialIcons name="store" size={100} color="#555" />
+          <Text style={{ textAlign: "center", color: "#555", fontSize: 21 }}>
+            No stores found.
+          </Text>
         </View>
+      ) : (
+        <FlatList
+          data={filteredStores}
+          keyExtractor={(item, index) =>
+            item.storeId ? `${item.storeId}-${index}` : index.toString()
+          }
+          renderItem={renderItem}
+          contentContainerStyle={styles.content}
+          onEndReached={fetchStores}
+          onEndReachedThreshold={0.4}
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="small" /> : null
+          }
+        />
+      )}
 
-        {filteredStores.map((store, index) => (
-          <View key={index} style={styles.card}>
-            <View style={styles.row}>
-              <MaterialIcons name="store" size={24} color="#2563eb" />
-              <View style={{ marginLeft: 10 }}>
-                <Text style={styles.cardTitle}>{store.name}</Text>
-                <Text style={styles.cardSub}>ID: {store.storeId}</Text>
-                <Text style={styles.cardSub}>
-                  Location: {store.storeLocation}
-                </Text>
-                <Text style={styles.cardSub}>
-                  Contact: {store.contactNumber}
-                </Text>
-                <Text style={styles.cardSub}>Email: {store.email}</Text>
-              </View>
-            </View>
-
-            <TouchableOpacity
-              style={styles.removeBtn}
-              onPress={() => {
-                setSelectedStore(store);
-                setModalVisible(true);
-              }}
-            >
-              <MaterialIcons name="delete" size={22} color="#fff" />
-              <Text style={styles.removeText}>Remove</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/* Verify Modal */}
+      {/* Modal */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -217,6 +517,7 @@ export default function RemoveStoresScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
       <Alert
         visible={alertVisible}
         message={alertMessage}
@@ -266,7 +567,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
-    marginBottom: 20,
+    marginTop: 14,
+    marginHorizontal: 10,
   },
   searchInput: {
     flex: 1,

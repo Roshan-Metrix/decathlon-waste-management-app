@@ -154,6 +154,13 @@ export default function ViewAllStoresScreen({ navigation }) {
           color="#2563eb"
           style={{ marginTop: 50 }}
         />
+      ) : filteredStores.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center"}}>
+          <MaterialIcons name="store" size={100} color="#555" />
+          <Text style={{ textAlign: "center", color: "#555", fontSize: 21, marginTop: 1 }}>
+            No Stores Found
+          </Text>
+        </View>
       ) : (
         <FlatList
           data={filteredStores}

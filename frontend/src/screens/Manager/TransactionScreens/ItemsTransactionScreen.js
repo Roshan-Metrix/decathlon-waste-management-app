@@ -379,6 +379,22 @@ export default function ItemsTransactionScreen({ navigation }) {
               "Recycling Organic",
               "Mixed Packaging",
               "Defective Products",
+              "Recycling Hangers",
+              "Return Hangers",
+              "Recycling Mixed Packaging",
+              "Recycling Soft Plastic",
+              "Recycling Wood",
+              "Unsegregated Waste",
+              "Recycling Hard Plastic",
+              "Food Waste - Expired Products",
+              "Recycling Metal Mixed",
+              "Recycling Wood Pallet Wood",
+              "Nonrecycling Wood(Furniture)",
+              "Recycling Metal Fixtures Truck Load",
+              "Aluminium < 1000 kgs /> 1000 kgs",
+              "LED Strips",
+              "Energy Recovery",
+              "Incineration"
             ].map((item) => (
               <TouchableOpacity
                 key={item}

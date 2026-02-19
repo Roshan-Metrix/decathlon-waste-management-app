@@ -100,159 +100,36 @@ const generateCSV = (data) => {
   };
 };
 
-// const generatePDF = (data) => {
-//   // Generate HTML for the Material Summary section
-//   const summaryHtml =
-//     data.itemSummary.length > 0
-//       ? `
-//             <h3 style="font-size: 14px; margin-top: 25px; margin-bottom: 10px; color: #1e40af;">Material Type Summary</h3>
-//             <div style="border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9;">
-//                 ${data.itemSummary
-//                   .map(
-//                     (summary, index) => `
-//                     <div style="font-size: 12px; margin-bottom: 5px; line-height: 16px;">
-//                         <span style="font-weight: bold; margin-right: 5px;">${
-//                           index + 1
-//                         }. ${summary.materialType}:</span>
-//                         <span style="color: #333;">${summary.itemCount} item${
-//                           summary.itemCount !== 1 ? "s" : ""
-//                         }</span>
-//                         <span style="font-weight: bold; color: #b91c1c;">(Total Weight: ${
-//                           summary.totalWeight
-//                         } kg)</span>
-//                     </div>
-//                 `,
-//                   )
-//                   .join("")}
-//             </div>
-//           `
-//       : "";
-
-//   const htmlContent = `
-//         <html>
-//             <head>
-//                 <style>
-//                     body { font-family: sans-serif; padding: 15px; }
-//                     .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #ccc; padding-bottom: 10px; }
-//                     .store { font-size: 20px; font-weight: bold; color: #1e40af; }
-//                     .info { font-size: 12px; margin: 5px 0; }
-//                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-//                     th, td { border: 1px solid #ddd; padding: 8px; font-size: 10px; }
-//                     th { background-color: #eef2ff; color: #1e40af; }
-//                     .total-row { background-color: #e0f2fe; font-weight: bold; font-size: 12px; }
-//                     .signature-area { width: 100%; margin-top: 40px;position: relative; right: 0; }
-//                     .signature-box { text-align: center; width: 40%; }
-//                     .sig-placeholder { height: 60px; border-bottom: 1px solid #aaa; margin-top: 5px; }
-//                 </style>
-//             </head>
-//             <body>
-//                 <div class="header">
-//                     <div class="store">${data.storeName}</div>
-//                     <div class="info">${data.storeLocation}</div>
-//                     <div class="info">Transaction ID: ${
-//                       data.transactionId
-//                     } | Vendor: ${data.vendorName}</div>
-//                 </div>
-                
-//                 <h3 style="font-size: 14px; margin-top: 20px; margin-bottom: 10px;">Detailed Transaction Items</h3>
-//                 <table>
-//                     <thead>
-//                         <tr>
-//                             <th>SN</th>
-//                             <th>Material</th>
-//                             <th style="text-align:center;">Weight (kg)</th>
-//                             <th>Time & Source</th>
-//                         </tr>
-//                     </thead>
-//                     <tbody>
-//                         ${data.items
-//                           .map((item) => {
-//                             const { date, time } = formatISTDateTime(
-//                               item.createdAt,
-//                             );
-//                             const source =
-//                               item.weightSource === "system" ? "Sys" : "Man";
-
-//                             return `
-//                                 <tr>
-//                                     <td>${item.sn}</td>
-//                                     <td>${item.materialType}</td>
-//                                     <td style="text-align:center;">${item.weight}</td>
-//                                     <td>
-//                                         Date: ${date}<br/>
-//                                         Time: ${time} (${source})
-//                                     </td>
-//                                 </tr>
-//                             `;
-//                           })
-//                           .join("")}
-//                         <tr class="total-row">
-//                             <td colspan="2" style="text-align:right; padding-right:10px;">Grand Total Weight:</td>
-//                             <td style="text-align:center;">${
-//                               data.grandTotalWeight
-//                             }</td>
-//                             <td></td>
-//                         </tr>
-//                     </tbody>
-//                 </table>
-                
-//                 ${summaryHtml}
-
-//                 <div class="signature-area">
-//                     <div class="signature-box">
-//                         <div class="sig-placeholder">
-//                             ${
-//                               data.managerSignature
-//                                 ? '<img src="' +
-//                                   data.managerSignature +
-//                                   '" style="height:100%; width:100%; object-fit:contain;">'
-//                                 : ""
-//                             }
-//                         </div>
-//                         <div style="font-weight: bold;">Manager Signature</div>
-//                     </div>
-//                 </div>
-//             </body>
-//         </html>
-//     `;
-
-//   return {
-//     data: htmlContent,
-//     fileName: `${data.transactionId}_Bill.pdf`,
-//     mimeType: "application/pdf",
-//   };
-// };
-
 const generatePDF = (data) => {
   const ITEM_RATES = {
     "Recycling Metal": 20,
     "Recycling Rubber": 2,
     "Recycling Paper": 7,
-    "Recycling Glass": 12,
+    "Recycling Glass": -12,
     "Recycling E Waste": 7,
     "Recycling Cardboard": 7,
-    "Recycling Textile": 5,
+    "Recycling Textile": -5,
     "Recycling Soft Plastics": 20,
-    "Hazardous Waste": 16,
-    "Recycling Organic": 4,
+    "Hazardous Waste": -16,
+    "Recycling Organic": -4,
     "Mixed Packaging": 8,
-    "Defective Products": 7,
+    "Defective Products": -7,
     "Recycling Hangers": 0,
-    "Return Hangers": 6,
+    "Return Hangers": -6,
     "Recycling Mixed Packaging": 8,
     "Recycling Soft Plastic": 20,
     "Recycling Wood": 2,
-    "Unsegregated Waste": 16,
+    "Unsegregated Waste": -16,
     "Recycling Hard Plastic": 13,
-    "Food Waste - Expired Products": 16,
+    "Food Waste - Expired Products": -16,
     "Recycling Metal Mixed": 20,
     "Recycling Wood Pallet Wood": 3,
-    "Nonrecycling Wood(Furniture)": 3,
+    "Nonrecycling Wood(Furniture)": -16,
     "Recycling Metal Fixtures Truck Load": 27,
     "Aluminium < 1000 kgs /> 1000 kgs": 65,
-    "LED Strips": 16,
-    "Energy Recovery": 16,
-    "Incineration": 16,
+    "LED Strips": -16,
+    "Energy Recovery": -16,
+    "Incineration" : -16
   };
   // Calculate Grand Total Amount
   const grandTotalAmount = data.itemSummary.reduce((total, summary) => {
@@ -445,31 +322,31 @@ export default function ExportDataScreen({ navigation, route }) {
     "Recycling Metal": 20,
     "Recycling Rubber": 2,
     "Recycling Paper": 7,
-    "Recycling Glass": 12,
+    "Recycling Glass": -12,
     "Recycling E Waste": 7,
     "Recycling Cardboard": 7,
-    "Recycling Textile": 5,
+    "Recycling Textile": -5,
     "Recycling Soft Plastics": 20,
-    "Hazardous Waste": 16,
-    "Recycling Organic": 4,
+    "Hazardous Waste": -16,
+    "Recycling Organic": -4,
     "Mixed Packaging": 8,
-    "Defective Products": 7,
+    "Defective Products": -7,
     "Recycling Hangers": 0,
-    "Return Hangers": 6,
+    "Return Hangers": -6,
     "Recycling Mixed Packaging": 8,
     "Recycling Soft Plastic": 20,
     "Recycling Wood": 2,
-    "Unsegregated Waste": 16,
+    "Unsegregated Waste": -16,
     "Recycling Hard Plastic": 13,
-    "Food Waste - Expired Products": 16,
+    "Food Waste - Expired Products": -16,
     "Recycling Metal Mixed": 20,
     "Recycling Wood Pallet Wood": 3,
-    "Nonrecycling Wood(Furniture)": 3,
+    "Nonrecycling Wood(Furniture)": -16,
     "Recycling Metal Fixtures Truck Load": 27,
     "Aluminium < 1000 kgs /> 1000 kgs": 65,
-    "LED Strips": 16,
-    "Energy Recovery": 16,
-    "Incineration": 16,
+    "LED Strips": -16,
+    "Energy Recovery": -16,
+    "Incineration" : -16
   };
 
   const handleExport = async (type) => {

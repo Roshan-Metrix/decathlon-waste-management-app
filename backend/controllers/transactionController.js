@@ -8,6 +8,8 @@ export const AddTransactionDetailController = async (req, res) => {
     const { storeId, storeName, storeLocation, managerName, vendorName } =
       req.body;
 
+      const createdBy = req.user.id;
+
     if (
       !storeId ||
       !storeName ||
@@ -36,6 +38,7 @@ export const AddTransactionDetailController = async (req, res) => {
         image: "",
       },
       items: [],
+      createdBy,
     });
 
     await newTransaction.save();
@@ -134,7 +137,7 @@ export const recognizeWithGeminiController = async (req, res) => {
     console.error("Error in recognizeWithGeminiController:", err);
     res.status(500).json({
       success: false,
-      error: err.message,
+      error: "Internal Server Error",
     });
   }
 }

@@ -26,7 +26,7 @@ export const getAllManagers = async (req, res) => {
 
   } catch (error) {
     console.log("Error in getAllManagers Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -38,9 +38,9 @@ export const getManagerProfile = async (req, res) => {
     return res.json({ success: true, manager, store });
   } catch (error) {
     console.log("Error in getManagerProfile Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
-}
+};
 
 // Get Managers of a Particular Store --> For Managers
 export const getParticularStoreManagers = async (req, res) => {
@@ -71,6 +71,42 @@ export const getParticularStoreManagers = async (req, res) => {
 
   } catch (error) {
     console.log("Error in getParticularStoreManagers:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
+};
+
+// Delete Manager --> For Admin
+export const deleteManager = async (req, res) => {
+  try{
+  const { managerId } = req.params;
+  
+  if(!managerId){
+    res.status(400).json({
+      success: false,
+      message: "ManagerId is required",
+    })
+  }
+
+  const manager = await managerModel.findById(managerId).select("-password -__v");
+
+  if(!manager){
+    return res.status(404).json({
+      success: false,
+      message: "Manager not found"
+    })
+  }
+  
+   await managerModel.deleteOne({ _id: managerId });
+
+  return res.status(200).json({
+    success: true,
+    message: "Manager deleted successfully!"
+  })
+}catch(error){
+  console.log("Error in deleteManager controller: ",error);
+  return res.status(500).json({
+    status: false,
+    message:"Internal Server Error"
+  });
+}
 };

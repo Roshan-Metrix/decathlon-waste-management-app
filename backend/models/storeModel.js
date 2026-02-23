@@ -18,6 +18,11 @@ const storeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    states:{
+      type: String,
+      required: true,
+      trim: true,
+    },
     contactNumber: {
       type: String,
       required: true,

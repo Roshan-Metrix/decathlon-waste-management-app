@@ -68,6 +68,11 @@ const transactionSchema = new mongoose.Schema(
       },
     },
     items: [itemSchema],
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "store" || "manager",
+      required: true,
+    },
   },
   { timestamps: true }
 );

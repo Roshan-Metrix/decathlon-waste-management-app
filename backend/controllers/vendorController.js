@@ -2,13 +2,13 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import vendorModel from "../models/vendorModel.js";
 import transactionModel from "../models/transactionModel.js";
-import storeModel from "../models/storeModel.js";
 import transporter from "../config/nodemailer.js";
 import { VENDOR_ADDED_TEMPLATE } from "../config/emailTemplates.js";
 
 // Vendor Registration by Admin only
 export const vendorRegister = async (req, res) => {
   const { name, email, password, vendorLocation, contactNumber } = req.body;
+  const createdBy = req.user.id;
 
   if (!name || !email || !password || !vendorLocation || !contactNumber) {
     return res.status(400).json({
@@ -18,7 +18,6 @@ export const vendorRegister = async (req, res) => {
   }
 
   try {
-    // Check if vendor already exists
     const existingVendor = await vendorModel.findOne({ email });
     if (existingVendor) {
       return res.status(409).json({
@@ -27,10 +26,8 @@ export const vendorRegister = async (req, res) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create vendor
     const newVendor = new vendorModel({
       name,
       email,
@@ -39,6 +36,7 @@ export const vendorRegister = async (req, res) => {
       contactNumber,
       role: "vendor",
       isApproved: true,
+      createdBy,
     });
 
     await newVendor.save();
@@ -50,7 +48,7 @@ export const vendorRegister = async (req, res) => {
       { expiresIn: "7d" },
     );
 
-    // Set cookie (optional: only if you want auto login after register)
+    // Set cookie
     res.cookie("vendorToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -79,7 +77,7 @@ export const vendorRegister = async (req, res) => {
     console.error("Vendor Registration Error:", error.message);
     return res.status(500).json({
       success: false,
-      message: "Server error. Please try again later.",
+      message: "Internal Server Error",
     });
   }
 };
@@ -144,7 +142,7 @@ export const vendorLogin = async (req, res) => {
     console.error("Vendor Login Error:", error.message);
     return res.status(500).json({
       success: false,
-      message: "Server error. Please try again later.",
+      message: "Internal Server Error",
     });
   }
 };
@@ -162,7 +160,7 @@ export const logoutVendor = async (req, res) => {
       message: "Vendor logged out successfully",
     });
   } catch (error) {
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -196,7 +194,7 @@ export const getVendorLoggedInDetails = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in Get Vendor Details:", error.message);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -247,7 +245,7 @@ export const getAllRelatedStores = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getAllStores Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -292,7 +290,7 @@ export const getAllRelatedStoresTransactions = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getAllStores Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -372,7 +370,7 @@ export const getAllVendors = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getAllVendors Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -454,8 +452,43 @@ export const getTotalWeightsByDates = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getTotalWeightsByDates Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
+};
+
+export const deleteVendor = async (req, res) => {
+  try{
+  const { vendorId } = req.params;
+  
+  if(!vendorId){
+    res.status(400).json({
+      success: false,
+      message: "vendorId is required",
+    })
+  }
+
+  const vendor = await vendorModel.findById(vendorId).select("-password -__v");
+
+  if(!vendor){
+    return res.status(404).json({
+      success: false,
+      message: "Vendor not found"
+    })
+  }
+  
+  await vendorModel.deleteOne({ _id: vendorId });
+
+  return res.status(200).json({
+    success: true,
+    message: "Vendor deleted successfully!"
+  })
+}catch(error){
+  console.log("Error in deleteVendor controller: ",error);
+  return res.status(500).json({
+    status: false,
+    message:"Internal Server Error"
+  });
+}
 };
 
 // const fromDate = new Date(from).toISOString().split("T")[0];

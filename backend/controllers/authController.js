@@ -17,6 +17,7 @@ dotenv.config();
 
 export const registerAdmin = async (req, res) => {
   const { name, email, password } = req.body;
+  const createdBy = req.user.id;
 
   if (!name || !email || !password) {
     return res.json({ success: false, message: "Missing details" });
@@ -38,6 +39,7 @@ export const registerAdmin = async (req, res) => {
       email,
       password: hashedPassword,
       isApproved: true,
+      createdBy,
     });
 
     await admin.save();
@@ -78,18 +80,20 @@ export const registerAdmin = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in registerAdmin Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
 export const registerStore = async (req, res) => {
-  const { storeId, name, storeLocation, contactNumber, email, password } =
+  const { storeId, name, storeLocation,states, contactNumber, email, password } =
     req.body;
+  const createdBy = req.user.id;
 
   if (
     !storeId ||
     !name ||
     !storeLocation ||
+    !states ||
     !contactNumber ||
     !email ||
     !password
@@ -112,10 +116,12 @@ export const registerStore = async (req, res) => {
       storeId,
       name,
       storeLocation,
+      states,
       contactNumber,
       email,
       password: hashedPassword,
       isApproved: true,
+      createdBy,
     });
 
     await store.save();
@@ -154,17 +160,19 @@ export const registerStore = async (req, res) => {
         role: store.role,
         isApproved: store.isApproved,
         storeLocation: store.storeLocation,
+        states: store.states,
       },
       message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerStore Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
 export const registerManager = async (req, res) => {
   const { storeId, name, email, password } = req.body;
+  const createdBy = req.user.id;
 
   if ((!storeId, !name, !email, !password)) {
     return res.json({ success: false, message: "Missing details" });
@@ -195,6 +203,7 @@ export const registerManager = async (req, res) => {
       email,
       password: hashedPassword,
       isApproved: true,
+      createdBy,
     });
 
     await manager.save();
@@ -236,7 +245,7 @@ export const registerManager = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in registerManager Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -279,7 +288,7 @@ export const loginUser = async (req, res) => {
     if (!user.isApproved) {
       return res.json({
         success: false,
-        message: "Account not approved yet",
+        message: "Account not approved!",
       });
     }
 
@@ -307,7 +316,7 @@ export const loginUser = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in loginUser Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -319,9 +328,44 @@ export const logoutUser = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in logoutUser Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
+
+export const restrictAnyAdminAccess = async (req, res) => {
+  try {
+    const { adminId } = req.params;
+    console.log(adminId);
+
+    if(!adminId){
+      return res.status(400).json({
+        success: false,
+        message: "Admin Id is required",
+      });
+  }
+
+  const admin = await adminModel.findById(adminId).select("-password -__v");
+
+  if(!admin){
+    return res.status(404).json({
+      success: false,
+      message: "Admin not found",
+    })
+  }
+
+  admin.isApproved = false;
+  await admin.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Admin access restricted successfully!",
+  });
+  
+}catch(error){
+    console.log("Error in restrictAnyAdminAccess Controller : ", error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+}
+}
 
 export const getLoggedInUserDetails = async (req, res) => {
   try {
@@ -360,7 +404,7 @@ export const getLoggedInUserDetails = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getLoggedInUsesDetails Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -414,7 +458,7 @@ export const sendPasswordResetOtp = async (req, res) => {
     return res.json({ success: true, message: "Reset OTP sent successfully" });
   } catch (error) {
     console.log("Error in sendPasswordResetOtp Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -487,7 +531,7 @@ export const resetPassword = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in resetPassword Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -538,6 +582,6 @@ export const changePassword = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in changePassword Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };

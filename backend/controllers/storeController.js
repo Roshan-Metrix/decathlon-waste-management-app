@@ -28,7 +28,7 @@ export const getStoreProfile = async (req, res) => {
     console.log("Error in getStoreProfile:", error);
     return res
       .status(500)
-      .json({ success: false, message: "Server error" });
+      .json({ success: false, message: "Internal Server error" });
   }
 };
 
@@ -67,7 +67,7 @@ export const getAllStores = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getAllStores Controller:", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -100,6 +100,47 @@ export const deleteStore = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in deleteStore Controller : ", error);
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+export const editStoreDetails = async (req, res) => {
+  try {
+    const { storeId } = req.params;
+    console.log(storeId);
+    const { name, storeLocation, states, contactNumber, email } = req.body;
+
+    const updateData = {};
+
+    if (name) updateData.name = name;
+    if (storeLocation) updateData.storeLocation = storeLocation;
+    if (contactNumber) updateData.contactNumber = contactNumber;
+    if (states) updateData.states = states;
+    if (email) updateData.email = email;
+
+    const updatedStore = await storeModel.findByIdAndUpdate(
+       storeId ,
+      { $set: updateData },
+      { new: true, select: "-password -__v" }
+    );
+
+    if (!updatedStore) {
+      return res.status(404).json({
+        success: false,
+        message: "Store not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Store details updated successfully",
+    });
+
+  } catch (error) {
+    console.error("Error in editStoreDetails:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };

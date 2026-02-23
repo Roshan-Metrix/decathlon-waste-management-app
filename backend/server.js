@@ -17,7 +17,6 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 const allowedOrigins = [
   process.env.FRONTEND_URI,
-  'http://localhost:5173',
 ];
 
 app.use(cookieParser());

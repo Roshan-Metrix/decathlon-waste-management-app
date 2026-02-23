@@ -12,7 +12,7 @@ export const getAllAdmins = async (req, res) => {
 
   } catch (error) {
     console.log("Error in getAllAdmins : ", error)
-    return res.json({ success: false, message: error.message });
+    return res.json({ success: false, message: "Internal Server Error" });
   }
 };
 

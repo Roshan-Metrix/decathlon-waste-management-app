@@ -49,4 +49,5 @@ const managerSchema = new mongoose.Schema(
 
 const managerModel =
   mongoose.models.manager || mongoose.model("manager", managerSchema);
+  
 export default managerModel;

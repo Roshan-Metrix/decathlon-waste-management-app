@@ -20,7 +20,7 @@ export const registerAdmin = async (req, res) => {
   const createdBy = req.user.id;
 
   if (!name || !email || !password) {
-    return res.json({ success: false, message: "Missing details" });
+    return res.status(400).json({ success: false, message: "Missing details" });
   }
 
   const PasswordSavedToSendEmail = password;
@@ -29,7 +29,7 @@ export const registerAdmin = async (req, res) => {
     const existingUser = await adminModel.findOne({ email });
 
     if (existingUser) {
-      return res.json({ success: false, message: "Admin already exists" });
+      return res.status(400).json({ success: false, message: "Admin already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -80,7 +80,7 @@ export const registerAdmin = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in registerAdmin Controller : ", error);
-    return res.json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
   }
 };
 
@@ -335,7 +335,6 @@ export const logoutUser = async (req, res) => {
 export const restrictAnyAdminAccess = async (req, res) => {
   try {
     const { adminId } = req.params;
-    console.log(adminId);
 
     if(!adminId){
       return res.status(400).json({

@@ -1,7 +1,7 @@
 import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword, restrictAnyAdminAccess } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-import { getAllAdmins } from '../controllers/adminController.js';
+import { addMaterialTypeAndRate, getAllAdmins } from '../controllers/adminController.js';
 import { deleteManager, getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, editStoreDetails, getAllStores, getStoreProfile } from '../controllers/storeController.js';
@@ -13,7 +13,7 @@ authRouter.get('/', (req, res) => {
     res.send('Auth API Endpoint Running...');
 });
 
-// ----- APP routes -------
+// ----- App routes -------
 //common routes
 authRouter.post('/login', loginUser);
 authRouter.post('/logout', logoutUser);
@@ -40,6 +40,9 @@ authRouter.get('/manager/profile',authMiddleware,managerMiddleware,getManagerPro
 // store
 authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticularStoreManagers);
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
+
+// materialType and Rate add
+authRouter.post('/admin/add-materials',authMiddleware,adminMiddleware,addMaterialTypeAndRate);
 
 export default authRouter;
 

@@ -47,6 +47,7 @@ import ManageDataScreen from "../screens/Manager/ManageData/ManageDataScreen";
 import ShowAllTransaction from "../screens/Manager/ManageData/ShowAllTransaction";
 import SelectedTransactionItems from "../screens/Manager/ManageData/SelectedTransactionItems";
 import AllTransactionsScreen from "../screens/Admin/ManageStores/AllTransactionsScreen";
+import RestrictAdminAccessScreen from "../screens/Admin/ManageAdmins/RestrictAdminAccessScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -94,6 +95,7 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ManageVendorScreen" component={ManageVendorScreen} />
             <Stack.Screen name="AddVendorsScreen" component={AddVendorsScreen} />
             <Stack.Screen name="ViewVendorsScreen" component={ViewVendorsScreen} />
+            <Stack.Screen name="RestrictAdminAccessScreen" component={RestrictAdminAccessScreen} />
 
             {/* Manager & Store Screens */}
             <Stack.Screen name="ManageDataScreen" component={ManageDataScreen} />

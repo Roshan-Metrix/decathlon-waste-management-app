@@ -8,6 +8,8 @@ export const getAllAdmins = async (req, res) => {
     return res.status(200).json({
       success: true,
       count: admins.length,
+      approvedCount: admins.filter(admin => admin.isApproved).length,
+      restrictedCount: admins.filter(admin => !admin.isApproved).length,
       admins,
     });
 

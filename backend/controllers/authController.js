@@ -29,7 +29,9 @@ export const registerAdmin = async (req, res) => {
     const existingUser = await adminModel.findOne({ email });
 
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "Admin already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Admin already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -51,7 +53,7 @@ export const registerAdmin = async (req, res) => {
         isApproved: admin.isApproved,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15d" }
+      { expiresIn: "15d" },
     );
 
     const mailOption = {
@@ -60,11 +62,11 @@ export const registerAdmin = async (req, res) => {
       subject: "Welcome To Decathlon",
       html: ADMIN_ADDED_TEMPLATE.replace("{{email}}", email).replace(
         "{{password}}",
-       PasswordSavedToSendEmail
+        PasswordSavedToSendEmail,
       ),
     };
 
-   const mailResult = await transporter.sendMail(mailOption);
+    const mailResult = await transporter.sendMail(mailOption);
 
     return res.json({
       success: true,
@@ -76,17 +78,29 @@ export const registerAdmin = async (req, res) => {
         role: admin.role,
         isApproved: admin.isApproved,
       },
-      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
+      message:
+        mailResult.accepted.length > 0
+          ? "Registration successful, email sent"
+          : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerAdmin Controller : ", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
   }
 };
 
 export const registerStore = async (req, res) => {
-  const { storeId, name, storeLocation,states, contactNumber, email, password } =
-    req.body;
+  const {
+    storeId,
+    name,
+    storeLocation,
+    states,
+    contactNumber,
+    email,
+    password,
+  } = req.body;
   const createdBy = req.user.id;
 
   if (
@@ -133,7 +147,7 @@ export const registerStore = async (req, res) => {
         isApproved: store.isApproved,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15d" }
+      { expiresIn: "15d" },
     );
 
     const mailOption = {
@@ -142,7 +156,7 @@ export const registerStore = async (req, res) => {
       subject: "Welcome To Decathlon",
       html: STORE_ADDED_TEMPLATE.replace("{{email}}", email).replace(
         "{{password}}",
-       PasswordSavedToSendEmail
+        PasswordSavedToSendEmail,
       ),
     };
 
@@ -162,7 +176,10 @@ export const registerStore = async (req, res) => {
         storeLocation: store.storeLocation,
         states: store.states,
       },
-      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
+      message:
+        mailResult.accepted.length > 0
+          ? "Registration successful, email sent"
+          : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerStore Controller : ", error);
@@ -215,7 +232,7 @@ export const registerManager = async (req, res) => {
         isApproved: manager.isApproved,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15d" }
+      { expiresIn: "15d" },
     );
 
     const mailOption = {
@@ -224,7 +241,7 @@ export const registerManager = async (req, res) => {
       subject: "Welcome To Decathlon",
       html: MANAGER_ADDED_TEMPLATE.replace("{{email}}", email).replace(
         "{{password}}",
-       PasswordSavedToSendEmail
+        PasswordSavedToSendEmail,
       ),
     };
 
@@ -241,7 +258,10 @@ export const registerManager = async (req, res) => {
         role: manager.role,
         isApproved: manager.isApproved,
       },
-      message: mailResult.accepted.length > 0 ? "Registration successful, email sent" : "Registration successful, email not sent",
+      message:
+        mailResult.accepted.length > 0
+          ? "Registration successful, email sent"
+          : "Registration successful, email not sent",
     });
   } catch (error) {
     console.log("Error in registerManager Controller : ", error);
@@ -300,7 +320,7 @@ export const loginUser = async (req, res) => {
         isApproved: user.isApproved,
       },
       process.env.JWT_SECRET,
-      { expiresIn: "15d" }
+      { expiresIn: "15d" },
     );
 
     return res.json({
@@ -336,35 +356,41 @@ export const restrictAnyAdminAccess = async (req, res) => {
   try {
     const { adminId } = req.params;
 
-    if(!adminId){
+    if (!adminId) {
       return res.status(400).json({
         success: false,
         message: "Admin Id is required",
       });
-  }
+    }
 
-  const admin = await adminModel.findById(adminId).select("-password -__v");
+    const admin = await adminModel.findById(adminId).select("-password -__v");
 
-  if(!admin){
-    return res.status(404).json({
-      success: false,
-      message: "Admin not found",
-    })
-  }
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
 
-  admin.isApproved = false;
-  await admin.save();
+    if (admin.isApproved) {
+      admin.isApproved = false;
+    } else {
+      admin.isApproved = true;
+    }
 
-  return res.status(200).json({
-    success: true,
-    message: "Admin access restricted successfully!",
-  });
-  
-}catch(error){
+    await admin.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin access restricted successfully!",
+    });
+  } catch (error) {
     console.log("Error in restrictAnyAdminAccess Controller : ", error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
-}
-}
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal Server Error" });
+  }
+};
 
 export const getLoggedInUserDetails = async (req, res) => {
   try {
@@ -377,12 +403,12 @@ export const getLoggedInUserDetails = async (req, res) => {
 
     // Check Store
     if (!user) {
-      user = await storeModel.findById(userId).select("-password -__v");;
+      user = await storeModel.findById(userId).select("-password -__v");
     }
 
     // Check Manager
     if (!user) {
-      user = await managerModel.findById(userId).select("-password -__v");;
+      user = await managerModel.findById(userId).select("-password -__v");
     }
 
     if (!user) {
@@ -413,7 +439,7 @@ export const sendPasswordResetOtp = async (req, res) => {
   if (!email) return res.json({ success: false, message: "Email is Required" });
 
   try {
-     let user = null;
+    let user = null;
 
     // Check Admin
     user = await adminModel.findOne({ email });
@@ -429,7 +455,7 @@ export const sendPasswordResetOtp = async (req, res) => {
     }
 
     // Check Vendor
-    if (!user){
+    if (!user) {
       user = await vendorModel.findOne({ email });
     }
 
@@ -448,7 +474,7 @@ export const sendPasswordResetOtp = async (req, res) => {
       subject: "Password Reset OTP",
       html: PASSWORD_RESET_TEMPLATE.replace("{{otp}}", otp).replace(
         "{{email}}",
-        user.email
+        user.email,
       ),
     };
 
@@ -488,7 +514,7 @@ export const resetPassword = async (req, res) => {
     }
 
     // Check Vendor
-    if (!user){
+    if (!user) {
       user = await vendorModel.findOne({ email });
     }
 
@@ -518,7 +544,7 @@ export const resetPassword = async (req, res) => {
       text: `Your Password for ${email} is reset successfully.`,
       html: PASSWORD_RESET_SUCCESSFULLY_TEMPLATE.replace(
         "{{email}}",
-        user.email
+        user.email,
       ),
     };
 
@@ -541,7 +567,7 @@ export const changePassword = async (req, res) => {
     return res.json({ success: false, message: "Missing details" });
   }
   try {
-     let user = null;
+    let user = null;
 
     // Check Admin
     user = await adminModel.findOne({ _id: userId });
@@ -557,7 +583,7 @@ export const changePassword = async (req, res) => {
     }
 
     // Check Vendor
-    if (!user){
+    if (!user) {
       user = await vendorModel.findOne({ _id: userId });
     }
 

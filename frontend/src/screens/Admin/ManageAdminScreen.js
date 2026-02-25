@@ -93,11 +93,11 @@ export default function ManageAdminScreen({ navigation }) {
           />
 
           <FeatureCard
-            title="Revoke Admin Access"
+            title="Restrict Admin Access"
             description="Remove administrative privileges from an existing account."
             iconName="no-accounts"
             iconColor="#ef4444"
-            onPress={() => showAlert()}
+            onPress={() => navigation.navigate("RestrictAdminAccessScreen")}
           />
         </View>
 

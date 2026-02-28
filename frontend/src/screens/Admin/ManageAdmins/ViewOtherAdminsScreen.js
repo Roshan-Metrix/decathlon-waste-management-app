@@ -54,7 +54,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* ------- Header ------- */}
+      {/*  Header  */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
@@ -73,7 +73,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
         />
       ) : (
         <>
-          {/* ------- Total Admins Summary Card ------- */}
+          {/*  Total Admins Summary Card  */}
           <View style={styles.summaryCard}>
             <MaterialIcons name="groups" size={32} color="#2563eb" />
             <View style={{ marginLeft: 20 }}>
@@ -82,7 +82,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
             </View>
           </View>
 
-          {/* ------- Search Bar ------- */}
+          {/*  Search Bar  */}
           <View style={styles.searchBox}>
             <MaterialIcons name="search" size={22} color="#2563eb" />
             <TextInput
@@ -94,7 +94,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
             />
           </View>
 
-          {/* ------- Admin List ------- */}
+          {/*  Admin List  */}
           <FlatList
             data={filteredAdmins}
             keyExtractor={(item) => item._id}
@@ -123,7 +123,7 @@ export default function ViewOtherAdminsScreen({ navigation }) {
   );
 }
 
-/* ----------- Styles ---------- */
+/* ---- Styles --- */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

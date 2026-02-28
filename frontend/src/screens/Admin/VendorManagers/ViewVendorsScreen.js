@@ -118,7 +118,7 @@ export default function ViewVendorsScreen({ navigation }) {
   );
 }
 
-/* ---------------------- STYLES ---------------------- */
+/*  STYLES  */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },
 

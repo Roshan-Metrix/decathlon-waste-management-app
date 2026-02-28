@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   TextInput,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
@@ -14,7 +15,8 @@ import api from "../../../api/api";
 export default function RestrictAdminAccessScreen({ navigation }) {
   const [admins, setAdmins] = useState([]);
   const [filteredAdmins, setFilteredAdmins] = useState([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [approvedCount, setApprovedCount] = useState(0);
+  const [totalRestricted, setTotalRestricted] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [searchText, setSearchText] = useState("");
@@ -27,7 +29,8 @@ export default function RestrictAdminAccessScreen({ navigation }) {
       if (data.success) {
         setAdmins(data.admins || []);
         setFilteredAdmins(data.admins || []);
-        setTotalCount(data.count || 0);
+        setApprovedCount(data.approvedCount || 0);
+        setTotalRestricted(data.restrictedCount || 0);
       }
     } catch (err) {
       console.log("Fetch Admins Error:", err.message);
@@ -51,6 +54,44 @@ export default function RestrictAdminAccessScreen({ navigation }) {
 
     setFilteredAdmins(filtered);
   };
+
+  const handleRestrictAdmin = (admin) => {
+  const isCurrentlyApproved = admin.isApproved;
+
+  Alert.alert(
+    isCurrentlyApproved ? "Restrict Admin" : "Activate Admin",
+    isCurrentlyApproved
+      ? "Are you sure you want to restrict this admin?"
+      : "Do you want to activate this admin again?",
+    [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: isCurrentlyApproved ? "Restrict" : "Activate",
+        style: isCurrentlyApproved ? "destructive" : "default",
+        onPress: async () => {
+          try {
+            const { data } = await api.patch(
+              `/auth/admin/restrict-admin/${admin._id}`
+            );
+
+            if (data.success) {
+              // Alert.alert("Success", data.message);
+              fetchAdmins();
+            } else {
+              Alert.alert("Error", data.message);
+            }
+          } catch (error) {
+            console.log("Toggle Admin Error:", error.message);
+            Alert.alert("Error", "Something went wrong");
+          }
+        },
+      },
+    ]
+  );
+};
 
   return (
     <View style={styles.container}>
@@ -81,7 +122,7 @@ export default function RestrictAdminAccessScreen({ navigation }) {
               </View>
 
               <Text style={styles.summaryTitle}>Active Admins</Text>
-              <Text style={styles.summaryCount}>{totalCount}</Text>
+              <Text style={styles.summaryCount}>{approvedCount}</Text>
             </View>
 
             {/* Restricted Admins Card */}
@@ -94,7 +135,7 @@ export default function RestrictAdminAccessScreen({ navigation }) {
 
               <Text style={styles.summaryTitle}>Restricted Admins</Text>
               <Text style={[styles.summaryCount, { color: "#dc2626" }]}>
-                {totalCount}
+                {totalRestricted}
               </Text>
             </View>
           </View>
@@ -120,18 +161,21 @@ export default function RestrictAdminAccessScreen({ navigation }) {
               <Text style={styles.noData}>No matching admins found.</Text>
             }
             renderItem={({ item }) => (
-              <View style={styles.card}>
-                <View>
-                  <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.email}>{item.email}</Text>
-                </View>
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => handleRestrictAdmin(item)}
+              >
+                  <View>
+                    <Text style={styles.name}>{item.name}</Text>
+                    <Text style={styles.email}>{item.email}</Text>
+                  </View>
 
-                <MaterialIcons
-                  name="admin-panel-settings"
-                  size={26}
-                  color="#2563eb"
-                />
-              </View>
+                  <MaterialIcons
+                    name="admin-panel-settings"
+                    size={26}
+                    color={item.isApproved ? "#2563eb" : "#dc2626"}
+                  />
+              </TouchableOpacity>
             )}
           />
         </>

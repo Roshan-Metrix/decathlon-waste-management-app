@@ -10,29 +10,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Alert from "../../Components/Alert";
-
-// Reusable component for the action cards (for consistent UI across screens)
-const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
-  <TouchableOpacity
-    style={[styles.cardContainer, { borderLeftColor: iconColor }]}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={[styles.iconWrapper, { backgroundColor: iconColor + "15" }]}>
-      <MaterialIcons name={iconName} size={30} color={iconColor} />
-    </View>
-    <View style={styles.textWrapper}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardDescription}>{description}</Text>
-    </View>
-    <MaterialIcons
-      name="arrow-forward-ios"
-      size={16}
-      color="#9ca3af"
-      style={{ marginLeft: 10 }}
-    />
-  </TouchableOpacity>
-);
+import { FeatureCard } from "../../Components/FeatureCard";
 
 export default function ManageAdminScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -85,7 +63,7 @@ export default function ManageAdminScreen({ navigation }) {
           />
 
           <FeatureCard
-            title="Review Active Admins"
+            title="View All Admins"
             description="View a list of all current administrators and their statuses."
             iconName="people"
             iconColor="#3b82f6"
@@ -198,41 +176,6 @@ const styles = StyleSheet.create({
     color: "#4b5563",
     marginBottom: 8,
     marginLeft: 5,
-  },
-  // --- Feature Card Styles  ---
-  cardContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    padding: 16,
-    borderRadius: 16,
-    borderLeftWidth: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  iconWrapper: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  textWrapper: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 2,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: "#6b7280",
   },
   // --- Callout Box Style (Info Section) ---
   calloutBox: {

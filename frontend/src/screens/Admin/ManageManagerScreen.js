@@ -9,38 +9,12 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Alert from "../../Components/Alert";
-
-// Reusable component for the action cards
-const FeatureCard = ({ title, iconName, iconColor, onPress, description }) => (
-  <TouchableOpacity
-    style={[styles.cardContainer, { borderLeftColor: iconColor }]}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={[styles.iconWrapper, { backgroundColor: iconColor + "15" }]}>
-      <MaterialIcons name={iconName} size={30} color={iconColor} />
-    </View>
-    <View style={styles.textWrapper}>
-      <Text style={styles.cardTitle}>{title}</Text>
-      <Text style={styles.cardDescription}>{description}</Text>
-    </View>
-    <MaterialIcons
-      name="arrow-forward-ios"
-      size={16}
-      color="#9ca3af"
-      style={{ marginLeft: 10 }}
-    />
-  </TouchableOpacity>
-);
+import { FeatureCard } from "../../Components/FeatureCard";
 
 export default function ManageManagerScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  const showAlert = () => {
-    setAlertMessage("This feature is coming soon!");
-    setAlertVisible(true);
-  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -83,7 +57,7 @@ export default function ManageManagerScreen({ navigation }) {
             title="Add New Manager"
             description="Create a new account and assign initial store roles."
             iconName="person-add"
-            iconColor="#22c55e" // Bright Green
+            iconColor="#22c55e" 
             onPress={() => navigation.navigate("AddManagersScreen")}
           />
 
@@ -100,7 +74,7 @@ export default function ManageManagerScreen({ navigation }) {
             description="Deactivate or permanently delete a staff account."
             iconName="person-remove"
             iconColor="#ef4444"
-            onPress={() => showAlert()}
+            onPress={() => navigation.navigate("RemoveManagersScreen")}
           />
         </View>
 
@@ -197,42 +171,6 @@ const styles = StyleSheet.create({
     color: "#4b5563",
     marginBottom: 8,
     marginLeft: 5,
-  },
-  // --- Feature Card Styles ---
-  cardContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    padding: 16,
-    borderRadius: 16,
-    borderLeftWidth: 6,
-    // Prominent Shadow
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-    elevation: 4,
-  },
-  iconWrapper: {
-    width: 50,
-    height: 50,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 15,
-  },
-  textWrapper: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1f2937",
-    marginBottom: 2,
-  },
-  cardDescription: {
-    fontSize: 12,
-    color: "#6b7280",
   },
   // --- New Callout Box Style ---
   calloutBox: {

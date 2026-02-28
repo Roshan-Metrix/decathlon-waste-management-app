@@ -8,7 +8,6 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-// You would set this flag dynamically based on an API check in a real app
 const IS_MAINTENANCE_MODE = true; 
 
 export default function ViewTasksScreen({ navigation }) {

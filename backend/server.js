@@ -7,6 +7,7 @@ import connectDB from './config/mongodb.js';
 import authRouter from './routes/authRoutes.js'
 import transactionRouter from './routes/transactionRoutes.js';
 import vendorRouter from './routes/vendorRoutes.js';
+import morgan from 'morgan';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ const allowedOrigins = [
 
 app.use(cookieParser());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(morgan('dev')); 
 
 // API Endpoints
 app.get('/',(req,res) => {

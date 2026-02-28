@@ -22,7 +22,10 @@ const allowedOrigins = [
 
 app.use(cookieParser());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
-app.use(morgan('dev')); 
+
+if(process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev')); 
+}
 
 // API Endpoints
 app.get('/',(req,res) => {

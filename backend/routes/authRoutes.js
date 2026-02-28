@@ -1,7 +1,7 @@
 import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword, restrictAnyAdminAccess } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-import { addMaterialTypeAndRate, getAllAdmins } from '../controllers/adminController.js';
+import { addMaterialTypeAndRate, getAllAdmins, getAllMaterialsWithRate, getAllRegions } from '../controllers/adminController.js';
 import { deleteManager, getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, editStoreDetails, getAllStores, getStoreProfile } from '../controllers/storeController.js';
@@ -43,6 +43,8 @@ authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 // materialType and Rate add
 authRouter.post('/admin/add-materials',authMiddleware,adminMiddleware,addMaterialTypeAndRate);
+authRouter.get('/get-regions',authMiddleware,getAllRegions);
+authRouter.get('/get-regional-materials/:region',authMiddleware,getAllMaterialsWithRate);
 
 export default authRouter;
 

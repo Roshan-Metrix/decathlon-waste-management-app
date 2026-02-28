@@ -30,6 +30,7 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET); 
 
     req.user = decoded;
+    
     next();
   } catch (error) {
     console.log("Error in authMiddleware : ", error.message);
@@ -45,3 +46,11 @@ const authMiddleware = (req, res, next) => {
 };
 
 export default authMiddleware;
+
+
+// console.log("Decoded JWT Payload in authMiddleware : ", decoded);
+//   id: '692734417fdf781c24j34b',
+//   role: 'admin',
+//   isApproved: true,
+//   iat: 1771818810,
+//   exp: 1773114810

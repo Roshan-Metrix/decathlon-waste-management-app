@@ -48,6 +48,8 @@ import ShowAllTransaction from "../screens/Manager/ManageData/ShowAllTransaction
 import SelectedTransactionItems from "../screens/Manager/ManageData/SelectedTransactionItems";
 import AllTransactionsScreen from "../screens/Admin/ManageStores/AllTransactionsScreen";
 import RestrictAdminAccessScreen from "../screens/Admin/ManageAdmins/RestrictAdminAccessScreen";
+import RemoveManagersScreen from "../screens/Admin/ManageManagers/RemoveManagersScreen";
+import RemoveVendorsScreen from "../screens/Admin/VendorManagers/RemoveVendorsScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -90,11 +92,13 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
             <Stack.Screen name="AddManagersScreen" component={AddManagersScreen} />
             <Stack.Screen name="ViewManagersScreen" component={ViewManagersScreen} />
+            <Stack.Screen name="RemoveManagersScreen" component={RemoveManagersScreen} />
             <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
             <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />
             <Stack.Screen name="ManageVendorScreen" component={ManageVendorScreen} />
             <Stack.Screen name="AddVendorsScreen" component={AddVendorsScreen} />
             <Stack.Screen name="ViewVendorsScreen" component={ViewVendorsScreen} />
+            <Stack.Screen name="RemoveVendorsScreen" component={RemoveVendorsScreen} />
             <Stack.Screen name="RestrictAdminAccessScreen" component={RestrictAdminAccessScreen} />
 
             {/* Manager & Store Screens */}

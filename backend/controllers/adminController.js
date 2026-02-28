@@ -80,3 +80,54 @@ export const addMaterialTypeAndRate = async (req, res) => {
     });
   }
 };
+
+export const getAllRegions = async (req, res) => {
+  try {
+    const regions = await materialRateModel.find().select("state -_id");
+    return res.status(200).json({
+      success: true,
+      count: regions.length,
+      regions: regions.map(region => region.state),
+    });
+  } catch (error) {
+    console.log("Error in getAllRegions controller : ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const getAllMaterialsWithRate = async (req, res) => {
+  const { region } = req.params;
+
+  try {
+    const data = await materialRateModel
+      .find({ state: region })
+      .select("materials");
+
+    const materials = data.flatMap(item =>
+      item.materials.map(mat => `${mat.materialType}: ${mat.rate}`)
+    );
+
+    if(materials.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No materials found for the specified region",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: materials.length,
+      materials,
+    });
+
+  } catch (error) {
+    console.log("Error in getAllMaterials:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

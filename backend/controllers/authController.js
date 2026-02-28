@@ -308,7 +308,7 @@ export const loginUser = async (req, res) => {
     if (!user.isApproved) {
       return res.json({
         success: false,
-        message: "Account not approved!",
+        message: "Access denied!",
       });
     }
 

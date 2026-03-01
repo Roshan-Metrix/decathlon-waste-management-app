@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import api from "../../../api/api";
+import Alert from "../../../Components/Alert";
 
 export default function RemoveManagersScreen({ navigation }) {
   const [managers, setManagers] = useState([]);
@@ -22,6 +23,8 @@ export default function RemoveManagersScreen({ navigation }) {
 
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
+
+  const [deleting, setDeleting] = useState(false);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -36,6 +39,8 @@ export default function RemoveManagersScreen({ navigation }) {
       }
     } catch (err) {
       console.log("Fetch Managers Error:", err.message);
+      setAlertMessage("Failed to fetch managers");
+      setAlertVisible(true);
     }
     setLoading(false);
   };
@@ -63,21 +68,35 @@ export default function RemoveManagersScreen({ navigation }) {
 
   const confirmDeleteManager = async () => {
     if (!adminEmail || !adminPassword) {
-      setAlertMessage("Please enter your credentials!");
+      setAlertMessage("Enter your login credentials");
       setAlertVisible(true);
       return;
     }
 
     try {
+      setDeleting(true);
+
+      //  VERIFY ADMIN
+      const verify = await api.post("/auth/login", {
+        email: adminEmail,
+        password: adminPassword,
+      });
+
+      if (!verify.data.success) {
+        setDeleting(false);
+        setAlertMessage("Admin verification failed!");
+        setAlertVisible(true);
+        return;
+      }
+
+      //  DELETE MANAGER
       const res = await api.delete(
         `/auth/admin/delete-manager/${selectedManager._id}`,
-        {
-          data: { adminEmail, adminPassword },
-        },
       );
 
       if (!res.data.success) {
-        setAlertMessage(res.data.message);
+        setDeleting(false);
+        setAlertMessage(res.data.message || "Delete failed");
         setAlertVisible(true);
         return;
       }
@@ -87,15 +106,18 @@ export default function RemoveManagersScreen({ navigation }) {
       setManagers(updated);
       setFilteredManagers(updated);
 
-      setModalVisible(false);
-      setAdminEmail("");
-      setAdminPassword("");
-
       setAlertMessage("Manager removed successfully!");
       setAlertVisible(true);
+
+      // Reset
+      setAdminEmail("");
+      setAdminPassword("");
+      setModalVisible(false);
     } catch (error) {
-      setAlertMessage("Error deleting manager!");
+      setAlertMessage("Something went wrong!");
       setAlertVisible(true);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -188,55 +210,80 @@ export default function RemoveManagersScreen({ navigation }) {
           ))}
         </ScrollView>
       )}
-      <Modal visible={modalVisible} transparent animationType="slide">
+      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Verify Your Identity</Text>
+          <View style={styles.modalContainer}>
+            <MaterialIcons
+              name="verified-user"
+              size={50}
+              color="#2563eb"
+              style={{ marginBottom: 15 }}
+            />
 
-            <View style={styles.inputBox}>
-              <MaterialIcons name="email" size={22} color="#2563eb" />
+            <Text style={styles.modalTitle}>Credential Verification</Text>
+            <Text style={styles.modalSubtitle}>
+              Please confirm your admin credentials to continue.
+            </Text>
+
+            {/* Email */}
+            <View style={styles.inputWrapper}>
+              <MaterialIcons name="email" size={20} color="#2563eb" />
               <TextInput
-                style={styles.input}
                 placeholder="Admin Email"
-                placeholderTextColor="#7e7c7c"
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
                 value={adminEmail}
                 onChangeText={setAdminEmail}
+                autoCapitalize="none"
               />
             </View>
 
-            <View style={styles.inputBox}>
-              <MaterialIcons name="lock" size={22} color="#2563eb" />
+            {/* Password */}
+            <View style={styles.inputWrapper}>
+              <MaterialIcons name="lock" size={20} color="#2563eb" />
               <TextInput
-                style={styles.input}
                 placeholder="Admin Password"
-                placeholderTextColor="#7e7c7c"
-                secureTextEntry
+                placeholderTextColor="#94a3b8"
+                style={styles.input}
                 value={adminPassword}
                 onChangeText={setAdminPassword}
+                secureTextEntry
               />
             </View>
 
+            {/* Confirm Button */}
             <TouchableOpacity
-              style={styles.confirmBtn}
+              style={styles.confirmButton}
               onPress={confirmDeleteManager}
+              disabled={deleting}
             >
-              <Text style={styles.confirmText}>Confirm Removal</Text>
+              {deleting ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.confirmText}>Confirm Removal</Text>
+              )}
             </TouchableOpacity>
 
+            {/* Cancel */}
             <TouchableOpacity
-              style={styles.cancelBtn}
               onPress={() => setModalVisible(false)}
+              style={styles.cancelButton}
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
 
-/* ---------------------- STYLES ---------------------- */
+/*  STYLES  */
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#f9fafb" },
 
@@ -344,62 +391,70 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
-    padding: 20,
+    padding: 25,
   },
 
-  modalBox: {
+  modalContainer: {
     backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 16,
+    borderRadius: 20,
+    padding: 25,
+    alignItems: "center",
   },
 
   modalTitle: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#2563eb",
+    fontWeight: "800",
+    color: "#1e3a8a",
+    marginBottom: 6,
+  },
+
+  modalSubtitle: {
+    fontSize: 13,
+    color: "#64748b",
     textAlign: "center",
     marginBottom: 20,
   },
 
-  inputBox: {
+  inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#eef2ff",
-    borderRadius: 10,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 12,
     paddingHorizontal: 12,
     marginBottom: 15,
+    width: "100%",
   },
 
   input: {
     flex: 1,
-    padding: 10,
-    fontSize: 16,
-    marginLeft: 10,
+    paddingVertical: 12,
+    marginLeft: 8,
+    color: "#0f172a",
   },
 
-  confirmBtn: {
+  confirmButton: {
     backgroundColor: "#2563eb",
+    width: "100%",
     paddingVertical: 12,
     borderRadius: 12,
-    marginTop: 10,
+    alignItems: "center",
+    marginTop: 5,
   },
 
   confirmText: {
     color: "#fff",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    fontSize: 15,
   },
 
-  cancelBtn: {
-    marginTop: 10,
+  cancelButton: {
+    marginTop: 12,
   },
 
   cancelText: {
-    textAlign: "center",
-    fontSize: 15,
-    color: "#6b7280",
+    color: "#dc2626",
+    fontWeight: "600",
   },
 });

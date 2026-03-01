@@ -27,6 +27,14 @@ import ManageVendorScreen from "../screens/Admin/ManageVendorScreen";
 import ViewVendorsScreen from "../screens/Admin/VendorManagers/ViewVendorsScreen";
 import AddVendorsScreen from "../screens/Admin/VendorManagers/AddVendorsScreen";
 import AddStoreScreen from "../screens/Admin/ManageStores/AddStoreScreen";
+import RestrictAdminAccessScreen from "../screens/Admin/ManageAdmins/RestrictAdminAccessScreen";
+import RemoveManagersScreen from "../screens/Admin/ManageManagers/RemoveManagersScreen";
+import RemoveVendorsScreen from "../screens/Admin/VendorManagers/RemoveVendorsScreen";
+import ManageRegionScreen from "../screens/Admin/ManageRegionScreen";
+import AddRegionScreen from "../screens/Admin/ManageRegions/AddRegionScreen";
+import RemoveRegionScreen from "../screens/Admin/ManageRegions/RemoveRegionScreen";
+import ViewRegionScreen from "../screens/Admin/ManageRegions/ViewRegionScreen";
+import EditMaterialsRateScreen from "../screens/Admin/ManageRegions/EditMaterialsRateScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
@@ -47,9 +55,7 @@ import ManageDataScreen from "../screens/Manager/ManageData/ManageDataScreen";
 import ShowAllTransaction from "../screens/Manager/ManageData/ShowAllTransaction";
 import SelectedTransactionItems from "../screens/Manager/ManageData/SelectedTransactionItems";
 import AllTransactionsScreen from "../screens/Admin/ManageStores/AllTransactionsScreen";
-import RestrictAdminAccessScreen from "../screens/Admin/ManageAdmins/RestrictAdminAccessScreen";
-import RemoveManagersScreen from "../screens/Admin/ManageManagers/RemoveManagersScreen";
-import RemoveVendorsScreen from "../screens/Admin/VendorManagers/RemoveVendorsScreen";
+
 
 
 const Stack = createNativeStackNavigator();
@@ -100,6 +106,11 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ViewVendorsScreen" component={ViewVendorsScreen} />
             <Stack.Screen name="RemoveVendorsScreen" component={RemoveVendorsScreen} />
             <Stack.Screen name="RestrictAdminAccessScreen" component={RestrictAdminAccessScreen} />
+            <Stack.Screen name="ManageRegionScreen" component={ManageRegionScreen} />
+            <Stack.Screen name="AddRegionScreen" component={AddRegionScreen} />
+            <Stack.Screen name="ViewRegionScreen" component={ViewRegionScreen} />
+            <Stack.Screen name="RemoveRegionScreen" component={RemoveRegionScreen} />
+            <Stack.Screen name="EditMaterialsRateScreen" component={EditMaterialsRateScreen} />
 
             {/* Manager & Store Screens */}
             <Stack.Screen name="ManageDataScreen" component={ManageDataScreen} />

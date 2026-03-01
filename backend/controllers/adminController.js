@@ -19,7 +19,7 @@ export const getAllAdmins = async (req, res) => {
   }
 };
 
-// Add and Edit Material Type and Rate for a State
+// Add and Edit Region : Material Type and Rate for a State
 export const addMaterialTypeAndRate = async (req, res) => {
   try {
     const { state, materials } = req.body;

@@ -171,68 +171,20 @@ export default function BillingExportTransactionScreen({ navigation }) {
     }, []),
   );
 
-  const ITEM_RATES = {
-    "Recycling Metal": 20,
-    "Recycling Rubber": 2,
-    "Recycling Paper": 7,
-    "Recycling Glass": -12,
-    "Recycling E Waste": 7,
-    "Recycling Cardboard": 7,
-    "Recycling Textile": -5,
-    "Recycling Soft Plastics": 20,
-    "Hazardous Waste": -16,
-    "Recycling Organic": -4,
-    "Mixed Packaging": 8,
-    "Defective Products": -7,
-    "Recycling Hangers": 0,
-    "Return Hangers": -6,
-    "Recycling Mixed Packaging": 8,
-    "Recycling Soft Plastic": 20,
-    "Recycling Wood": 2,
-    "Unsegregated Waste": -16,
-    "Recycling Hard Plastic": 13,
-    "Food Waste - Expired Products": -16,
-    "Recycling Metal Mixed": 20,
-    "Recycling Wood Pallet Wood": 3,
-    "Nonrecycling Wood(Furniture)": -16,
-    "Recycling Metal Fixtures Truck Load": 27,
-    "Aluminium < 1000 kgs /> 1000 kgs": 65,
-    "LED Strips": -16,
-    "Energy Recovery": -16,
-    "Incineration" : -16
-  };
-
   const grandTotalWeight = calculateGrandTotal(itemsList);
-
-  // const groupedItemsSummary = useMemo(() => {
-  //   const summary = itemsList.reduce((acc, item) => {
-  //     const type = item.materialType || "Unknown Material";
-  //     const weight = parseFloat(item.weight) || 0;
-
-  //     if (!acc[type]) {
-  //       acc[type] = { count: 0, totalWeight: 0 };
-  //     }
-
-  //     acc[type].count += 1;
-  //     acc[type].totalWeight += weight;
-
-  //     return acc;
-  //   }, {});
-
-  //   return Object.keys(summary).map((type) => ({
-  //     materialType: type,
-  //     itemCount: summary[type].count,
-  //     totalWeight: summary[type].totalWeight.toFixed(2),
-  //   }));
-  // }, [itemsList]);
 
   const groupedItemsSummary = useMemo(() => {
     const summary = itemsList.reduce((acc, item) => {
       const type = item.materialType || "Unknown Material";
       const weight = parseFloat(item.weight) || 0;
+      const rate = parseFloat(item.materialRate) || 0;
 
       if (!acc[type]) {
-        acc[type] = { count: 0, totalWeight: 0 };
+        acc[type] = {
+          count: 0,
+          totalWeight: 0,
+          rate: rate,
+        };
       }
 
       acc[type].count += 1;
@@ -242,13 +194,12 @@ export default function BillingExportTransactionScreen({ navigation }) {
     }, {});
 
     return Object.keys(summary).map((type) => {
-      const totalWeight = summary[type].totalWeight;
-      const rate = ITEM_RATES[type] || 0;
+      const { count, totalWeight, rate } = summary[type];
       const totalAmount = totalWeight * rate;
 
       return {
         materialType: type,
-        itemCount: summary[type].count,
+        itemCount: count,
         totalWeight: totalWeight.toFixed(2),
         rate,
         totalAmount: totalAmount.toFixed(2),
@@ -476,32 +427,28 @@ export default function BillingExportTransactionScreen({ navigation }) {
           {/* END TABLE */}
 
           <Text style={styles.subHeading}>Material Type Summary</Text>
+
           <View style={styles.summaryContainer}>
-            {groupedItemsSummary.map((summary, index) => {
-              const rate = ITEM_RATES[summary.materialType] || 0;
-              const totalWeight = parseFloat(summary.totalWeight) || 0;
-              const totalAmount = totalWeight * rate;
+            {groupedItemsSummary.map((summary, index) => (
+              <View key={index} style={styles.summaryRow}>
+                <Text style={styles.summaryMaterial}>
+                  {summary.materialType} :
+                </Text>
 
-              return (
-                <View key={index} style={styles.summaryRow}>
-                  <Text style={styles.summaryMaterial}>
-                    {summary.materialType} :
-                  </Text>
+                <Text style={styles.summaryItems}>
+                  {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""} ×
+                  Rs. {summary.rate} /kg
+                </Text>
 
-                  <Text style={styles.summaryItems}>
-                    {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""} × Rs. {rate} /kg
-                  </Text>
+                <Text style={styles.summaryWeight}>
+                  (Total Weight: {summary.totalWeight} kg)
+                </Text>
 
-                  <Text style={styles.summaryWeight}>
-                    (Total Weight: {summary.totalWeight} kg)
-                  </Text>
-
-                  <Text style={styles.summaryWeight}>
-                    Total Amount: Rs. {totalAmount.toFixed(2)}
-                  </Text>
-                </View>
-              );
-            })}
+                <Text style={styles.summaryWeight}>
+                  Total Amount: Rs. {summary.totalAmount}
+                </Text>
+              </View>
+            ))}
           </View>
 
           <Text style={styles.disclaimer}>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import api from "../../../api/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Alert from "../../../Components/Alert";
 import useImagePreview from "../../../lib/useImagePreview";
+import { AuthContext } from "../../../context/AuthContext";
 
 export default function ItemsTransactionScreen({ navigation }) {
   const cameraRef = useRef(null);
@@ -27,6 +28,7 @@ export default function ItemsTransactionScreen({ navigation }) {
   const [alertMessage, setAlertMessage] = useState("");
 
   const [materialType, setMaterialType] = useState("");
+  const [materialRate, setMaterialRate] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -35,6 +37,10 @@ export default function ItemsTransactionScreen({ navigation }) {
 
   const [itemsList, setItemsList] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(true);
+
+  const [materialTypesAndRates, setMaterialTypesAndRates] = useState([]);
+
+  const { region } = useContext(AuthContext);
 
   // Ask camera permission on mount
   useEffect(() => {
@@ -52,6 +58,21 @@ export default function ItemsTransactionScreen({ navigation }) {
   // Fetch existing items on load (from today's transaction endpoint)
   useEffect(() => {
     fetchAllItems();
+  }, []);
+
+  const fetchMaterialTypesAndRates = async () => {
+    try {
+      const res = await api.get(`/auth/get-regional-materials/${region}`);
+      if (res.data?.success) {
+        setMaterialTypesAndRates(res.data.materials);
+      }
+    } catch (e) {
+      console.log("Fetch material types error:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchMaterialTypesAndRates();
   }, []);
 
   const fetchAllItems = async () => {
@@ -91,67 +112,67 @@ export default function ItemsTransactionScreen({ navigation }) {
 
   // Capture image and run OCR
   const handleCapture = async () => {
-  try {
-    if (!cameraRef.current) {
-      setAlertMessage("Camera not ready!");
-      setAlertVisible(true);
-      return;
-    }
-
-    setLoading(true);
-
-    const picture = await cameraRef.current.takePictureAsync({
-      base64: true, 
-      quality: 0.5,
-    });
-
-    setPhoto(picture);
-
-    const formData = new FormData();
-    formData.append("image", {
-      uri: picture.uri,
-      name: "photo.jpg",
-      type: "image/jpeg",
-    });
-
-    const res = await api.post(
-      "/manager/transaction/transaction-calibration/ocr",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+    try {
+      if (!cameraRef.current) {
+        setAlertMessage("Camera not ready!");
+        setAlertVisible(true);
+        return;
       }
-    );
 
-    const ocrText = res.data.weight;
-    const cleanWeight = parseWeight(ocrText);
+      setLoading(true);
 
-    if (cleanWeight) {
-      setFetchWeight(cleanWeight.toString());
-    } else {
-      setAlertMessage(
-        "OCR couldn't detect weight.\nPlease enter weight manually or capture again."
+      const picture = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.5,
+      });
+
+      setPhoto(picture);
+
+      const formData = new FormData();
+      formData.append("image", {
+        uri: picture.uri,
+        name: "photo.jpg",
+        type: "image/jpeg",
+      });
+
+      const res = await api.post(
+        "/manager/transaction/transaction-calibration/ocr",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
-      setAlertVisible(true);
-      setFetchWeight("");
-    }
-  } catch (e) {
-    console.log("Capture Error:", e.message);
-    if (e.response) {
-      console.log("Server responded with:", e.response.data);
-    } else if (e.request) {
-      console.log("No response received:", e.request);
-    } else {
-      console.log("Axios config error:", e.config);
-    }
 
-    setAlertMessage("Capture Failed.\nTry again.");
-    setAlertVisible(true);
-  } finally {
-    setLoading(false);
-  }
-};
+      const ocrText = res.data.weight;
+      const cleanWeight = parseWeight(ocrText);
+
+      if (cleanWeight) {
+        setFetchWeight(cleanWeight.toString());
+      } else {
+        setAlertMessage(
+          "OCR couldn't detect weight.\nPlease enter weight manually or capture again.",
+        );
+        setAlertVisible(true);
+        setFetchWeight("");
+      }
+    } catch (e) {
+      console.log("Capture Error:", e.message);
+      if (e.response) {
+        console.log("Server responded with:", e.response.data);
+      } else if (e.request) {
+        console.log("No response received:", e.request);
+      } else {
+        console.log("Axios config error:", e.config);
+      }
+
+      setAlertMessage("Capture Failed.\nTry again.");
+      setAlertVisible(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Add item to backend
   const handleAddItem = async () => {
@@ -200,6 +221,7 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       const payload = {
         materialType,
+        materialRate,
         weight,
         weightSource,
         image: photo.base64,
@@ -222,6 +244,7 @@ export default function ItemsTransactionScreen({ navigation }) {
         // reset fields for next item
         setPhoto(null);
         setMaterialType("");
+        setMaterialRate("");
         setFetchWeight("");
         setEnterWeight("");
 
@@ -355,9 +378,7 @@ export default function ItemsTransactionScreen({ navigation }) {
           style={styles.dropdownBox}
           onPress={() => setShowDropdown(!showDropdown)}
         >
-          <Text style={styles.dropdownText}>
-            {materialType || "Select Material Type"}
-          </Text>
+          <Text>{materialType || "Select Material Type"}</Text>
           <MaterialIcons
             name={showDropdown ? "keyboard-arrow-up" : "keyboard-arrow-down"}
             size={24}
@@ -366,47 +387,24 @@ export default function ItemsTransactionScreen({ navigation }) {
 
         {showDropdown && (
           <View style={styles.dropdownList}>
-            {[
-              "Recycling Metal",
-              "Recycling Rubber",
-              "Recycling Paper",
-              "Recycling Glass",
-              "Recycling E Waste",
-              "Recycling Cardboard",
-              "Recycling Textile",
-              "Recycling Soft Plastics",
-              "Hazardous Waste",
-              "Recycling Organic",
-              "Mixed Packaging",
-              "Defective Products",
-              "Recycling Hangers",
-              "Return Hangers",
-              "Recycling Mixed Packaging",
-              "Recycling Soft Plastic",
-              "Recycling Wood",
-              "Unsegregated Waste",
-              "Recycling Hard Plastic",
-              "Food Waste - Expired Products",
-              "Recycling Metal Mixed",
-              "Recycling Wood Pallet Wood",
-              "Nonrecycling Wood(Furniture)",
-              "Recycling Metal Fixtures Truck Load",
-              "Aluminium < 1000 kgs /> 1000 kgs",
-              "LED Strips",
-              "Energy Recovery",
-              "Incineration"
-            ].map((item) => (
-              <TouchableOpacity
-                key={item}
-                style={styles.dropdownItem}
-                onPress={() => {
-                  setMaterialType(item);
-                  setShowDropdown(false);
-                }}
-              >
-                <Text style={styles.dropdownItemText}>{item}</Text>
-              </TouchableOpacity>
-            ))}
+            {materialTypesAndRates?.map((item) => {
+              const cleanedMaterial = item.split(":")[0].trim();
+              const cleanedMaterialRate = item.split(":")[1]?.trim() || "";
+
+              return (
+                <TouchableOpacity
+                  key={item}
+                  style={styles.dropdownItem}
+                  onPress={() => {
+                    setMaterialType(cleanedMaterial);
+                    setMaterialRate(cleanedMaterialRate);
+                    setShowDropdown(false);
+                  }}
+                >
+                  <Text style={styles.dropdownItemText}>{cleanedMaterial}</Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         )}
 
@@ -512,7 +510,7 @@ export default function ItemsTransactionScreen({ navigation }) {
   );
 }
 
-//  STYLES 
+//  STYLES
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#eef2ff" },
 

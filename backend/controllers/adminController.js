@@ -131,3 +131,30 @@ export const getAllMaterialsWithRate = async (req, res) => {
     });
   }
 };
+
+export const deleteRegion = async (req, res) => {
+  const { region } = req.params;
+  
+  try {
+    const deletedRegion = await materialRateModel.findOneAndDelete({ state: region });
+
+    if (!deletedRegion) {
+      return res.status(404).json({
+        success: false,
+        message: "Region not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Region deleted successfully",
+    });
+
+  } catch (error) {
+    console.log("Error in deleteRegion controller : ", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

@@ -327,6 +327,14 @@ export const loginUser = async (req, res) => {
       });
     }
 
+    if(user.role === "manager" || user.role === "store"){
+        const storeState = await storeModel.findOne({ storeId: user.storeId });
+        user.state = storeState ? storeState.states : [];
+    }else{
+        user.state = [];
+    }
+  
+
     // Create token
     const token = jwt.sign(
       {
@@ -346,6 +354,7 @@ export const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        state: user.state,
         isApproved: user.isApproved,
       },
     });

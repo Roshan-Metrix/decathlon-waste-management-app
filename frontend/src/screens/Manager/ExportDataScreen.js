@@ -101,39 +101,9 @@ const generateCSV = (data) => {
 };
 
 const generatePDF = (data) => {
-  const ITEM_RATES = {
-    "Recycling Metal": 20,
-    "Recycling Rubber": 2,
-    "Recycling Paper": 7,
-    "Recycling Glass": -12,
-    "Recycling E Waste": 7,
-    "Recycling Cardboard": 7,
-    "Recycling Textile": -5,
-    "Recycling Soft Plastics": 20,
-    "Hazardous Waste": -16,
-    "Recycling Organic": -4,
-    "Mixed Packaging": 8,
-    "Defective Products": -7,
-    "Recycling Hangers": 0,
-    "Return Hangers": -6,
-    "Recycling Mixed Packaging": 8,
-    "Recycling Soft Plastic": 20,
-    "Recycling Wood": 2,
-    "Unsegregated Waste": -16,
-    "Recycling Hard Plastic": 13,
-    "Food Waste - Expired Products": -16,
-    "Recycling Metal Mixed": 20,
-    "Recycling Wood Pallet Wood": 3,
-    "Nonrecycling Wood(Furniture)": -16,
-    "Recycling Metal Fixtures Truck Load": 27,
-    "Aluminium < 1000 kgs /> 1000 kgs": 65,
-    "LED Strips": -16,
-    "Energy Recovery": -16,
-    "Incineration" : -16
-  };
   // Calculate Grand Total Amount
   const grandTotalAmount = data.itemSummary.reduce((total, summary) => {
-    const rate = ITEM_RATES[summary.materialType] || 0;
+    const rate = summary.rate || 0;
     const weight = parseFloat(summary.totalWeight) || 0;
     return total + weight * rate;
   }, 0);
@@ -148,10 +118,8 @@ const generatePDF = (data) => {
         <div style="border: 1px solid #ddd; padding: 10px; background-color: #f9f9f9;">
             ${data.itemSummary
               .map((summary, index) => {
-                const rate =
-                  ITEM_RATES[summary.materialType] || 0;
-                const weight =
-                  parseFloat(summary.totalWeight) || 0;
+                const rate = summary.rate || 0;
+                const weight = parseFloat(summary.totalWeight) || 0;
                 const totalAmount = weight * rate;
 
                 return `
@@ -161,8 +129,8 @@ const generatePDF = (data) => {
                       </span>
                       <span style="color: #333;">
                         ${summary.itemCount} item${
-                  summary.itemCount !== 1 ? "s" : ""
-                }
+                          summary.itemCount !== 1 ? "s" : ""
+                        }
                       </span>
                       <span style="font-weight: bold; color: #b91c1c;">
                         (Weight: ${summary.totalWeight} kg)
@@ -294,7 +262,6 @@ const generatePDF = (data) => {
   };
 };
 
-
 export default function ExportDataScreen({ navigation, route }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -318,36 +285,12 @@ export default function ExportDataScreen({ navigation, route }) {
     );
   }
 
-  const ITEM_RATES = {
-    "Recycling Metal": 20,
-    "Recycling Rubber": 2,
-    "Recycling Paper": 7,
-    "Recycling Glass": -12,
-    "Recycling E Waste": 7,
-    "Recycling Cardboard": 7,
-    "Recycling Textile": -5,
-    "Recycling Soft Plastics": 20,
-    "Hazardous Waste": -16,
-    "Recycling Organic": -4,
-    "Mixed Packaging": 8,
-    "Defective Products": -7,
-    "Recycling Hangers": 0,
-    "Return Hangers": -6,
-    "Recycling Mixed Packaging": 8,
-    "Recycling Soft Plastic": 20,
-    "Recycling Wood": 2,
-    "Unsegregated Waste": -16,
-    "Recycling Hard Plastic": 13,
-    "Food Waste - Expired Products": -16,
-    "Recycling Metal Mixed": 20,
-    "Recycling Wood Pallet Wood": 3,
-    "Nonrecycling Wood(Furniture)": -16,
-    "Recycling Metal Fixtures Truck Load": 27,
-    "Aluminium < 1000 kgs /> 1000 kgs": 65,
-    "LED Strips": -16,
-    "Energy Recovery": -16,
-    "Incineration" : -16
-  };
+  const grandTotalAmount = transactionData.itemSummary.reduce(
+    (total, summary) => {
+      return total + (parseFloat(summary.totalAmount) || 0);
+    },
+    0,
+  );
 
   const handleExport = async (type) => {
     if (isExporting) return;
@@ -370,8 +313,6 @@ export default function ExportDataScreen({ navigation, route }) {
         await Print.printAsync({
           html: result.data,
         });
-        // setAlertMessage("PDF document sent to device's Print/Save dialog.!");
-        // setAlertVisible(true);
       } else {
         const fileUri = FileSystem.cacheDirectory + result.fileName;
 
@@ -436,20 +377,11 @@ export default function ExportDataScreen({ navigation, route }) {
     </TouchableOpacity>
   );
 
-  const grandTotalAmount = transactionData.itemSummary.reduce(
-    (total, summary) => {
-      const rate = ITEM_RATES[summary.materialType] || 0;
-      const weight = parseFloat(summary.totalWeight) || 0;
-      return total + weight * rate;
-    },
-    0,
-  );
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.navigate("UserScreen")}>
           <MaterialIcons name="arrow-back" size={26} color="#2563eb" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Export Data</Text>
@@ -535,7 +467,7 @@ export default function ExportDataScreen({ navigation, route }) {
   );
 }
 
-// ---------- STYLES ----------
+//  STYLES
 const styles = StyleSheet.create({
   container: {
     flex: 1,

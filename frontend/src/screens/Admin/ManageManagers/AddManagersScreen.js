@@ -219,41 +219,62 @@ export default function AddManagersScreen({ navigation }) {
       {/* POPUP */}
       <Modal transparent visible={showPopup} animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Verify Your Identity</Text>
-
-            <TextInput
-              style={styles.input}
-              placeholder="Your Email"
-              placeholderTextColor="#7e7c7c"
-              value={adminEmail}
-              onChangeText={setAdminEmail}
+          <View style={styles.modalContainer}>
+            <MaterialIcons
+              name="verified-user"
+              size={50}
+              color="#2563eb"
+              style={{ marginBottom: 15 }}
             />
 
-            <TextInput
-              style={[styles.input, { marginTop: 10 }]}
-              placeholder="Your Password"
-              placeholderTextColor="#7e7c7c"
-              secureTextEntry
-              value={adminPassword}
-              onChangeText={setAdminPassword}
-            />
+            <Text style={styles.modalTitle}>Credential Verification</Text>
+            <Text style={styles.modalSubtitle}>
+              Please confirm your admin credentials to continue.
+            </Text>
 
+            {/* Email */}
+            <View style={styles.inputWrapperModal}>
+              <MaterialIcons name="email" size={20} color="#2563eb" />
+              <TextInput
+                placeholder="Admin Email"
+                placeholderTextColor="#94a3b8"
+                style={styles.modalInput}
+                value={adminEmail}
+                onChangeText={setAdminEmail}
+                autoCapitalize="none"
+              />
+            </View>
+
+            {/* Password */}
+            <View style={styles.inputWrapperModal}>
+              <MaterialIcons name="lock" size={20} color="#2563eb" />
+              <TextInput
+                placeholder="Admin Password"
+                placeholderTextColor="#94a3b8"
+                style={styles.modalInput}
+                value={adminPassword}
+                onChangeText={setAdminPassword}
+                secureTextEntry
+              />
+            </View>
+
+            {/* Confirm Button */}
             <TouchableOpacity
-              style={[styles.submitButton, { opacity: loading ? 0.6 : 1 }]}
+              style={styles.confirmButton}
               onPress={loading ? null : handleConfirm}
               disabled={loading}
             >
               {loading ? (
-                <ActivityIndicator size="small" color="#fff" />
+                <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.submitText}>Confirm & Create Manager</Text>
+                <Text style={styles.confirmText}>Confirm & Create Manager</Text>
               )}
             </TouchableOpacity>
 
+            {/* Cancel */}
             <TouchableOpacity
-              style={styles.cancelButton}
               onPress={() => setShowPopup(false)}
+              style={styles.cancelButton}
             >
               <Text style={styles.cancelText}>Cancel</Text>
             </TouchableOpacity>
@@ -357,51 +378,70 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    justifyContent: "center",
     backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
     padding: 25,
   },
 
-  modalBox: {
+  modalContainer: {
     backgroundColor: "#fff",
-    padding: 22,
-    borderRadius: 16,
+    borderRadius: 20,
+    padding: 25,
+    alignItems: "center",
   },
 
   modalTitle: {
     fontSize: 20,
-    fontWeight: "700",
-    color: "#2563eb",
+    fontWeight: "800",
+    color: "#1e3a8a",
+    marginBottom: 6,
+  },
+
+  modalSubtitle: {
+    fontSize: 13,
+    color: "#64748b",
     textAlign: "center",
-    marginBottom: 18,
+    marginBottom: 20,
   },
 
-  input: {
-    backgroundColor: "#fff",
-    padding: 14,
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    fontSize: 16,
-  },
-
-  submitButton: {
-    backgroundColor: "#2563eb",
-    padding: 12,
+  inputWrapperModal: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f1f5f9",
     borderRadius: 12,
-    marginTop: 18,
-  },
-  submitText: {
-    color: "#fff",
-    textAlign: "center",
-    fontWeight: "600",
-    fontSize: 16,
+    paddingHorizontal: 12,
+    marginBottom: 15,
+    width: "100%",
   },
 
-  cancelButton: { paddingVertical: 12 },
-  cancelText: {
-    color: "#6b7280",
-    textAlign: "center",
+  modalInput: {
+    flex: 1,
+    paddingVertical: 12,
+    marginLeft: 8,
+    color: "#0f172a",
+  },
+
+  confirmButton: {
+    backgroundColor: "#2563eb",
+    width: "100%",
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 5,
+  },
+
+  confirmText: {
+    color: "#fff",
+    fontWeight: "700",
     fontSize: 15,
+  },
+
+  cancelButton: {
+    marginTop: 12,
+  },
+
+  cancelText: {
+    color: "#dc2626",
+    fontWeight: "600",
   },
 });

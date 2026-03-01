@@ -13,52 +13,63 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // AUTO LOGIN ON APP START
-  useEffect(() => {
-    if (!checked) return;
+  const [region, setRegion] = useState(null);
 
-    const loadUserFromToken = async () => {
-      if (!isConnected) {
+  // AUTO LOGIN ON APP START
+useEffect(() => {
+  if (!checked) return;
+
+  const loadUserFromToken = async () => {
+    if (!isConnected) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
         setLoading(false);
         return;
       }
 
-      try {
-        const token = await AsyncStorage.getItem("token");
-        if (!token) {
-          setLoading(false);
-          return;
-        }
+      let res;
 
-        let res;
+      const endpoints = [
+        "/auth/manager/profile",
+        "/auth/admin/profile",
+        "/auth/store/profile",
+      ];
 
+      for (const endpoint of endpoints) {
         try {
-          res = await api.get("/auth/manager/profile");
-        } catch {
-          try {
-            res = await api.get("/auth/admin/profile");
-          } catch {
-            res = await api.get("/auth/store/profile");
+          const response = await api.get(endpoint);
+          if (response?.data?.success) {
+            res = response;
+            break;
           }
+        } catch (error) {
+          // silently try next endpoint
         }
+      }
 
-        if (res?.data?.success) {
-          setUser(res.data.manager || res.data.admin || res.data.store);
-        } else {
-          await AsyncStorage.removeItem("token");
-          setUser(null);
-        }
-      } catch (err) {
-        console.log("Auto-login error:", err.message);
+      if (res?.data?.success) {
+        setUser(res.data.manager || res.data.admin || res.data.store);
+        setRegion(res.data.store.states);
+      } else {
         await AsyncStorage.removeItem("token");
         setUser(null);
       }
+    } catch (err) {
+      console.log("Auto-login error:", err.message);
+      await AsyncStorage.removeItem("token");
+      setUser(null);
+    }
 
-      setLoading(false);
-    };
+    setLoading(false);
+  };
 
-    loadUserFromToken();
-  }, [isConnected, checked]);
+  loadUserFromToken();
+}, [isConnected, checked]);
 
   // LOGIN
   const login = async (email, password) => {
@@ -113,6 +124,7 @@ export const AuthProvider = ({ children }) => {
         login,
         logout,
         isConnected,
+        region,
       }}
     >
       {children}

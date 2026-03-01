@@ -165,7 +165,7 @@ export default function ProcessTransactionScreen({ navigation }) {
   );
 }
 
-// ----------------- STYLES -----------------
+//  STYLES 
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",

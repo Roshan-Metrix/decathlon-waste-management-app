@@ -245,9 +245,7 @@ export const registerManager = async (req, res) => {
       ),
     };
 
-    const mailResult = await transporter.sendMail(mailOption);
-
-    return res.json({
+    res.json({
       success: true,
       token,
       user: {
@@ -258,11 +256,17 @@ export const registerManager = async (req, res) => {
         role: manager.role,
         isApproved: manager.isApproved,
       },
-      message:
-        mailResult.accepted.length > 0
-          ? "Registration successful, email sent"
-          : "Registration successful, email not sent",
+      message: "Registration successful",
     });
+
+    // Send email in background
+    transporter.sendMail(mailOption)
+      .then((result) => {
+        console.log("Email sent:", result.accepted);
+      })
+      .catch((err) => {
+        console.error("Email failed:", err);
+      });
   } catch (error) {
     console.log("Error in registerManager Controller : ", error);
     return res.json({ success: false, message: "Internal Server Error" });

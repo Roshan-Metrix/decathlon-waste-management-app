@@ -11,6 +11,10 @@ const itemSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    materialRate: {
+      type: Number,
+      required: true,
+    },
     image: {
       type: String,
     },

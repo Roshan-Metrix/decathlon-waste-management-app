@@ -66,7 +66,14 @@ export const registerAdmin = async (req, res) => {
       ),
     };
 
-    const mailResult = await transporter.sendMail(mailOption);
+     // Send email in background
+    transporter.sendMail(mailOption)
+      .then((result) => {
+        console.log("Email sent:", result.accepted);
+      })
+      .catch((err) => {
+        console.error("Email failed:", err);
+      });
 
     return res.json({
       success: true,
@@ -78,11 +85,9 @@ export const registerAdmin = async (req, res) => {
         role: admin.role,
         isApproved: admin.isApproved,
       },
-      message:
-        mailResult.accepted.length > 0
-          ? "Registration successful, email sent"
-          : "Registration successful, email not sent",
+      message: "Admin Registration successful",
     });
+
   } catch (error) {
     console.log("Error in registerAdmin Controller : ", error);
     return res
@@ -160,7 +165,14 @@ export const registerStore = async (req, res) => {
       ),
     };
 
-    const mailResult = await transporter.sendMail(mailOption);
+     // Send email in background
+    transporter.sendMail(mailOption)
+      .then((result) => {
+        console.log("Email sent:", result.accepted);
+      })
+      .catch((err) => {
+        console.error("Email failed:", err);
+      });
 
     return res.json({
       success: true,
@@ -176,11 +188,9 @@ export const registerStore = async (req, res) => {
         storeLocation: store.storeLocation,
         states: store.states,
       },
-      message:
-        mailResult.accepted.length > 0
-          ? "Registration successful, email sent"
-          : "Registration successful, email not sent",
+      message: "Store Registration successful ",
     });
+
   } catch (error) {
     console.log("Error in registerStore Controller : ", error);
     return res.json({ success: false, message: "Internal Server Error" });
@@ -245,7 +255,16 @@ export const registerManager = async (req, res) => {
       ),
     };
 
-    res.json({
+     // Send email in background
+    transporter.sendMail(mailOption)
+      .then((result) => {
+        console.log("Email sent:", result.accepted);
+      })
+      .catch((err) => {
+        console.error("Email failed:", err);
+      });
+
+    return res.json({
       success: true,
       token,
       user: {
@@ -259,14 +278,6 @@ export const registerManager = async (req, res) => {
       message: "Registration successful",
     });
 
-    // Send email in background
-    transporter.sendMail(mailOption)
-      .then((result) => {
-        console.log("Email sent:", result.accepted);
-      })
-      .catch((err) => {
-        console.error("Email failed:", err);
-      });
   } catch (error) {
     console.log("Error in registerManager Controller : ", error);
     return res.json({ success: false, message: "Internal Server Error" });

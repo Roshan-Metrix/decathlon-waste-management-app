@@ -67,7 +67,14 @@ export const vendorRegister = async (req, res) => {
       ),
     };
 
-    await transporter.sendMail(mailOption);
+     // Send email in background
+    transporter.sendMail(mailOption)
+      .then((result) => {
+        console.log("Email sent:", result.accepted);
+      })
+      .catch((err) => {
+        console.error("Email failed:", err);
+      });
 
     return res.status(201).json({
       success: true,

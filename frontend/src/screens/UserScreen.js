@@ -82,6 +82,11 @@ useEffect(() => {
         icon: "manage-accounts",
         screen: "ManageVendorScreen",
       },
+      {
+        title: "Manage Regions",
+        icon: "location-city",
+        screen: "ManageRegionScreen",
+      },
       // {
       //   title: "Notify Stores",
       //   icon: "notifications",

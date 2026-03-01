@@ -138,7 +138,6 @@ const styles = StyleSheet.create({
   heroSection: {
     alignItems: "center",
     paddingVertical: 20,
-    marginBottom: 10,
   },
   iconCircle: {
     backgroundColor: "#dbeafe",
@@ -155,7 +154,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "700",
     color: "#1f2937",
-    marginBottom: 8,
+    marginBottom: 6,
   },
   desc: {
     fontSize: 14,
@@ -167,7 +166,6 @@ const styles = StyleSheet.create({
   // --- Action Cards Container ---
   actionsContainer: {
     width: "100%",
-    paddingTop: 10,
     gap: 12,
   },
   actionSectionTitle: {
@@ -181,7 +179,7 @@ const styles = StyleSheet.create({
   calloutBox: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#e0e7ff", // Light blue background
+    backgroundColor: "#e0e7ff",
     padding: 16,
     borderRadius: 12,
     marginTop: 40,

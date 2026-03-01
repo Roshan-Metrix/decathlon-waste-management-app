@@ -60,13 +60,13 @@ export const AddTransactionDetailController = async (req, res) => {
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { materialType, image, weight, weightSource } = req.body;
+    const { materialType, image, weight, weightSource, materialRate } = req.body;
 
     // Validate required fields
     if (!materialType) {
       return res
         .status(400)
-        .json({ success: false, message: "materialType is required" });
+        .json({ success: false, message: "Material Type is required" });
     }
     if (!weight) {
       return res
@@ -98,8 +98,9 @@ export const TransactionItemsController = async (req, res) => {
     transaction.items.push({
       itemNo,
       materialType,
+      materialRate,
       image,
-      weight: positiveWeight - transaction.calibration.error,
+      weight: (positiveWeight - transaction.calibration.error).toFixed(3),
       weightSource,
     });
 
@@ -185,7 +186,7 @@ export const TransactionCalibrationController = async (req, res) => {
       success: true,
       message: "Calibration added successfully",
       calibration: transaction.calibration,
-      error: transaction.error,
+      error: (transaction.calibration.error).toFixed(3),
     });
   } catch (error) {
     console.log("Error in TransactionCalibrationController:", error);

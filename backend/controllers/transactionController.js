@@ -276,6 +276,7 @@ export const ParticularTransactionController = async (req, res) => {
       items: txn.items.map((item) => ({
         itemNo: item.itemNo,
         materialType: item.materialType,
+        materialRate: item.materialRate,
         image: item.image,
         weight: item.weight,
         weightSource: item.weightSource,

@@ -17,6 +17,7 @@ import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 import { generatePassword } from "../../../lib/generatePassword";
+import DropDownPicker from "react-native-dropdown-picker";
 
 export default function AddStoreScreen({ navigation }) {
   const [storeId, setStoreId] = useState("");
@@ -34,6 +35,12 @@ export default function AddStoreScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
+  // Dropdown state
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState(null);
+  const [regionItems, setRegionItems] = useState([]);
+  const [regionsLoading, setRegionsLoading] = useState(false);
+
   useEffect(() => {
     setPassword(generatePassword());
   }, []);
@@ -48,25 +55,26 @@ export default function AddStoreScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const blink = () => {
-      Animated.sequence([
-        Animated.timing(fadeAnim, {
-          toValue: 0.2,
-          duration: 120,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 120,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    };
+    Animated.sequence([
+      Animated.timing(fadeAnim, {
+        toValue: 0.2,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
 
   const handleAddStore = () => {
     if (
       !storeId ||
       !name ||
       !storeLocation ||
+      !state ||
       !contactNumber ||
       !email ||
       !password
@@ -86,6 +94,7 @@ export default function AddStoreScreen({ navigation }) {
         storeId,
         name,
         storeLocation,
+        state,
         contactNumber,
         email,
         password,
@@ -103,14 +112,15 @@ export default function AddStoreScreen({ navigation }) {
         setStoreId("");
         setName("");
         setStoreLocation("");
+        setState("");
         setContactNumber("");
         setEmail("");
         setPassword("");
         setAdminEmail("");
         setAdminPassword("");
       } else {
-       setAlertMessage(data.message || "Something went wrong");
-       setAlertVisible(true);
+        setAlertMessage(data.message || "Something went wrong");
+        setAlertVisible(true);
       }
     } catch (err) {
       setAlertMessage("Something went wrong");
@@ -119,6 +129,30 @@ export default function AddStoreScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  const fetchRegions = async () => {
+    try {
+      setRegionsLoading(true);
+      const { data } = await api.get("/auth/get-regions");
+
+      if (data.success) {
+        const formatted = data.regions.map((r) => ({
+          label: r,
+          value: r,
+        }));
+
+        setRegionItems(formatted);
+      }
+    } catch (error) {
+      console.log("Fetch Regions Error:", error.message);
+    } finally {
+      setRegionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRegions();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -144,10 +178,6 @@ export default function AddStoreScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.content}>
-            <View style={styles.iconCircle}>
-              <MaterialIcons name="store" size={55} color="#2563eb" />
-            </View>
-
             <Text style={styles.subTitle}>Store Details</Text>
 
             <View style={styles.form}>
@@ -184,6 +214,26 @@ export default function AddStoreScreen({ navigation }) {
                 />
               </View>
 
+              <View style={[styles.inputRow]}>
+                <MaterialIcons name="location-city" size={22} color="#2563eb" />
+                <DropDownPicker
+                  open={open}
+                  value={state}
+                  items={regionItems}
+                  setOpen={setOpen}
+                  setValue={setState}
+                  setItems={setRegionItems}
+                  placeholder={
+                    regionsLoading ? "Loading regions..." : "Select Region"
+                  }
+                  loading={regionsLoading}
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdown}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                />
+              </View>
+
               <View style={styles.inputRow}>
                 <MaterialIcons name="call" size={22} color="#2563eb" />
                 <TextInput
@@ -209,20 +259,22 @@ export default function AddStoreScreen({ navigation }) {
               </View>
 
               <View style={styles.passwordBox}>
-                          <MaterialIcons name="lock" size={24} color="#2563eb" />
-              
-                          <TouchableOpacity onPress={copyPassword} style={{ flex: 1 }}>
-                            <Animated.Text
-                              style={[styles.passwordText, { opacity: fadeAnim }]}
-                            >
-                              {password}
-                            </Animated.Text>
-                          </TouchableOpacity>
-              
-                          <TouchableOpacity onPress={() => setPassword(generatePassword())}>
-                            <MaterialIcons name="refresh" size={26} color="#2563eb" />
-                          </TouchableOpacity>
-                        </View>
+                <MaterialIcons name="lock" size={24} color="#2563eb" />
+
+                <TouchableOpacity onPress={copyPassword} style={{ flex: 1 }}>
+                  <Animated.Text
+                    style={[styles.passwordText, { opacity: fadeAnim }]}
+                  >
+                    {password}
+                  </Animated.Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => setPassword(generatePassword())}
+                >
+                  <MaterialIcons name="refresh" size={26} color="#2563eb" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <TouchableOpacity style={styles.addButton} onPress={handleAddStore}>
@@ -342,7 +394,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  subTitle: { fontSize: 17, fontWeight: "600", marginBottom: 12 },
+  subTitle: {
+    fontSize: 17,
+    fontWeight: "600",
+    marginBottom: 20,
+    color: "#858282",
+  },
 
   form: { width: "100%", gap: 12 },
 
@@ -408,4 +465,21 @@ const styles = StyleSheet.create({
 
   cancelButton: { paddingVertical: 8 },
   cancelText: { textAlign: "center", fontSize: 14, color: "#777" },
+
+  dropdown: {
+    borderWidth: 0,
+    width: "95%",
+  },
+
+  dropdownContainer: {
+    borderRadius: 12,
+    borderColor: "#d1d5db",
+    elevation: 5,
+    width: "85%",
+  },
+
+  dropdownText: {
+    fontSize: 15,
+    color: "#111",
+  },
 });

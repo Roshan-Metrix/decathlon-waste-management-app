@@ -41,8 +41,8 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
           </View>
           <Text style={styles.subTitle}>Staff Account Hub</Text>
           <Text style={styles.desc}>
-            Manage all store managers and staff accounts here. You can add new
-            users, edit existing ones, or remove inactive accounts securely.
+            Manage own store managers accounts here. You can add new
+            users, view existing ones, and see active managers .
           </Text>
         </View>
 
@@ -65,7 +65,7 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
             <View style={styles.actionTextGroup}>
               <Text style={styles.actionCardTitle}>Add New Manager</Text>
               <Text style={styles.actionCardDesc}>
-                Create a new staff account and assign initial roles.
+                Create a new manager account and assign roles.
               </Text>
             </View>
             <MaterialIcons
@@ -90,9 +90,9 @@ export default function ManageOwnStoreManagersScreen({ navigation }) {
               />
             </View>
             <View style={styles.actionTextGroup}>
-              <Text style={styles.actionCardTitle}>View and Edit Staff</Text>
+              <Text style={styles.actionCardTitle}>View All Managers</Text>
               <Text style={styles.actionCardDesc}>
-                Review all staff, modify permissions, and deactivate users.
+                Review all managers, see the active managers .
               </Text>
             </View>
             <MaterialIcons

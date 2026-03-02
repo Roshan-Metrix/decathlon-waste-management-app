@@ -54,7 +54,7 @@ useEffect(() => {
 
       if (res?.data?.success) {
         setUser(res.data.manager || res.data.admin || res.data.store);
-        setRegion(res.data.store.states);
+        setRegion(res.data.store.state);
       } else {
         await AsyncStorage.removeItem("token");
         setUser(null);
@@ -94,6 +94,7 @@ useEffect(() => {
       }
 
       setUser(data.user);
+      setRegion(data.user.state);
       setError("");
       return { success: true };
     } catch (err) {

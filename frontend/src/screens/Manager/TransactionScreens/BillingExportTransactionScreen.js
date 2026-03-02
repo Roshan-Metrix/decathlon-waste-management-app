@@ -437,23 +437,23 @@ export default function BillingExportTransactionScreen({ navigation }) {
                 </Text>
 
                 <Text style={styles.summaryItems}>
-                  {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""} ×
-                  Rs. {summary.rate} /kg
+                  {summary.itemCount} item{summary.itemCount !== 1 ? "s" : ""}
                 </Text>
 
                 <Text style={styles.summaryWeight}>
-                  (Total Weight: {summary.totalWeight} kg)
+                  (Total Weight: {summary.totalWeight} kg ×
+                  Rs. {summary.rate} /kg)
                 </Text>
 
                 <Text style={styles.summaryWeight}>
                   Total Amount: Rs. {summary.totalAmount}
                 </Text>
 
+              </View>
+            ))}
                 <Text style={styles.calibrationError}>
                   Calibration Error : {transactionData.calibration.error == null ? "0.00 kg" : transactionData.calibration.error.toFixed(2) + " kg"}
                 </Text>
-              </View>
-            ))}
           </View>
 
           <Text style={styles.disclaimer}>

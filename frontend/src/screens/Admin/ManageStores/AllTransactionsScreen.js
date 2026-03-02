@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
 
   sortTextSmall: {
     fontWeight: "600",
-    color: "#111",
+    color: "#9b9a9a",
     fontSize: 15,
   },
 

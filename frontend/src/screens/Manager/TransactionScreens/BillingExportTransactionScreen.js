@@ -234,6 +234,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
       vendorName: transactionData?.vendorName || "Vendor N/A",
       grandTotalWeight: grandTotalWeight,
       billDate: todayISTDate,
+      calibrationError: transactionData.calibration.error == null ? "0.00 kg" : transactionData.calibration.error.toFixed(2) + " kg",
       items: itemsList.map((item, index) => ({
         sn: index + 1,
         materialType: item.materialType,
@@ -446,6 +447,10 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
                 <Text style={styles.summaryWeight}>
                   Total Amount: Rs. {summary.totalAmount}
+                </Text>
+
+                <Text style={styles.calibrationError}>
+                  Calibration Error : {transactionData.calibration.error == null ? "0.00 kg" : transactionData.calibration.error.toFixed(2) + " kg"}
                 </Text>
               </View>
             ))}
@@ -721,4 +726,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
   },
+  calibrationError:{
+    fontSize: 14,
+    fontStyle: "italic",
+    color: "#6b7280",
+  }
 });

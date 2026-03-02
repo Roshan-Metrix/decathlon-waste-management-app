@@ -12,7 +12,7 @@ import Alert from "../../Components/Alert";
 
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 
 // Converts ISO string to IST formatted date and time for file content.
 const formatISTDateTime = (isoString) => {
@@ -38,7 +38,33 @@ const formatISTDateTime = (isoString) => {
 };
 
 const generateCSV = (data) => {
-  // --- Detailed Items Section ---
+  if (!data) {
+    return {
+      data: "",
+      fileName: "Export.csv",
+      mimeType: "text/csv",
+    };
+  }
+
+  // Helper to safely escape CSV values
+  const escapeCSV = (value) => {
+    if (value === null || value === undefined) return "";
+    const stringValue = String(value);
+    if (
+      stringValue.includes(",") ||
+      stringValue.includes('"') ||
+      stringValue.includes("\n")
+    ) {
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
+
+  let csvString = "";
+
+  // Detailed Items Section
+  csvString += "Detailed Transaction Items\n";
+
   const detailHeaders = [
     "SN",
     "Transaction ID",
@@ -50,52 +76,87 @@ const generateCSV = (data) => {
     "Date (IST)",
     "Time (IST)",
   ];
-  let csvString = "Detailed Transaction Items\n";
+
   csvString += detailHeaders.join(",") + "\n";
 
-  data.items.forEach((item) => {
-    const { date, time } = formatISTDateTime(item.createdAt);
+  if (Array.isArray(data.items) && data.items.length > 0) {
+    data.items.forEach((item, index) => {
+      const { date, time } = formatISTDateTime(item?.createdAt);
 
-    const row = [
-      item.sn,
-      `"${data.transactionId}"`,
-      `"${data.storeName}"`,
-      `"${data.vendorName}"`,
-      `"${item.materialType}"`,
-      item.weight,
-      item.weightSource,
-      date,
-      time,
-    ];
-    csvString += row.join(",") + "\n";
-  });
+      const row = [
+        escapeCSV(item?.sn ?? index + 1),
+        escapeCSV(data?.transactionId),
+        escapeCSV(data?.storeName),
+        escapeCSV(data?.vendorName),
+        escapeCSV(item?.materialType),
+        escapeCSV(parseFloat(item?.weight) || 0),
+        escapeCSV(item?.weightSource === "system" ? "System" : "Manual"),
+        escapeCSV(date),
+        escapeCSV(time),
+      ];
 
-  // --- Grouped Summary Section ---
+      csvString += row.join(",") + "\n";
+    });
+  }
+
+  // Material Summary Section
+
   csvString += "\nMaterial Type Summary\n";
+
   const summaryHeaders = [
     "No.",
     "Material Type",
     "Item Count",
     "Total Weight (kg)",
+    "Rate (Rs/kg)",
+    "Total Amount (Rs)",
   ];
+
   csvString += summaryHeaders.join(",") + "\n";
 
-  data.itemSummary.forEach((summary, index) => {
-    const summaryRow = [
-      index + 1,
-      `"${summary.materialType}"`,
-      summary.itemCount,
-      summary.totalWeight,
-    ];
-    csvString += summaryRow.join(",") + "\n";
-  });
+  if (Array.isArray(data.itemSummary) && data.itemSummary.length > 0) {
+    data.itemSummary.forEach((summary, index) => {
+      const weight = parseFloat(summary?.totalWeight) || 0;
+      const rate = parseFloat(summary?.rate) || 0;
+      const totalAmount = weight * rate;
 
-  // --- Grand Total ---
-  csvString += "\nGrand Total Weight (kg)," + data.grandTotalWeight + "\n";
+      const summaryRow = [
+        escapeCSV(index + 1),
+        escapeCSV(summary?.materialType),
+        escapeCSV(summary?.itemCount || 0),
+        escapeCSV(weight),
+        escapeCSV(rate),
+        escapeCSV(totalAmount.toFixed(2)),
+      ];
+
+      csvString += summaryRow.join(",") + "\n";
+    });
+  }
+
+  csvString += "\n";
+  csvString +=
+    "Grand Total Weight (kg)," +
+    escapeCSV(parseFloat(data?.grandTotalWeight) || 0) +
+    "\n";
+
+  const grandTotalAmount = Array.isArray(data.itemSummary)
+    ? data.itemSummary.reduce((total, summary) => {
+        const weight = parseFloat(summary?.totalWeight) || 0;
+        const rate = parseFloat(summary?.rate) || 0;
+        return total + weight * rate;
+      }, 0)
+    : 0;
+
+  csvString +=
+    "Grand Total Amount (Rs)," + escapeCSV(grandTotalAmount.toFixed(2)) + "\n";
+
+  const safeTransactionId = String(data?.transactionId || "Transaction")
+    .replace(/[^a-z0-9]/gi, "_")
+    .toLowerCase();
 
   return {
     data: csvString,
-    fileName: `${data.transactionId}_Data.csv`,
+    fileName: `${safeTransactionId}_Data.csv`,
     mimeType: "text/csv",
   };
 };
@@ -318,10 +379,11 @@ export default function ExportDataScreen({ navigation, route }) {
           html: result.data,
         });
       } else {
+
         const fileUri = FileSystem.cacheDirectory + result.fileName;
 
         await FileSystem.writeAsStringAsync(fileUri, result.data, {
-          encoding: FileSystem.EncodingType.UTF8,
+          encoding: "utf8",
         });
 
         if (!(await Sharing.isAvailableAsync())) {
@@ -441,15 +503,6 @@ export default function ExportDataScreen({ navigation, route }) {
           iconName="table-view"
           iconColor="#22c55e"
           borderColor="#22c55e"
-        />
-
-        <ExportOption
-          type="Excel"
-          title="Export as Excel"
-          desc="Download structured data, using CSV format as a cross-platform solution."
-          iconName="grid-on"
-          iconColor="#2563eb"
-          borderColor="#2563eb"
         />
 
         {/* Info Box */}

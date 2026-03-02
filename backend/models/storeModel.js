@@ -18,7 +18,7 @@ const storeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    states:{
+    state:{
       type: String,
       required: true,
       trim: true,

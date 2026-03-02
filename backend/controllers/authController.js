@@ -101,7 +101,7 @@ export const registerStore = async (req, res) => {
     storeId,
     name,
     storeLocation,
-    states,
+    state,
     contactNumber,
     email,
     password,
@@ -112,7 +112,7 @@ export const registerStore = async (req, res) => {
     !storeId ||
     !name ||
     !storeLocation ||
-    !states ||
+    !state ||
     !contactNumber ||
     !email ||
     !password
@@ -135,7 +135,7 @@ export const registerStore = async (req, res) => {
       storeId,
       name,
       storeLocation,
-      states,
+      state,
       contactNumber,
       email,
       password: hashedPassword,
@@ -182,11 +182,11 @@ export const registerStore = async (req, res) => {
         storeId: store.storeId,
         name: store.name,
         email: store.email,
+        state: store.state,
         contactNumber: store.contactNumber,
         role: store.role,
         isApproved: store.isApproved,
         storeLocation: store.storeLocation,
-        states: store.states,
       },
       message: "Store Registration successful ",
     });
@@ -329,7 +329,7 @@ export const loginUser = async (req, res) => {
 
     if(user.role === "manager" || user.role === "store"){
         const storeState = await storeModel.findOne({ storeId: user.storeId });
-        user.state = storeState ? storeState.states : [];
+        user.state = storeState ? storeState.state : [];
     }else{
         user.state = [];
     }

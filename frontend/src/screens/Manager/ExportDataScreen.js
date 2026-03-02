@@ -141,6 +141,10 @@ const generatePDF = (data) => {
                       <span style="font-weight:bold;">
                         Amount: Rs. ${totalAmount.toFixed(2)}
                       </span>
+                      <br/>
+                      <span style="font-style: italic; color: #6b7280;">
+                        Calibration Error: ${data.calibrationError}
+                      </span>
                   </div>
                 `;
               })

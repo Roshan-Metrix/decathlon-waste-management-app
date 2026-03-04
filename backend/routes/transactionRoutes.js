@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   AddTransactionDetailController,
   AllTransactionsController,
+  getTotalWeightsRateByDates,
   ParticularTransactionController,
   recognizeWithGeminiController,
   SelectedTransactionItemsController,
@@ -16,6 +17,8 @@ const transactionRouter = express.Router();
 
 // store file in memory (Buffer)
 const upload = multer({ storage: multer.memoryStorage() });
+
+// For App transaction routes
 
 transactionRouter.get("/", (req, res) => {
   res.send("Transaction API Endpoint Running...");
@@ -64,6 +67,13 @@ transactionRouter.get(
   "/selected-transactions-items/:transactionId",
   authMiddleware,
   SelectedTransactionItemsController,
+);
+
+// Get transactins according to date range -- currently not in use
+transactionRouter.get(
+  "/particular-store-transactions/:storeId/:from/:to",
+  authMiddleware,
+  getTotalWeightsRateByDates,
 );
 
 transactionRouter.get(

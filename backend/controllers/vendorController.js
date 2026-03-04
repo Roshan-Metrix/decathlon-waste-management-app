@@ -426,17 +426,21 @@ export const getTotalWeightsByDates = async (req, res) => {
     transactions.forEach((txn) => {
       txn.items.forEach((item) => {
         const type = item.materialType;
+        const rate = item.materialRate || 0;
         const weight = parseFloat(item.weight || 0);
 
         if (!materialStats[type]) {
           materialStats[type] = {
             materialType: type,
             totalItems: 0,
+            totalAmount: 0,
             weight: 0,
           };
         }
         materialStats[type].totalItems += 1;
         materialStats[type].weight += weight;
+        materialStats[type].totalAmount += weight * rate;
+        materialStats[type].rate = rate;
       });
     });
 
@@ -444,6 +448,8 @@ export const getTotalWeightsByDates = async (req, res) => {
     const items = Object.values(materialStats).map((entry) => ({
       materialType: entry.materialType,
       totalItems: entry.totalItems,
+      rate: parseFloat(entry.rate.toFixed(2)),
+      totalAmount: parseFloat(entry.totalAmount.toFixed(2)),
       weight: parseFloat(entry.weight.toFixed(2)),
     }));
 

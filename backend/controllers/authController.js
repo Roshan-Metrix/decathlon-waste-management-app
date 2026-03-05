@@ -201,7 +201,7 @@ export const registerManager = async (req, res) => {
   const { storeId, name, email, password } = req.body;
   const createdBy = req.user.id;
 
-  if ((!storeId, !name, !email, !password)) {
+  if (!storeId || !name || !email || !password) {
     return res.json({ success: false, message: "Missing details" });
   }
 

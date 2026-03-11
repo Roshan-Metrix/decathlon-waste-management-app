@@ -34,6 +34,7 @@ export default function AddTransactionScreen({ navigation }) {
   const [storeName, setStoreName] = useState("");
   const [storeLocation, setStoreLocation] = useState("");
   const [managerName, setManagerName] = useState("");
+  const [storeState, setStoreState] = useState("");
   // Vendor Dropdown
   const [vendorOpen, setVendorOpen] = useState(false);
   const [vendorName, setVendorName] = useState(null);
@@ -70,6 +71,7 @@ export default function AddTransactionScreen({ navigation }) {
           setStoreId(res.data.store.storeId);
           setStoreName(res.data.store.name);
           setStoreLocation(res.data.store.storeLocation);
+          setStoreState(res.data.store.state)
           setManagerName(res.data.manager.name || "Manager");
         }
       }
@@ -80,6 +82,7 @@ export default function AddTransactionScreen({ navigation }) {
           setStoreId(res.data.store.storeId);
           setStoreName(res.data.store.name);
           setStoreLocation(res.data.store.storeLocation);
+          setStoreState(res.data.store.state);
           setManagerName("Store");
         }
       }
@@ -110,6 +113,7 @@ export default function AddTransactionScreen({ navigation }) {
         storeId,
         storeName,
         storeLocation,
+        storeState,
         managerName,
         vendorName,
       });
@@ -175,13 +179,6 @@ export default function AddTransactionScreen({ navigation }) {
 
             <Text style={styles.label}>Store Name</Text>
             <TextInput style={styles.input} value={storeName} editable={false} />
-
-            <Text style={styles.label}>Store Location</Text>
-            <TextInput
-              style={styles.input}
-              value={storeLocation}
-              editable={false}
-            />
 
             <Text style={styles.label}>Manager Name</Text>
             <TextInput

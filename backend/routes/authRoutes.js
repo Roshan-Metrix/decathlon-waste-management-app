@@ -4,7 +4,7 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 import { addMaterialTypeAndRate, deleteRegion, getAllAdmins, getAllMaterialsWithRate, getAllRegions } from '../controllers/adminController.js';
 import { deleteManager, getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
-import { deleteStore, editStoreDetails, getAllStores, getStoreProfile } from '../controllers/storeController.js';
+import { deleteStore, editStoreDetails, getAllStores, getStoreProfile} from '../controllers/storeController.js';
 import managerMiddleware from '../middlewares/managerMiddleware.js';
 
 const authRouter = express.Router();

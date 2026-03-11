@@ -381,7 +381,7 @@ export const getAllVendors = async (req, res) => {
   }
 };
 
-// Get total weights according to material type from date filter (from - to)
+// Get total weights according to material type from date filter (from - to) of individual store
 export const getTotalWeightsByDates = async (req, res) => {
   try {
     const { storeId, from, to } = req.params;
@@ -426,7 +426,7 @@ export const getTotalWeightsByDates = async (req, res) => {
     transactions.forEach((txn) => {
       txn.items.forEach((item) => {
         const type = item.materialType;
-        const rate = item.materialRate || 0;
+        const rate = parseFloat(item.materialRate || 0);
         const weight = parseFloat(item.weight || 0);
 
         if (!materialStats[type]) {

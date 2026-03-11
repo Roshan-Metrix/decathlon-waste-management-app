@@ -1,5 +1,6 @@
 import storeModel from "../models/storeModel.js";
 import dotenv from "dotenv";
+import transactionModel from "../models/transactionModel.js";
 dotenv.config();
 
 export const getStoreProfile = async (req, res) => {
@@ -67,6 +68,133 @@ export const getAllStores = async (req, res) => {
     });
   } catch (error) {
     console.log("Error in getAllStores Controller:", error);
+    return res.json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Get all store with total transactions summary
+export const getStoreWithTotalTransactionsDetails = async (req, res) => {
+  try {
+    const transactions = await transactionModel.find().select("-password -__v");
+
+    const uniqueStores = [];
+    const seenStoreIds = new Set();
+
+    transactions.forEach((txn) => {
+      if (!seenStoreIds.has(txn.store.storeId)) {
+        seenStoreIds.add(txn.store.storeId);
+        uniqueStores.push({
+          storeId: txn.store.storeId,
+          storeName: txn.store.storeName,
+          storeLocation: txn.store.storeLocation,
+          transactionCount: transactions.filter(
+            (t) => t.store.storeId === txn.store.storeId,
+          ).length,
+        });
+      }
+    });
+
+    return res.json({
+      success: true,
+      message: "Related stores fetched successfully",
+      totalTransactions: transactions.length,
+      totalStores:
+        new Set(transactions.map((txn) => txn.store.storeId)).size || 0,
+      totalItems:
+        transactions.reduce((acc, txn) => acc + txn.items.length, 0) || 0,
+      totalStores: uniqueStores.length,
+      stores: uniqueStores,
+    });
+  } catch (error) {
+    console.log("Error in getAllStores Controller : ", error);
+    return res.json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+// Get total weights according to material type from date filter (from - to) of individual store
+export const getStoreTotalWeightsByDates = async (req, res) => {
+  try {
+    const { storeId, from, to } = req.params;
+
+    // Example: { storeId: 'ST-123', from: '2025-12-31', to: '2025-12-31' }
+
+    if (!storeId || !from || !to) {
+      return res.json({
+        success: false,
+        message: "storeId, from and to dates are required.",
+      });
+    }
+
+    // From 00:00:00 to 23:59:59 on the given dates
+    const fromDate = new Date(`${from}T00:00:00.000Z`);
+    const toDate = new Date(`${to}T23:59:59.999Z`);
+
+    const transactions = await transactionModel.aggregate([
+      { $match: { "store.storeId": storeId } },
+      {
+        $addFields: {
+          items: {
+            $filter: {
+              input: "$items",
+              as: "item",
+              cond: {
+                $and: [
+                  { $gte: ["$$item.createdAt", fromDate] },
+                  { $lte: ["$$item.createdAt", toDate] },
+                ],
+              },
+            },
+          },
+        },
+      },
+      { $match: { "items.0": { $exists: true } } },
+      // Only include docs with at least one matching item
+    ]);
+
+    const materialStats = {};
+
+    transactions.forEach((txn) => {
+      txn.items.forEach((item) => {
+        const type = item.materialType;
+        const rate = parseFloat(item.materialRate || 0);
+        const weight = parseFloat(item.weight || 0);
+
+        if (!materialStats[type]) {
+          materialStats[type] = {
+            materialType: type,
+            totalItems: 0,
+            totalAmount: 0,
+            weight: 0,
+          };
+        }
+        materialStats[type].totalItems += 1;
+        materialStats[type].weight += weight;
+        materialStats[type].totalAmount += weight * rate;
+        materialStats[type].rate = rate;
+      });
+    });
+
+    // Format and round weights to two decimal places
+    const items = Object.values(materialStats).map((entry) => ({
+      materialType: entry.materialType,
+      totalItems: entry.totalItems,
+      rate: parseFloat(entry.rate.toFixed(2)),
+      totalAmount: parseFloat(entry.totalAmount.toFixed(2)),
+      weight: parseFloat(entry.weight.toFixed(2)),
+    }));
+
+    return res.json({
+      success: true,
+      message: "Fetched successfully!",
+      vendorName: transactions.length > 0 ? transactions[0].vendorName : null,
+      storeName:
+        transactions.length > 0 ? transactions[0].store.storeName : null,
+      storeLocation:
+        transactions.length > 0 ? transactions[0].store.storeLocation : null,
+      items,
+    });
+  } catch (error) {
+    console.error("Error in getStoreTotalWeightsByDates Controller:", error);
     return res.json({ success: false, message: "Internal Server Error" });
   }
 };

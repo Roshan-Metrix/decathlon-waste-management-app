@@ -33,7 +33,7 @@ app.get('/',(req,res) => {
 })
 
 app.use('/api/v1/auth',authRouter)
-app.use('/api/v1/manager/transaction',transactionRouter)
+app.use('/api/v1/transaction',transactionRouter)
 app.use('/api/v1/vendor',vendorRouter)
 
 app.listen(port,() => {

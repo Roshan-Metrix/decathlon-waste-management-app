@@ -112,3 +112,7 @@ const styles = StyleSheet.create({
 
 // setAlertMessage("Something went wrong");
 // setAlertVisible(true);
+
+
+// This is beautiful expo default loading 
+/* <ActivityIndicator size="large" color={PRIMARY_COLOR} /> */

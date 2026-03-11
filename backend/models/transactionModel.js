@@ -70,6 +70,10 @@ const transactionSchema = new mongoose.Schema(
         type: String,
         required: true,
       },
+      storeState: {
+        type: String,
+        required: true,
+      }
     },
     items: [itemSchema],
     createdBy: {

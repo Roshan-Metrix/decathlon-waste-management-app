@@ -72,42 +72,59 @@ export const getAllStores = async (req, res) => {
   }
 };
 
-// Get all store with total transactions summary
+// Get all stores with total transactions summary (paginated)
 export const getStoreWithTotalTransactionsDetails = async (req, res) => {
   try {
-    const transactions = await transactionModel.find().select("-password -__v");
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
 
-    const uniqueStores = [];
-    const seenStoreIds = new Set();
+    // Aggregate store summary
+    const stores = await transactionModel.aggregate([
+      {
+        $group: {
+          _id: "$store.storeId",
+          storeName: { $first: "$store.storeName" },
+          storeLocation: { $first: "$store.storeLocation" },
+          transactionCount: { $sum: 1 },
+          totalItems: { $sum: { $size: "$items" } }
+        }
+      },
+      { $sort: { _id: 1 } },
+      { $skip: skip },
+      { $limit: limit }
+    ]);
 
-    transactions.forEach((txn) => {
-      if (!seenStoreIds.has(txn.store.storeId)) {
-        seenStoreIds.add(txn.store.storeId);
-        uniqueStores.push({
-          storeId: txn.store.storeId,
-          storeName: txn.store.storeName,
-          storeLocation: txn.store.storeLocation,
-          transactionCount: transactions.filter(
-            (t) => t.store.storeId === txn.store.storeId,
-          ).length,
-        });
-      }
-    });
+    // total stores count
+    const totalStores = await transactionModel.distinct("store.storeId");
+
+    // overall stats
+    const allTransactions = await transactionModel.find();
+
+    const formattedStores = stores.map((store) => ({
+      storeId: store._id,
+      storeName: store.storeName,
+      storeLocation: store.storeLocation,
+      transactionCount: store.transactionCount
+    }));
 
     return res.json({
       success: true,
-      message: "Related stores fetched successfully",
-      totalTransactions: transactions.length,
-      totalStores:
-        new Set(transactions.map((txn) => txn.store.storeId)).size || 0,
-      totalItems:
-        transactions.reduce((acc, txn) => acc + txn.items.length, 0) || 0,
-      totalStores: uniqueStores.length,
-      stores: uniqueStores,
+      message: "Stores fetched successfully",
+      totalTransactions: allTransactions.length,
+      totalItems: allTransactions.reduce((acc, txn) => acc + txn.items.length, 0),
+      totalStores: totalStores.length,
+      page,
+      hasMore: skip + stores.length < totalStores.length,
+      stores: formattedStores
     });
+
   } catch (error) {
-    console.log("Error in getAllStores Controller : ", error);
-    return res.json({ success: false, message: "Internal Server Error" });
+    console.log("Error in getStoreWithTotalTransactionsDetails:", error);
+    return res.json({
+      success: false,
+      message: "Internal Server Error"
+    });
   }
 };
 
@@ -116,7 +133,10 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
   try {
     const { storeId, from, to } = req.params;
 
-    // Example: { storeId: 'ST-123', from: '2025-12-31', to: '2025-12-31' }
+    // pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
 
     if (!storeId || !from || !to) {
       return res.json({
@@ -125,7 +145,6 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       });
     }
 
-    // From 00:00:00 to 23:59:59 on the given dates
     const fromDate = new Date(`${from}T00:00:00.000Z`);
     const toDate = new Date(`${to}T23:59:59.999Z`);
 
@@ -147,8 +166,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
           },
         },
       },
-      { $match: { "items.0": { $exists: true } } },
-      // Only include docs with at least one matching item
+      { $match: { "items.0": { $exists: true } } }
     ]);
 
     const materialStats = {};
@@ -165,17 +183,18 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
             totalItems: 0,
             totalAmount: 0,
             weight: 0,
+            rate,
           };
         }
+
         materialStats[type].totalItems += 1;
         materialStats[type].weight += weight;
         materialStats[type].totalAmount += weight * rate;
-        materialStats[type].rate = rate;
       });
     });
 
-    // Format and round weights to two decimal places
-    const items = Object.values(materialStats).map((entry) => ({
+    // convert object to array
+    const allItems = Object.values(materialStats).map((entry) => ({
       materialType: entry.materialType,
       totalItems: entry.totalItems,
       rate: parseFloat(entry.rate.toFixed(2)),
@@ -183,18 +202,29 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       weight: parseFloat(entry.weight.toFixed(2)),
     }));
 
+    // pagination
+    const paginatedItems = allItems.slice(skip, skip + limit);
+
     return res.json({
       success: true,
       message: "Fetched successfully!",
-      vendorName: transactions.length > 0 ? transactions[0].vendorName : null,
-      storeName:
-        transactions.length > 0 ? transactions[0].store.storeName : null,
-      storeLocation:
-        transactions.length > 0 ? transactions[0].store.storeLocation : null,
-      items,
+      vendorName: transactions.length ? transactions[0].vendorName : null,
+      storeName: transactions.length ? transactions[0].store.storeName : null,
+      storeLocation: transactions.length
+        ? transactions[0].store.storeLocation
+        : null,
+
+      page,
+      hasMore: skip + paginatedItems.length < allItems.length,
+
+      totalMaterials: allItems.length,
+      items: paginatedItems,
     });
   } catch (error) {
-    console.error("Error in getStoreTotalWeightsByDates Controller:", error);
+    console.error(
+      "Error in getStoreTotalWeightsByDates Controller:",
+      error
+    );
     return res.json({ success: false, message: "Internal Server Error" });
   }
 };

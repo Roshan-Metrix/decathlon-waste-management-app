@@ -37,7 +37,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
     setIsLoading(true);
     try {
       const response = await api.get(
-        `/manager/transaction/selected-transactions-items/${transactionId}`,
+        `/transaction/selected-transactions-items/${transactionId}`,
       );
       if (response.data?.success) {
         setTransaction(response.data);

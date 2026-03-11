@@ -65,7 +65,7 @@ export default function ShowAllTransaction({ navigation }) {
       const currentPage = loadMore ? page : 1;
 
       const response = await api.get(
-        `/manager/transaction/store-total-transactions/${storeId}?page=${currentPage}&limit=${LIMIT}`
+        `/transaction/store-total-transactions/${storeId}?page=${currentPage}&limit=${LIMIT}`
       );
 
       if (response.data?.success) {

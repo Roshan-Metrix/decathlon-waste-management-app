@@ -100,7 +100,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
         }
 
         const res = await api.get(
-          `/manager/transaction/todays-transactions/${transactionId}`,
+          `/transaction/todays-transactions/${transactionId}`,
         );
         setProfile(res.data.transactions[0].managerName);
         setStore(res.data.transactions[0].store);
@@ -135,7 +135,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
       }
 
       const res = await api.get(
-        `/manager/transaction/todays-transactions/${transactionId}`,
+        `/transaction/todays-transactions/${transactionId}`,
       );
 
       if (res.data?.success && res.data?.transactions?.[0]) {

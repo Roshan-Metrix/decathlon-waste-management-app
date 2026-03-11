@@ -65,7 +65,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
     });
 
     const res = await api.post(
-      "/manager/transaction/transaction-calibration/ocr",
+      "/transaction/transaction-calibration/ocr",
       formData,
       {
         headers: {
@@ -139,7 +139,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
     };
 
     const res = await api.post(
-      `/manager/transaction/transaction-calibration/${transactionId}`,
+      `/transaction/transaction-calibration/${transactionId}`,
       payload
     );
 

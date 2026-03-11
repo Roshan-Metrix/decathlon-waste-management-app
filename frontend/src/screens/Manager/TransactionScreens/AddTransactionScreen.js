@@ -106,7 +106,7 @@ export default function AddTransactionScreen({ navigation }) {
     try {
       setSendingLoading(true);
 
-      const res = await api.post("/manager/transaction/add-transaction", {
+      const res = await api.post("/transaction/add-transaction", {
         storeId,
         storeName,
         storeLocation,

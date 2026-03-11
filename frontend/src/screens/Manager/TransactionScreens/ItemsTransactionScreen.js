@@ -93,7 +93,7 @@ export default function ItemsTransactionScreen({ navigation }) {
       }
 
       const res = await api.get(
-        `/manager/transaction/todays-transactions/${transactionId}`,
+        `/transaction/todays-transactions/${transactionId}`,
       );
 
       if (res.data?.success) {
@@ -136,7 +136,7 @@ export default function ItemsTransactionScreen({ navigation }) {
       });
 
       const res = await api.post(
-        "/manager/transaction/transaction-calibration/ocr",
+        "/transaction/transaction-calibration/ocr",
         formData,
         {
           headers: {
@@ -228,7 +228,7 @@ export default function ItemsTransactionScreen({ navigation }) {
       };
 
       const res = await api.post(
-        `/manager/transaction/transaction-items/${transactionId}`,
+        `/transaction/transaction-items/${transactionId}`,
         payload,
       );
 
@@ -248,8 +248,8 @@ export default function ItemsTransactionScreen({ navigation }) {
         setFetchWeight("");
         setEnterWeight("");
 
-        setAlertMessage("Item added successfully!");
-        setAlertVisible(true);
+        // setAlertMessage("Item added successfully!");
+        // setAlertVisible(true);
       } else {
         console.log("Add item response:", res.data);
         setAlertMessage(res.data?.message || "Item not added.");

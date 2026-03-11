@@ -15,6 +15,7 @@ import { useFocusEffect, useRoute } from "@react-navigation/native";
 import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
 import useImagePreview from "../../../lib/useImagePreview";
+import { formatTimeStamp } from "../../../lib/formatTimeStamp";
 
 export default function BillingExportTransactionScreen({ navigation }) {
   const route = useRoute();
@@ -209,9 +210,11 @@ export default function BillingExportTransactionScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.centerScreen}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <Text style={{ marginTop: 10 }}>Loading Transaction Details...</Text>
+      <View style={styles.exportOverlay}>
+        <View style={styles.exportOBox}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.exportOText}>Exporting Report...</Text>
+        </View>
       </View>
     );
   }
@@ -224,6 +227,8 @@ export default function BillingExportTransactionScreen({ navigation }) {
     timeZone: "Asia/Kolkata",
   });
 
+
+
   // Function to prepare and pass data to export screen
   const navigateToExport = () => {
     const dataToExport = {
@@ -234,7 +239,10 @@ export default function BillingExportTransactionScreen({ navigation }) {
       vendorName: transactionData?.vendorName || "Vendor N/A",
       grandTotalWeight: grandTotalWeight,
       billDate: todayISTDate,
-      calibrationError: transactionData.calibration.error == null ? "0.00 kg" : transactionData.calibration.error.toFixed(2) + " kg",
+      calibrationError:
+        transactionData.calibration.error == null
+          ? "0.00 kg"
+          : transactionData.calibration.error.toFixed(2) + " kg",
       items: itemsList.map((item, index) => ({
         sn: index + 1,
         materialType: item.materialType,
@@ -441,19 +449,21 @@ export default function BillingExportTransactionScreen({ navigation }) {
                 </Text>
 
                 <Text style={styles.summaryWeight}>
-                  (Total Weight: {summary.totalWeight} kg ×
-                  Rs. {summary.rate} /kg)
+                  (Total Weight: {summary.totalWeight} kg × Rs. {summary.rate}{" "}
+                  /kg)
                 </Text>
 
                 <Text style={styles.summaryWeight}>
                   Total Amount: Rs. {summary.totalAmount}
                 </Text>
-
               </View>
             ))}
-                <Text style={styles.calibrationError}>
-                  Calibration Error : {transactionData.calibration.error == null ? "0.00 kg" : transactionData.calibration.error.toFixed(2) + " kg"}
-                </Text>
+            <Text style={styles.calibrationError}>
+              Calibration Error :{" "}
+              {transactionData.calibration.error == null
+                ? "0.00 kg"
+                : transactionData.calibration.error.toFixed(2) + " kg"}
+            </Text>
           </View>
 
           <Text style={styles.disclaimer}>
@@ -726,9 +736,36 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "700",
   },
-  calibrationError:{
+  calibrationError: {
     fontSize: 14,
     fontStyle: "italic",
     color: "#6b7280",
-  }
+  },
+
+  exportOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0.45)",
+  justifyContent: "center",
+  alignItems: "center",
+  zIndex: 999,
+},
+
+exportOBox: {
+  backgroundColor: "#fff",
+  padding: 25,
+  borderRadius: 12,
+  alignItems: "center",
+  elevation: 6,
+},
+
+exportOText: {
+  marginTop: 10,
+  fontSize: 14,
+  color: "#333",
+  fontWeight: "500",
+},
 });

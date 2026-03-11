@@ -93,7 +93,7 @@ export default function ShowAllTransaction({ route, navigation }) {
       const currentPage = reset ? 1 : page;
 
       const response = await api.get(
-        `/manager/transaction/store-total-transactions/${storeId}?page=${currentPage}&limit=4`,
+        `/transaction/store-total-transactions/${storeId}?page=${currentPage}&limit=4`,
       );
 
       if (response.data?.success) {

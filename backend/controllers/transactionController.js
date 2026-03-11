@@ -5,7 +5,7 @@ import { generateTransactionId } from "../utils/generateTransactionId.js";
 // Add Transaction Detail Controller
 export const AddTransactionDetailController = async (req, res) => {
   try {
-    const { storeId, storeName, storeLocation, managerName, vendorName } =
+    const { storeId, storeName, storeLocation, storeState, managerName, vendorName } =
       req.body;
 
       const createdBy = req.user.id;
@@ -14,6 +14,7 @@ export const AddTransactionDetailController = async (req, res) => {
       !storeId ||
       !storeName ||
       !storeLocation ||
+      !storeState ||
       !managerName ||
       !vendorName
     ) {
@@ -31,6 +32,7 @@ export const AddTransactionDetailController = async (req, res) => {
         storeId,
         storeName,
         storeLocation,
+        storeState
       },
       managerName,
       vendorName,

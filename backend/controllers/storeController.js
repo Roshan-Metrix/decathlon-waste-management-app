@@ -86,6 +86,7 @@ export const getStoreWithTotalTransactionsDetails = async (req, res) => {
           _id: "$store.storeId",
           storeName: { $first: "$store.storeName" },
           storeLocation: { $first: "$store.storeLocation" },
+          storeState: { $first: "$store.storeState"},
           transactionCount: { $sum: 1 },
           totalItems: { $sum: { $size: "$items" } }
         }
@@ -105,6 +106,7 @@ export const getStoreWithTotalTransactionsDetails = async (req, res) => {
       storeId: store._id,
       storeName: store.storeName,
       storeLocation: store.storeLocation,
+      storeState: store.storeState,
       transactionCount: store.transactionCount
     }));
 
@@ -227,6 +229,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
     );
     return res.json({ success: false, message: "Internal Server Error" });
   }
+
 };
 
 export const deleteStore = async (req, res) => {

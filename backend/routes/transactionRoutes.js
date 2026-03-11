@@ -3,7 +3,6 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   AddTransactionDetailController,
   AllTransactionsController,
-  getTotalWeightsRateByDates,
   ParticularTransactionController,
   recognizeWithGeminiController,
   SelectedTransactionItemsController,
@@ -69,13 +68,6 @@ transactionRouter.get(
   "/selected-transactions-items/:transactionId",
   authMiddleware,
   SelectedTransactionItemsController,
-);
-
-// Get transactins according to date range -- currently not in use
-transactionRouter.get(
-  "/particular-store-transactions/:storeId/:from/:to",
-  authMiddleware,
-  getTotalWeightsRateByDates,
 );
 
 transactionRouter.get(

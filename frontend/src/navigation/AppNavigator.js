@@ -35,6 +35,7 @@ import AddRegionScreen from "../screens/Admin/ManageRegions/AddRegionScreen";
 import RemoveRegionScreen from "../screens/Admin/ManageRegions/RemoveRegionScreen";
 import ViewRegionScreen from "../screens/Admin/ManageRegions/ViewRegionScreen";
 import EditMaterialsRateScreen from "../screens/Admin/ManageRegions/EditMaterialsRateScreen";
+import DataAnalysisScreen from "../screens/Admin/DataAnalysis/DataAnalysisScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
@@ -111,6 +112,7 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ViewRegionScreen" component={ViewRegionScreen} />
             <Stack.Screen name="RemoveRegionScreen" component={RemoveRegionScreen} />
             <Stack.Screen name="EditMaterialsRateScreen" component={EditMaterialsRateScreen} />
+            <Stack.Screen name="DataAnalysisScreen" component={DataAnalysisScreen} />
 
             {/* Manager & Store Screens */}
             <Stack.Screen name="ManageDataScreen" component={ManageDataScreen} />

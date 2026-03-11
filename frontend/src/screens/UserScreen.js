@@ -65,7 +65,8 @@ useEffect(() => {
       {
         title: "Data Analysis",
         icon: "query-stats",
-        screen: "ViewAllStoresScreen",
+        // screen: "ViewAllStoresScreen",
+        screen: "DataAnalysisScreen",
       },
       {
         title: "Manage Admins",

@@ -135,10 +135,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
   try {
     const { storeId, from, to } = req.params;
 
-    // pagination
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 4;
-    const skip = (page - 1) * limit;
+    // Example: { storeId: 'ST-123', from: '2025-12-31', to: '2025-12-31' }
 
     if (!storeId || !from || !to) {
       return res.json({
@@ -147,6 +144,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       });
     }
 
+    // From 00:00:00 to 23:59:59 on the given dates
     const fromDate = new Date(`${from}T00:00:00.000Z`);
     const toDate = new Date(`${to}T23:59:59.999Z`);
 
@@ -168,7 +166,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
           },
         },
       },
-      { $match: { "items.0": { $exists: true } } }
+      { $match: { "items.0": { $exists: true } } },
     ]);
 
     const materialStats = {};
@@ -185,18 +183,17 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
             totalItems: 0,
             totalAmount: 0,
             weight: 0,
-            rate,
           };
         }
-
         materialStats[type].totalItems += 1;
         materialStats[type].weight += weight;
         materialStats[type].totalAmount += weight * rate;
+        materialStats[type].rate = rate;
       });
     });
 
-    // convert object to array
-    const allItems = Object.values(materialStats).map((entry) => ({
+    // Format and round weights to two decimal places
+    const items = Object.values(materialStats).map((entry) => ({
       materialType: entry.materialType,
       totalItems: entry.totalItems,
       rate: parseFloat(entry.rate.toFixed(2)),
@@ -204,32 +201,20 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       weight: parseFloat(entry.weight.toFixed(2)),
     }));
 
-    // pagination
-    const paginatedItems = allItems.slice(skip, skip + limit);
-
     return res.json({
       success: true,
       message: "Fetched successfully!",
-      vendorName: transactions.length ? transactions[0].vendorName : null,
-      storeName: transactions.length ? transactions[0].store.storeName : null,
-      storeLocation: transactions.length
-        ? transactions[0].store.storeLocation
-        : null,
-
-      page,
-      hasMore: skip + paginatedItems.length < allItems.length,
-
-      totalMaterials: allItems.length,
-      items: paginatedItems,
+      vendorName: transactions.length > 0 ? transactions[0].vendorName : null,
+      storeName:
+        transactions.length > 0 ? transactions[0].store.storeName : null,
+      storeLocation:
+        transactions.length > 0 ? transactions[0].store.storeLocation : null,
+      items,
     });
   } catch (error) {
-    console.error(
-      "Error in getStoreTotalWeightsByDates Controller:",
-      error
-    );
+    console.error("Error in getTotalWeightsByDates Controller:", error);
     return res.json({ success: false, message: "Internal Server Error" });
   }
-
 };
 
 export const deleteStore = async (req, res) => {

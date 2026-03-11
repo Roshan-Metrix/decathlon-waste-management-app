@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { formatTimeStamp } from "../../../lib/formatTimeStamp";
@@ -177,8 +178,8 @@ export default function SelectedTransactionItems({ route, navigation }) {
         </View>
 
         {isLoading ? (
-          <View style={{ alignItems: "center" }}>
-            <Text style={{ fontSize: 16, color: "#787575" }}>Loading transaction items...</Text>
+          <View style={{ alignItems: "center", paddingVertical: 40 }}>
+            <ActivityIndicator size="large" color={PRIMARY_COLOR} />
           </View>
         ) : (
           <View>

@@ -16,6 +16,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 import { formatTimeStamp } from "../../../lib/formatTimeStamp";
+import { exportStoreReportPDF } from "../DataAnalysis/generateStoreReportPDF";
 
 const PRIMARY_COLOR = "#1e40af";
 const LIGHT_BACKGROUND = "#f9fafb";
@@ -57,6 +58,8 @@ export default function ShowAllTransaction({ route, navigation }) {
   // Animated dropdown
   const [sortOpen, setSortOpen] = useState(false);
   const animHeight = useRef(new Animated.Value(0)).current;
+
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     fetchTransactions(true);
@@ -149,7 +152,6 @@ export default function ShowAllTransaction({ route, navigation }) {
         return (b.item ?? 0) - (a.item ?? 0);
       }
       if (sortType === "az") {
-        // transactionId is string per your confirmation
         return a.transactionId.localeCompare(b.transactionId);
       }
       return 0;
@@ -248,6 +250,26 @@ export default function ShowAllTransaction({ route, navigation }) {
     outputRange: [0, 110],
   });
 
+  const handleExportStoreReportPdf = async () => {
+    if (!storeId || !fromDate || !toDate) {
+      setAlertMessage("From - To date required !");
+      setAlertVisible(true);
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+
+      await exportStoreReportPDF(storeId, fromDate, toDate);
+    } catch (error) {
+      console.log(error);
+      setAlertMessage("Export failed!");
+      setAlertVisible(true);
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* HEADER */}
@@ -270,8 +292,17 @@ export default function ShowAllTransaction({ route, navigation }) {
 
       {/* STORE INFO */}
       <View style={styles.storeInfoCard}>
-        <Text style={styles.storeNameText}>{storeInfo.name}</Text>
-        <Text style={styles.storeIdText}>Store ID: {storeInfo.id}</Text>
+        <View>
+          <Text style={styles.storeNameText}>{storeInfo.name}</Text>
+          <Text style={styles.storeIdText}>Store ID: {storeInfo.id}</Text>
+        </View>
+        <TouchableOpacity onPress={() => handleExportStoreReportPdf()}>
+          <MaterialIcons
+            name="file-download"
+            size={24}
+            color={LIGHT_BACKGROUND}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* FILTER BAR */}
@@ -430,6 +461,14 @@ export default function ShowAllTransaction({ route, navigation }) {
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
+      {isExporting && (
+        <View style={styles.exportOverlay}>
+          <View style={styles.exportBox}>
+            <ActivityIndicator size="large" color={PRIMARY_COLOR} />
+            <Text style={styles.exportText}>Exporting Report...</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -473,6 +512,9 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY_COLOR,
     borderRadius: 14,
     elevation: 3,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 
   storeNameText: {
@@ -659,5 +701,32 @@ const styles = StyleSheet.create({
     color: "#777",
     marginTop: 40,
     fontSize: 16,
+  },
+
+  exportOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0,0,0,0.45)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  exportBox: {
+    backgroundColor: "#fff",
+    padding: 25,
+    borderRadius: 12,
+    alignItems: "center",
+    elevation: 6,
+  },
+
+  exportText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: "#333",
+    fontWeight: "500",
   },
 });

@@ -14,7 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from '../api/api'
 
 export default function UserScreen({ navigation }) {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, setLoading } = useContext(AuthContext);
   const [role, setRole] = useState("");
   const [sidebarVisible, setSidebarVisible] = useState(false);
 

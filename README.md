@@ -1,4 +1,4 @@
-# ![Decathlon Logo](frontend/assets/splash-icon.png) Decathlon Mobile
+# ![Decathlon Logo](frontend/assets/splash-icon.png) DecaWaste
 
 A comprehensive mobile application for warehouse waste management operations for Decathlon Company featuring **advanced OCR (Optical Character Recognition)** for automated weight detection from digital scales and measuring devices.
 
@@ -98,4 +98,4 @@ Note: This is an internal-in-development app for Decathlon.
 > - **LinkedIn:** [Roshan Patel](https://www.linkedin.com/in/roshannnn/)
 
 ---
-*This README was generated to provide an overview of the Decathlon Mobile app prototype.*
+*This README was generated to provide an overview of the Decathlon Mobile app - DecaWaste prototype.*

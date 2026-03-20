@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.decathlon.weightreader'
+    namespace 'com.decathlon.decawaste'
     defaultConfig {
-        applicationId 'com.decathlon.weightreader'
+        applicationId 'com.decathlon.decawaste'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

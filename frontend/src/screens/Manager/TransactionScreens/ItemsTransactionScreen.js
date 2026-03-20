@@ -123,7 +123,8 @@ export default function ItemsTransactionScreen({ navigation }) {
 
       const picture = await cameraRef.current.takePictureAsync({
         base64: true,
-        quality: 0.5,
+        quality: 0.3,
+        // quality: 0.5,
       });
 
       setPhoto(picture);

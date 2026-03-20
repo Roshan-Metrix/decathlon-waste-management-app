@@ -1,4 +1,4 @@
-package com.decathlon.weightreader
+package com.decathlon.decawaste
 
 import android.os.Build
 import android.os.Bundle

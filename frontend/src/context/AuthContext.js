@@ -120,6 +120,7 @@ useEffect(() => {
       value={{
         user,
         loading,
+        setLoading,
         error,
         setError,
         login,

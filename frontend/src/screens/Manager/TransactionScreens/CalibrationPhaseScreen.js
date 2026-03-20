@@ -34,6 +34,9 @@ export default function CalibrationPhaseScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
 
+  const [showManualModal, setShowManualModal] = useState(false);
+  const [correctReading, setCorrectReading] = useState("");
+
   useEffect(() => {
     (async () => {
       const cam = await Camera.requestCameraPermissionsAsync();
@@ -42,71 +45,118 @@ export default function CalibrationPhaseScreen({ navigation }) {
   }, []);
 
   const handleCapture = async () => {
-  if (!cameraRef.current) {
-    setAlertMessage("Camera not ready.");
-    setAlertVisible(true);
-    return;
-  }
-
-  setLoading(true);
-  try {
-    const picture = await cameraRef.current.takePictureAsync({
-      base64: true,
-      quality: 0.5,
-    });
-
-    setPhoto(picture);
-
-    const formData = new FormData();
-    formData.append("image", {
-      uri: picture.uri,
-      name: "photo.jpg",
-      type: "image/jpeg",
-    });
-
-    const res = await api.post(
-      "/transaction/transaction-calibration/ocr",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    const ocrText = res.data.weight;
-    const cleanWeight = parseWeight(ocrText);
-
-    if (cleanWeight) {
-      setFetchWeight(cleanWeight.toString());
-    } else {
-      setAlertMessage("Unable to detect weight!");
+    if (!cameraRef.current) {
+      setAlertMessage("Camera not ready.");
       setAlertVisible(true);
-      setFetchWeight("");
+      return;
     }
 
-    setCanCalibrate(true);
-  } 
-  catch (e) {
-  console.log("Capture error:", e.message);
-  if (e.response) {
-    console.log("Server responded with:", e.response.data);
-  } else if (e.request) {
-    console.log("No response received:", e.request);
-  } else {
-    console.log("Axios config error:", e.config);
-  }}
-   finally {
-    setLoading(false);
-  }
-};
+    setLoading(true);
+    try {
+      const picture = await cameraRef.current.takePictureAsync({
+        base64: true,
+        quality: 0.3,
+        // quality: 0.5,
+      });
 
+      setPhoto(picture);
+
+      const formData = new FormData();
+      formData.append("image", {
+        uri: picture.uri,
+        name: "photo.jpg",
+        type: "image/jpeg",
+      });
+
+      const res = await api.post(
+        "/transaction/transaction-calibration/ocr",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+
+      const ocrText = res.data.weight;
+      const cleanWeight = parseWeight(ocrText);
+
+      if (cleanWeight) {
+        setFetchWeight(cleanWeight.toString());
+      } else {
+        setFetchWeight("");
+        setShowManualModal(true);
+      }
+
+      setCanCalibrate(true);
+    } catch (e) {
+      console.log("Capture error:", e.message);
+      if (e.response) {
+        console.log("Server responded with:", e.response.data);
+      } else if (e.request) {
+        console.log("No response received:", e.request);
+      } else {
+        console.log("Axios config error:", e.config);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleRecapture = () => {
     setPhoto(null);
     setFetchWeight("");
     setCanCalibrate(false);
   };
+
+  // const handleCalibrate = async () => {
+  //   if (!photo) {
+  //     setAlertMessage("Please capture image first!");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   // If user never touched enterWeight => default to 0
+  //   const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
+
+  //   // Still require fetchWeight because image OCR should run
+  //   if (!fetchWeight) {
+  //     setAlertMessage("OCR couldn't detect weight. Please capture again.");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+
+  //     const stored = await AsyncStorage.getItem("todayTransaction");
+  //     const parsed = JSON.parse(stored);
+  //     const transactionId = parsed?.transactionId;
+
+  //     const payload = {
+  //       fetchWeight,
+  //       enterWeight: finalEnterWeight,
+  //       image: `data:image/jpeg;base64,${photo.base64}`,
+  //     };
+
+  //     const res = await api.post(
+  //       `/transaction/transaction-calibration/${transactionId}`,
+  //       payload,
+  //     );
+
+  //     setLoading(false);
+
+  //     if (res.data.success) {
+  //       await AsyncStorage.setItem("calibrationStatus", "Completed");
+  //       navigation.navigate("ProcessTransactionScreen");
+  //     }
+  //   } catch (err) {
+  //     console.log(err?.response?.data?.message);
+  //     setAlertMessage(err?.response?.data?.message || "Calibration failed!");
+  //     setAlertVisible(true);
+  //     setLoading(false);
+  //   }
+  // };
 
   const handleCalibrate = async () => {
   if (!photo) {
@@ -115,12 +165,12 @@ export default function CalibrationPhaseScreen({ navigation }) {
     return;
   }
 
-  // If user never touched enterWeight => default to 0
   const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
 
-  // Still require fetchWeight because image OCR should run
-  if (!fetchWeight) {
-    setAlertMessage("OCR couldn't detect weight. Please capture again.");
+  const finalFetchWeight = fetchWeight || correctReading;
+
+  if (!finalFetchWeight) {
+    setAlertMessage("Please enter correct reading!");
     setAlertVisible(true);
     return;
   }
@@ -133,7 +183,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
     const transactionId = parsed?.transactionId;
 
     const payload = {
-      fetchWeight,
+      fetchWeight: finalFetchWeight,
       enterWeight: finalEnterWeight,
       image: `data:image/jpeg;base64,${photo.base64}`,
     };
@@ -150,7 +200,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
       navigation.navigate("ProcessTransactionScreen");
     }
   } catch (err) {
-    console.log(err?.response?.data?.message);
     setAlertMessage(err?.response?.data?.message || "Calibration failed!");
     setAlertVisible(true);
     setLoading(false);
@@ -269,6 +318,53 @@ export default function CalibrationPhaseScreen({ navigation }) {
           <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
         </View>
       )}
+      {showManualModal && (
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalCard}>
+      
+      {/* Small grey message */}
+      <Text style={styles.modalHint}>
+        Unable to detect weight
+      </Text>
+
+      {/* Enter Weight */}
+      <Text style={styles.inputLabel}>Enter Weight (manually)</Text>
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          value={enterWeight}
+          onChangeText={setEnterWeight}
+          keyboardType="numeric"
+        />
+        <Text style={styles.unit}>kg</Text>
+      </View>
+
+      {/* Correct Reading */}
+      <Text style={styles.inputLabel}>Correct Reading</Text>
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={styles.input}
+          value={correctReading}
+          onChangeText={setCorrectReading}
+          keyboardType="numeric"
+        />
+        <Text style={styles.unit}>kg</Text>
+      </View>
+
+      {/* Send Button */}
+      <TouchableOpacity
+        style={styles.mainBtn}
+        onPress={() => {
+          setShowManualModal(false);
+          handleCalibrate();
+        }}
+      >
+        <Text style={styles.mainBtnText}>Send</Text>
+      </TouchableOpacity>
+
+    </View>
+  </View>
+)}
       <Alert
         visible={alertVisible}
         message={alertMessage}
@@ -386,4 +482,28 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
+  modalOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  backgroundColor: "rgba(0,0,0,0.5)",
+  justifyContent: "center",
+  alignItems: "center",
+},
+
+modalCard: {
+  width: "85%",
+  backgroundColor: "#fff",
+  borderRadius: 18,
+  padding: 20,
+},
+
+modalHint: {
+  fontSize: 15,
+  color: "#e64343",
+  // color: "#a2a3a5",
+  marginBottom: 10,
+},
 });

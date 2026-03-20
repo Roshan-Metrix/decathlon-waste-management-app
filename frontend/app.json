@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Decathlon",
-    "slug": "Decathlon",
+    "name": "DecaWaste",
+    "slug": "DecaWaste",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.decathlon.weightreader",
+      "bundleIdentifier": "com.decathlon.decawaste",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -30,18 +30,18 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.decathlon.weightreader",
+      "package": "com.decathlon.decawaste",
       "versionCode": 1,
       "usesCleartextTraffic": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "owner": "roshan150",
     "extra": {
       "eas": {
-        "projectId": "bfc0e836-e580-478a-be10-5b4c03b3ccdf"
+        "projectId": "46ffd453-bdf9-4fb4-bc2e-3a1502cc3b7e"
       }
-    },
-    "owner": "roshan150"
+    }
   }
 }

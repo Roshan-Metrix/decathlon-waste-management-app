@@ -156,12 +156,12 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    // const error = Math.abs(fetchWeight - enterWeight);
-
     // Always subtract greater number from smaller
     const fw = parseFloat(fetchWeight) || 0;
     const ew = parseFloat(enterWeight) || 0;
-    const error = fw > ew ? fw - ew : ew - fw;
+    let error = fw > ew ? fw - ew : ew - fw;
+
+    error = Number(error.toFixed(3));
 
     if (error >= 0.1) {
       return res

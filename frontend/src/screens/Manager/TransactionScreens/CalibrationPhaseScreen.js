@@ -26,6 +26,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
   const [photo, setPhoto] = useState(null);
   const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
+  const [manualInput, setManualInput] = useState("");
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -33,9 +34,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
 
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
-
-  const [showManualModal, setShowManualModal] = useState(false);
-  const [correctReading, setCorrectReading] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -56,7 +54,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
       const picture = await cameraRef.current.takePictureAsync({
         base64: true,
         quality: 0.3,
-        // quality: 0.5,
       });
 
       setPhoto(picture);
@@ -84,8 +81,11 @@ export default function CalibrationPhaseScreen({ navigation }) {
       if (cleanWeight) {
         setFetchWeight(cleanWeight.toString());
       } else {
+        setAlertMessage(
+          `Unable to detect weight! ${"\n"} Please enter manually.`,
+        );
+        setAlertVisible(true);
         setFetchWeight("");
-        setShowManualModal(true);
       }
 
       setCanCalibrate(true);
@@ -109,102 +109,67 @@ export default function CalibrationPhaseScreen({ navigation }) {
     setCanCalibrate(false);
   };
 
-  // const handleCalibrate = async () => {
-  //   if (!photo) {
-  //     setAlertMessage("Please capture image first!");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-
-  //   // If user never touched enterWeight => default to 0
-  //   const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
-
-  //   // Still require fetchWeight because image OCR should run
-  //   if (!fetchWeight) {
-  //     setAlertMessage("OCR couldn't detect weight. Please capture again.");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     const stored = await AsyncStorage.getItem("todayTransaction");
-  //     const parsed = JSON.parse(stored);
-  //     const transactionId = parsed?.transactionId;
-
-  //     const payload = {
-  //       fetchWeight,
-  //       enterWeight: finalEnterWeight,
-  //       image: `data:image/jpeg;base64,${photo.base64}`,
-  //     };
-
-  //     const res = await api.post(
-  //       `/transaction/transaction-calibration/${transactionId}`,
-  //       payload,
-  //     );
-
-  //     setLoading(false);
-
-  //     if (res.data.success) {
-  //       await AsyncStorage.setItem("calibrationStatus", "Completed");
-  //       navigation.navigate("ProcessTransactionScreen");
-  //     }
-  //   } catch (err) {
-  //     console.log(err?.response?.data?.message);
-  //     setAlertMessage(err?.response?.data?.message || "Calibration failed!");
-  //     setAlertVisible(true);
-  //     setLoading(false);
-  //   }
-  // };
-
   const handleCalibrate = async () => {
-  if (!photo) {
-    setAlertMessage("Please capture image first!");
-    setAlertVisible(true);
-    return;
-  }
-
-  const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
-
-  const finalFetchWeight = fetchWeight || correctReading;
-
-  if (!finalFetchWeight) {
-    setAlertMessage("Please enter correct reading!");
-    setAlertVisible(true);
-    return;
-  }
-
-  try {
-    setLoading(true);
-
-    const stored = await AsyncStorage.getItem("todayTransaction");
-    const parsed = JSON.parse(stored);
-    const transactionId = parsed?.transactionId;
-
-    const payload = {
-      fetchWeight: finalFetchWeight,
-      enterWeight: finalEnterWeight,
-      image: `data:image/jpeg;base64,${photo.base64}`,
-    };
-
-    const res = await api.post(
-      `/transaction/transaction-calibration/${transactionId}`,
-      payload
-    );
-
-    setLoading(false);
-
-    if (res.data.success) {
-      await AsyncStorage.setItem("calibrationStatus", "Completed");
-      navigation.navigate("ProcessTransactionScreen");
+    if (!photo) {
+      setAlertMessage("Please capture image first!");
+      setAlertVisible(true);
+      return;
     }
-  } catch (err) {
-    setAlertMessage(err?.response?.data?.message || "Calibration failed!");
-    setAlertVisible(true);
-    setLoading(false);
-  }
-};
+
+    const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
+
+    try {
+      setLoading(true);
+
+      const stored = await AsyncStorage.getItem("todayTransaction");
+      const parsed = JSON.parse(stored);
+      const transactionId = parsed?.transactionId;
+
+      let payload;
+
+      if (manualInput.trim() !== "") {
+        payload = {
+          fetchWeight: manualInput,
+          enterWeight: finalEnterWeight,
+          image: `data:image/jpeg;base64,${photo.base64}`,
+        };
+      } else if (!fetchWeight) {
+        setAlertMessage("Please enter Manual Input since OCR failed!");
+        setAlertVisible(true);
+        setLoading(false);
+        return;
+      } else {
+        payload = {
+          fetchWeight: fetchWeight,
+          enterWeight: finalEnterWeight,
+          image: `data:image/jpeg;base64,${photo.base64}`,
+        };
+      }
+
+      const res = await api.post(
+        `/transaction/transaction-calibration/${transactionId}`,
+        payload,
+      );
+
+      setLoading(false);
+
+      if (res.data.success) {
+        await AsyncStorage.setItem("calibrationStatus", "Completed");
+        navigation.navigate("ProcessTransactionScreen");
+      }
+    } catch (err) {
+      console.log(err?.response?.data?.message);
+      setAlertMessage(err?.response?.data?.message || "Calibration failed!");
+      setAlertVisible(true);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (manualInput) {
+      setFetchWeight("");
+    }
+  }, [manualInput]);
 
   if (hasPermission === null) {
     return (
@@ -268,7 +233,8 @@ export default function CalibrationPhaseScreen({ navigation }) {
         )}
 
         <View style={styles.inputCard}>
-          <Text style={styles.inputLabel}>Fetched Weight (auto)</Text>
+          {/* FETCHED */}
+          <Text style={styles.inputLabel}>Fetched Weight (AI)</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -278,14 +244,27 @@ export default function CalibrationPhaseScreen({ navigation }) {
             <Text style={styles.unit}>kg</Text>
           </View>
 
-          <Text style={styles.inputLabel}>Enter Weight (manual)</Text>
+          {/* NEW MANUAL INPUT */}
+          <Text style={styles.inputLabel}>Manual Input</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              value={manualInput}
+              onChangeText={setManualInput}
+              keyboardType="numeric"
+              placeholder="Optional"
+            />
+            <Text style={styles.unit}>kg</Text>
+          </View>
+
+          {/* ENTER WEIGHT */}
+          <Text style={styles.inputLabel}>Exact Weight</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
               value={enterWeight}
               onChangeText={setEnterWeight}
               keyboardType="numeric"
-              editable={true}
             />
             <Text style={styles.unit}>kg</Text>
           </View>
@@ -306,7 +285,10 @@ export default function CalibrationPhaseScreen({ navigation }) {
               color={colors.primary}
             />
             <Text style={styles.infoText}>
-              Zero error must be less than 0.1 kg
+              Zero error must be less than 0.1 kg {"\n"}
+              If Crash then kindly enter reading Manually. {"\n"}
+              Calc: Fetched Weight - Exact Weight {"<"} 0.1 {"\n"}
+              Or, Manual Input - Exact Weight {"<"} 0.1 {"\n"}
             </Text>
           </View>
         )}
@@ -318,53 +300,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
           <Text style={{ color: "#fff", marginTop: 10 }}>Processing...</Text>
         </View>
       )}
-      {showManualModal && (
-  <View style={styles.modalOverlay}>
-    <View style={styles.modalCard}>
-      
-      {/* Small grey message */}
-      <Text style={styles.modalHint}>
-        Unable to detect weight
-      </Text>
-
-      {/* Enter Weight */}
-      <Text style={styles.inputLabel}>Enter Weight (manually)</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          value={enterWeight}
-          onChangeText={setEnterWeight}
-          keyboardType="numeric"
-        />
-        <Text style={styles.unit}>kg</Text>
-      </View>
-
-      {/* Correct Reading */}
-      <Text style={styles.inputLabel}>Correct Reading</Text>
-      <View style={styles.inputWrapper}>
-        <TextInput
-          style={styles.input}
-          value={correctReading}
-          onChangeText={setCorrectReading}
-          keyboardType="numeric"
-        />
-        <Text style={styles.unit}>kg</Text>
-      </View>
-
-      {/* Send Button */}
-      <TouchableOpacity
-        style={styles.mainBtn}
-        onPress={() => {
-          setShowManualModal(false);
-          handleCalibrate();
-        }}
-      >
-        <Text style={styles.mainBtnText}>Send</Text>
-      </TouchableOpacity>
-
-    </View>
-  </View>
-)}
       <Alert
         visible={alertVisible}
         message={alertMessage}
@@ -482,28 +417,4 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  modalOverlay: {
-  position: "absolute",
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  backgroundColor: "rgba(0,0,0,0.5)",
-  justifyContent: "center",
-  alignItems: "center",
-},
-
-modalCard: {
-  width: "85%",
-  backgroundColor: "#fff",
-  borderRadius: 18,
-  padding: 20,
-},
-
-modalHint: {
-  fontSize: 15,
-  color: "#e64343",
-  // color: "#a2a3a5",
-  marginBottom: 10,
-},
 });

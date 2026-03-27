@@ -6,6 +6,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import colors from "../../../colors"
 
 export default function CredentialVerificationScreen({ navigation }) {
+  
   const signatureRef = useRef(null);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -89,7 +90,7 @@ export default function CredentialVerificationScreen({ navigation }) {
   );
 }
 
-// ---------------------- STYLES ----------------------
+//  STYLES 
 
 const styles = StyleSheet.create({
   container: {

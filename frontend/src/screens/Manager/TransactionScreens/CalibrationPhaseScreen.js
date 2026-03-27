@@ -13,18 +13,18 @@ import {
 import { CameraView, Camera } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { parseWeight } from "../../../ocr/parseWeight";
 import api from "../../../api/api";
 import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
 import useImagePreview from "../../../lib/useImagePreview";
 
-export default function CalibrationPhaseScreen({ navigation }) {
+export default function CalibrationPhaseScreen({ navigation,route }) {
+  const {transactionId} = route.params || {};
+
   const cameraRef = useRef(null);
 
   const [hasPermission, setHasPermission] = useState(null);
   const [photo, setPhoto] = useState(null);
-  const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
   const [manualInput, setManualInput] = useState("");
 
@@ -48,8 +48,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
       setAlertVisible(true);
       return;
     }
-
-    setLoading(true);
     try {
       const picture = await cameraRef.current.takePictureAsync({
         base64: true,
@@ -65,47 +63,18 @@ export default function CalibrationPhaseScreen({ navigation }) {
         type: "image/jpeg",
       });
 
-      const res = await api.post(
-        "/transaction/transaction-calibration/ocr",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
-      );
-
-      const ocrText = res.data.weight;
-      const cleanWeight = parseWeight(ocrText);
-
-      if (cleanWeight) {
-        setFetchWeight(cleanWeight.toString());
-      } else {
-        setAlertMessage(
-          `Unable to detect weight! ${"\n"} Please enter manually.`,
-        );
-        setAlertVisible(true);
-        setFetchWeight("");
-      }
-
       setCanCalibrate(true);
     } catch (e) {
-      console.log("Capture error:", e.message);
-      if (e.response) {
-        console.log("Server responded with:", e.response.data);
-      } else if (e.request) {
-        console.log("No response received:", e.request);
-      } else {
-        console.log("Axios config error:", e.config);
-      }
-    } finally {
-      setLoading(false);
+      console.error("Capture error:", e);
+      setAlertMessage(e?.message || "Failed to capture image");
+      setAlertVisible(true);
     }
   };
 
   const handleRecapture = () => {
     setPhoto(null);
-    setFetchWeight("");
+    setManualInput("");
+    setEnterWeight("");
     setCanCalibrate(false);
   };
 
@@ -116,35 +85,23 @@ export default function CalibrationPhaseScreen({ navigation }) {
       return;
     }
 
+    if (manualInput.trim() === "") {
+      setAlertMessage("Please enter manual input weight.");
+      setAlertVisible(true);
+      return;
+    }
+
     const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
 
     try {
       setLoading(true);
 
-      const stored = await AsyncStorage.getItem("todayTransaction");
-      const parsed = JSON.parse(stored);
-      const transactionId = parsed?.transactionId;
+      const payload = {
+        fetchWeight: manualInput,
+        enterWeight: finalEnterWeight,
+        image: `data:image/jpeg;base64,${photo.base64}`,
+      };
 
-      let payload;
-
-      if (manualInput.trim() !== "") {
-        payload = {
-          fetchWeight: manualInput,
-          enterWeight: finalEnterWeight,
-          image: `data:image/jpeg;base64,${photo.base64}`,
-        };
-      } else if (!fetchWeight) {
-        setAlertMessage("Please enter Manual Input since OCR failed!");
-        setAlertVisible(true);
-        setLoading(false);
-        return;
-      } else {
-        payload = {
-          fetchWeight: fetchWeight,
-          enterWeight: finalEnterWeight,
-          image: `data:image/jpeg;base64,${photo.base64}`,
-        };
-      }
 
       const res = await api.post(
         `/transaction/transaction-calibration/${transactionId}`,
@@ -164,12 +121,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (manualInput) {
-      setFetchWeight("");
-    }
-  }, [manualInput]);
 
   if (hasPermission === null) {
     return (
@@ -233,13 +184,15 @@ export default function CalibrationPhaseScreen({ navigation }) {
         )}
 
         <View style={styles.inputCard}>
-          {/* FETCHED */}
-          <Text style={styles.inputLabel}>Fetched Weight (AI)</Text>
+      
+          {/* ENTER WEIGHT */}
+          <Text style={styles.inputLabel}>Exact Weight</Text>
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              value={fetchWeight}
-              editable={false}
+              value={enterWeight}
+              onChangeText={setEnterWeight}
+              keyboardType="numeric"
             />
             <Text style={styles.unit}>kg</Text>
           </View>
@@ -251,19 +204,6 @@ export default function CalibrationPhaseScreen({ navigation }) {
               style={styles.input}
               value={manualInput}
               onChangeText={setManualInput}
-              keyboardType="numeric"
-              placeholder="Optional"
-            />
-            <Text style={styles.unit}>kg</Text>
-          </View>
-
-          {/* ENTER WEIGHT */}
-          <Text style={styles.inputLabel}>Exact Weight</Text>
-          <View style={styles.inputWrapper}>
-            <TextInput
-              style={styles.input}
-              value={enterWeight}
-              onChangeText={setEnterWeight}
               keyboardType="numeric"
             />
             <Text style={styles.unit}>kg</Text>
@@ -286,9 +226,7 @@ export default function CalibrationPhaseScreen({ navigation }) {
             />
             <Text style={styles.infoText}>
               Zero error must be less than 0.1 kg {"\n"}
-              If Crash then kindly enter reading Manually. {"\n"}
-              Calc: Fetched Weight - Exact Weight {"<"} 0.1 {"\n"}
-              Or, Manual Input - Exact Weight {"<"} 0.1 {"\n"}
+              Calc: Manual Input - Exact Weight {"<"} 0.1 {"\n"}
             </Text>
           </View>
         )}

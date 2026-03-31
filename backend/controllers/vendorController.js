@@ -5,6 +5,22 @@ import transactionModel from "../models/transactionModel.js";
 import transporter from "../config/nodemailer.js";
 import { VENDOR_ADDED_TEMPLATE } from "../config/emailTemplates.js";
 
+const escapeRegex = (value = "") =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const findVendorByTransactionName = async (vendorName) => {
+  if (!vendorName) {
+    return null;
+  }
+
+  return vendorModel.findOne({
+    name: {
+      $regex: `^${escapeRegex(vendorName.trim())}$`,
+      $options: "i",
+    },
+  });
+};
+
 // Vendor Registration by Admin only
 export const vendorRegister = async (req, res) => {
   const { name, email, password, vendorLocation, contactNumber } = req.body;
@@ -502,6 +518,102 @@ export const deleteVendor = async (req, res) => {
     message:"Internal Server Error"
   });
 }
+};
+
+// Generate and send daily transaction report manually
+// Can be called via API endpoint for testing or manual report generation
+export const generateDailyReportManual = async (req, res) => {
+  try {
+    const { storeId, from, to, sendEmail = true } = req.body;
+
+    if (!storeId || !from || !to) {
+      return res.status(400).json({
+        success: false,
+        message: "storeId, from, and to (date in YYYY-MM-DD format) are required.",
+      });
+    }
+
+    const { fetchTransactionsByDateRange } = await import("../services/transactionService.js");
+    const { generatePDF, deletePDF } = await import("../services/pdfService.js");
+    const { sendDailyReportEmail } = await import("../services/emailService.js");
+    const { formatDateTime } = await import("../utils/reportUtils.js");
+
+    const fromDate = new Date(`${from}T00:00:00.000Z`);
+    const toDate = new Date(`${to}T23:59:59.999Z`);
+
+    const reportData = await fetchTransactionsByDateRange(storeId, fromDate, toDate);
+
+    if (!reportData.success) {
+      return res.status(400).json({
+        success: false,
+        message: "Failed to fetch transaction data",
+      });
+    }
+
+    if (reportData.items.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No transactions found for the specified date range and store",
+      });
+    }
+
+    reportData.reportDate = from;
+    reportData.storeId = storeId;
+
+    const pdfFileName = `daily-report-${storeId}-${from}.pdf`;
+    const pdfFilePath = await generatePDF(reportData, pdfFileName);
+
+    let emailSent = false;
+
+    if (sendEmail) {
+      try {
+        const vendor = await findVendorByTransactionName(reportData.vendorName);
+
+        if (!vendor) {
+          console.warn(
+            `Vendor "${reportData.vendorName}" not found for email. Check transaction vendorName vs vendor master data.`
+          );
+        } else {
+          const emailResult = await sendDailyReportEmail(
+            vendor.email,
+            reportData.vendorName,
+            reportData,
+            pdfFilePath
+          );
+          emailSent = emailResult.success;
+        }
+      } catch (emailError) {
+        console.error("Error sending email:", emailError);
+      }
+    }
+
+    deletePDF(pdfFilePath);
+
+    return res.status(200).json({
+      success: true,
+      message: "Report generated successfully",
+      data: {
+        reportDate: from,
+        vendorName: reportData.vendorName,
+        storeName: reportData.storeName,
+        storeLocation: reportData.storeLocation,
+        totalTransactions: reportData.totalTransactions,
+        totalItems: reportData.totalItems,
+        totalWeight: reportData.totalWeight,
+        totalAmount: reportData.totalAmount,
+        items: reportData.items,
+        emailSent,
+        generatedAt: formatDateTime(new Date()),
+      },
+    });
+  } catch (error) {
+    console.error("Error in generateDailyReportManual:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+      error: error.message,
+    });
+  }
 };
 
 // const fromDate = new Date(from).toISOString().split("T")[0];

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import api from "../../../api/api";
 import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
@@ -36,6 +37,9 @@ export default function ItemsTransactionScreen({ navigation, route }) {
 
   const [loading, setLoading] = useState(false);
   const [enterWeight, setEnterWeight] = useState("");
+
+  const [itemsList, setItemsList] = useState([]);
+  const [itemsLoading, setItemsLoading] = useState(true);
 
   const [materialTypesAndRates, setMaterialTypesAndRates] = useState([]);
 
@@ -70,6 +74,33 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     }
 
     return "";
+  };
+
+ const formatDateTime = (isoString) => {
+    if (!isoString) {
+      return { formattedDate: "N/A", formattedTime: "N/A" };
+    }
+    try {
+      const date = new Date(isoString);
+
+      // Format Date (e.g., "Nov 25, 2025")
+      const formattedDate = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+
+      // Format Time (e.g., "2:30 PM")
+      const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return { formattedDate, formattedTime };
+    } catch (e) {
+      console.error("Date formatting error:", e);
+      return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
+    }
   };
 
   // Ask camera permission on mount
@@ -197,6 +228,7 @@ export default function ItemsTransactionScreen({ navigation, route }) {
         setMaterialType("");
         setMaterialRate("");
         setEnterWeight("");
+        fetchAllItems();
         showSuccessToast();
       } else {
         console.log("Add item response:", res.data);
@@ -212,6 +244,62 @@ export default function ItemsTransactionScreen({ navigation, route }) {
       setAlertVisible(true);
     }
   };
+
+  const fetchAllItems = async () => {
+    try {
+      setItemsLoading(true);
+
+      const resolvedTransactionId = resolveTransactionId();
+      if (!resolvedTransactionId) {
+        setItemsList([]);
+        return;
+      }
+
+      const res = await api.get(
+        `/transaction/todays-transactions/${resolvedTransactionId}`,
+      );
+
+      if (res.data?.success) {
+        const items = res.data?.transactions?.[0]?.items || [];
+        setItemsList([...items].reverse());
+      } else {
+        setItemsList([]);
+      }
+    } catch (e) {
+      console.log("Fetch items error:", e);
+      setItemsList([]);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAllItems();
+    }, [transactionId])
+  );
+
+  // Helper to show image for item (either data URI or server filename)
+  const getItemImageUri = (imageField) => {
+    if (!imageField) return null;
+    if (typeof imageField !== "string") return null;
+
+    const trimmedImage = imageField.trim();
+
+    // If server returned a data: URI (base64 included)
+    if (trimmedImage.startsWith("data:")) return trimmedImage;
+
+    // If server returned a raw base64 string, wrap it as a data URI.
+    const normalizedBase64 = trimmedImage.replace(/\s/g, "");
+    if (/^[A-Za-z0-9+/=]+$/.test(normalizedBase64) && normalizedBase64.length > 100) {
+      return `data:image/jpeg;base64,${normalizedBase64}`;
+    }
+
+    // Otherwise treat it as filename on server uploads folder
+    const base = api?.defaults?.baseURL || "";
+    return `${base.replace(/\/$/, "")}/uploads/${encodeURIComponent(trimmedImage)}`;
+  };
+
 
   // Permission states
   if (hasPermission === null) {
@@ -342,6 +430,65 @@ export default function ItemsTransactionScreen({ navigation, route }) {
             Please review all details carefully before submitting. Once added, materials cannot be edited. 
           </Text>
         </View>
+
+        <Text style={styles.listTitle}>Added Items</Text>
+
+        {itemsLoading ? (
+          <ActivityIndicator
+            style={{ marginTop: 15 }}
+            size="small"
+            color="#1e40af"
+          />
+        ) : itemsList.length === 0 ? (
+          <Text style={styles.noItems}>No items added yet.</Text>
+        ) : (
+          <View style={{ marginTop: 10 }}>
+            {itemsList.map((item) => {
+              const imgUri = getItemImageUri(item.image);
+              const { formattedDate, formattedTime } = formatDateTime(
+                item.createdAt,
+              );
+              return (
+                <View key={item.itemNo} style={styles.card}>
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() =>
+                      openImage(
+                        imgUri
+                          ? { uri: imgUri }
+                          : require("../../../../assets/icon.png"),
+                      )
+                    }
+                  >
+                    <Image
+                      source={
+                        imgUri
+                          ? { uri: imgUri }
+                          : require("../../../../assets/icon.png")
+                      }
+                      style={styles.cardImage}
+                    />
+                  </TouchableOpacity>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>
+                      {/* {item.itemNo}.  */}
+                      {item.materialType}
+                    </Text>
+                    <Text style={styles.cardSub}>
+                      Weight : {item.weight} kg
+                    </Text>
+                    <Text style={styles.cardSub}>Date : {formattedDate} </Text>
+                    <Text style={styles.cardSub}>Time : {formattedTime} </Text>
+                    <Text style={styles.cardTag}>
+                      {item.weightSource === "system" ? "System" : "Manual"}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+
       </ScrollView>
 
       {/* Loading overlay */}
@@ -356,6 +503,7 @@ export default function ItemsTransactionScreen({ navigation, route }) {
         message={alertMessage}
         onClose={() => setAlertVisible(false)}
       />
+      <ImagePreviewModal />
     </View>
   );
 }
@@ -496,7 +644,7 @@ const styles = StyleSheet.create({
   },
 
   listTitle: {
-    marginTop: 30,
+    marginTop: 1,
     marginLeft: 25,
     fontSize: 20,
     fontWeight: "700",

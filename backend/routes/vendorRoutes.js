@@ -1,6 +1,6 @@
 import express from 'express';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
-import { AllTransactionsVendorController, deleteVendor, getAllRelatedStores, getAllRelatedStoresTransactions, getAllVendors, getTotalWeightsByDates, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
+import { AllTransactionsVendorController, deleteVendor, generateDailyReportManual, getAllRelatedStores, getAllRelatedStoresTransactions, getAllVendors, getTotalWeightsByDates, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import vendorMiddleware from '../middlewares/vendorMiddleware.js';
 import { ParticularTransactionController } from '../controllers/transactionController.js';
 
@@ -24,6 +24,9 @@ vendorRouter.get('/particular-transactions/:transactionId',vendorMiddleware,Part
 vendorRouter.get('/transactions-particular-store/:storeId', vendorMiddleware,getAllRelatedStoresTransactions);
 // Get total transactions according to material type of a particular store
 vendorRouter.get('/transactions-particular-store/:storeId/:from/:to', vendorMiddleware,getTotalWeightsByDates);
+
+// Generate daily report manually (for testing or manual report generation)
+vendorRouter.post('/generate-daily-report', adminMiddleware, generateDailyReportManual);
 
 // Delete vendor -> By Admin only
 vendorRouter.delete('/delete-vendor/:vendorId',adminMiddleware,deleteVendor)

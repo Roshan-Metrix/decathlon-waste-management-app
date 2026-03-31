@@ -8,6 +8,7 @@ import authRouter from './routes/authRoutes.js'
 import transactionRouter from './routes/transactionRoutes.js';
 import vendorRouter from './routes/vendorRoutes.js';
 import morgan from 'morgan';
+import { initializeCronScheduler } from './services/cronScheduler.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -35,6 +36,13 @@ app.get('/',(req,res) => {
 app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/transaction',transactionRouter)
 app.use('/api/v1/vendor',vendorRouter)
+
+// Initialize Cron Scheduler for Daily Reports
+try {
+  initializeCronScheduler();
+} catch (error) {
+  console.error('Failed to initialize cron scheduler:', error);
+}
 
 app.listen(port,() => {
     console.log(`Server is running at ${port}`)

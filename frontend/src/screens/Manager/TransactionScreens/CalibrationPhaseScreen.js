@@ -35,14 +35,25 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
   const [loading, setLoading] = useState(false);
   const [canCalibrate, setCanCalibrate] = useState(false);
 
-  useEffect(() => {
-    (async () => {
+  const requestCameraPermission = async () => {
+    try {
       const cam = await Camera.requestCameraPermissionsAsync();
       setHasPermission(cam.status === "granted");
-    })();
+    } catch (error) {
+      console.error("Permission error:", error);
+      setHasPermission(false);
+      setAlertMessage("Unable to access camera permission.");
+      setAlertVisible(true);
+    }
+  };
+
+  useEffect(() => {
+    requestCameraPermission();
   }, []);
 
   const handleCapture = async () => {
+    if (loading) return;
+
     if (!cameraRef.current) {
       setAlertMessage("Camera not ready.");
       setAlertVisible(true);
@@ -55,13 +66,6 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
       });
 
       setPhoto(picture);
-
-      const formData = new FormData();
-      formData.append("image", {
-        uri: picture.uri,
-        name: "photo.jpg",
-        type: "image/jpeg",
-      });
 
       setCanCalibrate(true);
     } catch (e) {
@@ -79,8 +83,22 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
   };
 
   const handleCalibrate = async () => {
+    if (loading) return;
+
+    if (!transactionId) {
+      setAlertMessage("Transaction ID is missing.");
+      setAlertVisible(true);
+      return;
+    }
+
     if (!photo) {
       setAlertMessage("Please capture image first!");
+      setAlertVisible(true);
+      return;
+    }
+
+    if (!photo.base64) {
+      setAlertMessage("Captured image is invalid. Please capture again.");
       setAlertVisible(true);
       return;
     }
@@ -108,8 +126,6 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
         payload,
       );
 
-      setLoading(false);
-
       if (res.data.success) {
         await AsyncStorage.setItem("calibrationStatus", "Completed");
         navigation.navigate("ProcessTransactionScreen");
@@ -118,6 +134,7 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
       console.log(err?.response?.data?.message);
       setAlertMessage(err?.response?.data?.message || "Calibration failed!");
       setAlertVisible(true);
+    } finally {
       setLoading(false);
     }
   };
@@ -135,7 +152,7 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
       <View style={styles.centerScreen}>
         <Text>No access to camera</Text>
         <TouchableOpacity
-          onPress={() => Camera.requestCameraPermissionsAsync()}
+          onPress={requestCameraPermission}
           style={styles.permissionBtn}
         >
           <Text style={{ color: "#fff" }}>Allow Camera</Text>
@@ -250,6 +267,12 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#eef2ff" },
+  centerScreen: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -292,6 +315,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   captureText: { color: "#fff", marginLeft: 8, fontWeight: "700" },
+  permissionBtn: {
+    marginTop: 16,
+    backgroundColor: colors.primary,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 10,
+  },
   inputCard: {
     marginTop: 13,
     padding: 20,

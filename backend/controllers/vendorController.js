@@ -524,7 +524,7 @@ export const deleteVendor = async (req, res) => {
 // Can be called via API endpoint for testing or manual report generation
 export const generateDailyReportManual = async (req, res) => {
   try {
-    const { storeId, from, to, sendEmail = true } = req.body;
+    const { storeId, from, to, vendorName, sendEmail = true } = req.body;
 
     if (!storeId || !from || !to) {
       return res.status(400).json({
@@ -541,12 +541,26 @@ export const generateDailyReportManual = async (req, res) => {
     const fromDate = new Date(`${from}T00:00:00.000Z`);
     const toDate = new Date(`${to}T23:59:59.999Z`);
 
-    const reportData = await fetchTransactionsByDateRange(storeId, fromDate, toDate);
+    const reportData = await fetchTransactionsByDateRange(
+      storeId,
+      fromDate,
+      toDate,
+      vendorName || null
+    );
 
     if (!reportData.success) {
       return res.status(400).json({
         success: false,
         message: "Failed to fetch transaction data",
+      });
+    }
+
+    if (!vendorName && reportData.vendorNames?.length > 1) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Multiple vendors were found for this store and date range. Please provide vendorName to generate a vendor-specific report.",
+        vendors: reportData.vendorNames,
       });
     }
 

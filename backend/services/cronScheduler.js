@@ -116,7 +116,8 @@ export const generateAndSendDailyReports = async () => {
             const reportData = await fetchTransactionsByDateRange(
               store.storeId,
               fromDate,
-              toDate
+              toDate,
+              vendorName
             );
 
             // If no transactions, skip

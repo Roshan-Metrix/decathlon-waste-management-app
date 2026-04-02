@@ -5,12 +5,24 @@ import transactionModel from "../models/transactionModel.js";
  * @param {string} storeId - Store ID to filter transactions
  * @param {Date} fromDate - Start date (00:00:00)
  * @param {Date} toDate - End date (23:59:59)
+ * @param {string|null} vendorName - Optional vendor name to scope the report
  * @returns {Object} Transaction data with material stats
  */
-export const fetchTransactionsByDateRange = async (storeId, fromDate, toDate) => {
+export const fetchTransactionsByDateRange = async (
+  storeId,
+  fromDate,
+  toDate,
+  vendorName = null
+) => {
   try {
+    const matchStage = { "store.storeId": storeId };
+
+    if (vendorName) {
+      matchStage.vendorName = vendorName;
+    }
+
     const transactions = await transactionModel.aggregate([
-      { $match: { "store.storeId": storeId } },
+      { $match: matchStage },
       {
         $addFields: {
           items: {
@@ -31,11 +43,16 @@ export const fetchTransactionsByDateRange = async (storeId, fromDate, toDate) =>
     ]);
 
     const materialStats = {};
+    const vendorNames = new Set();
     let totalWeight = 0;
     let totalAmount = 0;
     let totalItems = 0;
 
     transactions.forEach((txn) => {
+      if (txn.vendorName) {
+        vendorNames.add(txn.vendorName);
+      }
+
       txn.items.forEach((item) => {
         const type = item.materialType;
         const rate = parseFloat(item.materialRate || 0);
@@ -73,7 +90,8 @@ export const fetchTransactionsByDateRange = async (storeId, fromDate, toDate) =>
 
     return {
       success: true,
-      vendorName: transactions.length > 0 ? transactions[0].vendorName : "N/A",
+      vendorNames: [...vendorNames],
+      vendorName: vendorName || (transactions.length > 0 ? transactions[0].vendorName : "N/A"),
       storeName: transactions.length > 0 ? transactions[0].store.storeName : "N/A",
       storeLocation:
         transactions.length > 0 ? transactions[0].store.storeLocation : "N/A",

@@ -4,22 +4,7 @@ import vendorModel from "../models/vendorModel.js";
 import transactionModel from "../models/transactionModel.js";
 import transporter from "../config/nodemailer.js";
 import { VENDOR_ADDED_TEMPLATE } from "../config/emailTemplates.js";
-
-const escapeRegex = (value = "") =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const findVendorByTransactionName = async (vendorName) => {
-  if (!vendorName) {
-    return null;
-  }
-
-  return vendorModel.findOne({
-    name: {
-      $regex: `^${escapeRegex(vendorName.trim())}$`,
-      $options: "i",
-    },
-  });
-};
+import { getReportRecipientsByState } from "../config/reportRecipientsByState.js";
 
 // Vendor Registration by Admin only
 export const vendorRegister = async (req, res) => {
@@ -574,6 +559,15 @@ export const generateDailyReportManual = async (req, res) => {
     reportData.reportDate = from;
     reportData.storeId = storeId;
 
+    const recipientEmails = getReportRecipientsByState(reportData.storeState);
+
+    if (sendEmail && recipientEmails.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: `No report recipient emails configured for state "${reportData.storeState}"`,
+      });
+    }
+
     const pdfFileName = `daily-report-${storeId}-${from}.pdf`;
     const pdfFilePath = await generatePDF(reportData, pdfFileName);
 
@@ -581,21 +575,13 @@ export const generateDailyReportManual = async (req, res) => {
 
     if (sendEmail) {
       try {
-        const vendor = await findVendorByTransactionName(reportData.vendorName);
-
-        if (!vendor) {
-          console.warn(
-            `Vendor "${reportData.vendorName}" not found for email. Check transaction vendorName vs vendor master data.`
-          );
-        } else {
-          const emailResult = await sendDailyReportEmail(
-            vendor.email,
-            reportData.vendorName,
-            reportData,
-            pdfFilePath
-          );
-          emailSent = emailResult.success;
-        }
+        const emailResult = await sendDailyReportEmail(
+          recipientEmails,
+          reportData.storeState,
+          reportData,
+          pdfFilePath
+        );
+        emailSent = emailResult.success;
       } catch (emailError) {
         console.error("Error sending email:", emailError);
       }
@@ -611,12 +597,14 @@ export const generateDailyReportManual = async (req, res) => {
         vendorName: reportData.vendorName,
         storeName: reportData.storeName,
         storeLocation: reportData.storeLocation,
+        storeState: reportData.storeState,
         totalTransactions: reportData.totalTransactions,
         totalItems: reportData.totalItems,
         totalWeight: reportData.totalWeight,
         totalAmount: reportData.totalAmount,
         items: reportData.items,
         emailSent,
+        recipientEmails,
         generatedAt: formatDateTime(new Date()),
       },
     });

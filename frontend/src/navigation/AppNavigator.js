@@ -46,7 +46,6 @@ import AddTransactionScreen from "../screens/Manager/TransactionScreens/AddTrans
 import ProcessTransactionScreen from "../screens/Manager/TransactionScreens/ProcessTransactionScreen";
 import CalibrationPhaseScreen from "../screens/Manager/TransactionScreens/CalibrationPhaseScreen";
 import CredentialVerificationScreen from "../screens/Manager/TransactionScreens/CredentialVerificationScreen";
-import VendorSignatureScreen from "../screens/Manager/TransactionScreens/VendorSignatureScreen";
 import BillingExportTransactionScreen from "../screens/Manager/TransactionScreens/BillingExportTransactionScreen";
 import ItemsTransactionScreen from "../screens/Manager/TransactionScreens/ItemsTransactionScreen";
 import LoadingScreen from "../Components/LoadingScreen";
@@ -125,7 +124,6 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ProcessTransactionScreen" component={ProcessTransactionScreen} />
             <Stack.Screen name="CalibrationPhaseScreen" component={CalibrationPhaseScreen} />
             <Stack.Screen name="CredentialVerificationScreen" component={CredentialVerificationScreen} />
-            <Stack.Screen name="VendorSignatureScreen" component={VendorSignatureScreen} />
             <Stack.Screen name="ItemsTransactionScreen" component={ItemsTransactionScreen} />
             <Stack.Screen name="BillingExportTransactionScreen" component={BillingExportTransactionScreen} />
             <Stack.Screen name="AddProceedTransactionScreen" component={AddProceedTransactionScreen} />

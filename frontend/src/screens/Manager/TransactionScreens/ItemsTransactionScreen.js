@@ -11,28 +11,31 @@ import {
 } from "react-native";
 import { Camera, CameraView } from "expo-camera";
 import { MaterialIcons } from "@expo/vector-icons";
-import { parseWeight } from "../../../ocr/parseWeight";
+import { useFocusEffect } from "@react-navigation/native";
 import api from "../../../api/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
 import useImagePreview from "../../../lib/useImagePreview";
 import { AuthContext } from "../../../context/AuthContext";
 
-export default function ItemsTransactionScreen({ navigation }) {
+export default function ItemsTransactionScreen({ navigation, route }) {
+  const { transactionId } = route.params || {};
+
   const cameraRef = useRef(null);
+  const successToastTimerRef = useRef(null);
   const [photo, setPhoto] = useState(null);
   const [hasPermission, setHasPermission] = useState(null);
   const { openImage, ImagePreviewModal } = useImagePreview();
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
+  const [successToastVisible, setSuccessToastVisible] = useState(false);
 
   const [materialType, setMaterialType] = useState("");
   const [materialRate, setMaterialRate] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [fetchWeight, setFetchWeight] = useState("");
   const [enterWeight, setEnterWeight] = useState("");
 
   const [itemsList, setItemsList] = useState([]);
@@ -41,6 +44,64 @@ export default function ItemsTransactionScreen({ navigation }) {
   const [materialTypesAndRates, setMaterialTypesAndRates] = useState([]);
 
   const { region } = useContext(AuthContext);
+
+  const showSuccessToast = () => {
+    if (successToastTimerRef.current) {
+      clearTimeout(successToastTimerRef.current);
+    }
+
+    setSuccessToastVisible(true);
+    successToastTimerRef.current = setTimeout(() => {
+      setSuccessToastVisible(false);
+      successToastTimerRef.current = null;
+    }, 1800);
+  };
+
+  const resolveTransactionId = () => {
+    if (!transactionId) return "";
+
+    if (typeof transactionId === "string") {
+      try {
+        const parsed = JSON.parse(transactionId);
+        return parsed?.transactionId || transactionId;
+      } catch {
+        return transactionId;
+      }
+    }
+
+    if (typeof transactionId === "object") {
+      return transactionId?.transactionId || "";
+    }
+
+    return "";
+  };
+
+ const formatDateTime = (isoString) => {
+    if (!isoString) {
+      return { formattedDate: "N/A", formattedTime: "N/A" };
+    }
+    try {
+      const date = new Date(isoString);
+
+      // Format Date (e.g., "Nov 25, 2025")
+      const formattedDate = date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "2-digit",
+      });
+
+      // Format Time (e.g., "2:30 PM")
+      const formattedTime = date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+      return { formattedDate, formattedTime };
+    } catch (e) {
+      console.error("Date formatting error:", e);
+      return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
+    }
+  };
 
   // Ask camera permission on mount
   useEffect(() => {
@@ -53,11 +114,6 @@ export default function ItemsTransactionScreen({ navigation }) {
         setHasPermission(false);
       }
     })();
-  }, []);
-
-  // Fetch existing items on load (from today's transaction endpoint)
-  useEffect(() => {
-    fetchAllItems();
   }, []);
 
   const fetchMaterialTypesAndRates = async () => {
@@ -73,42 +129,15 @@ export default function ItemsTransactionScreen({ navigation }) {
 
   useEffect(() => {
     fetchMaterialTypesAndRates();
+  }, [region]);
+
+  useEffect(() => {
+    return () => {
+      if (successToastTimerRef.current) {
+        clearTimeout(successToastTimerRef.current);
+      }
+    };
   }, []);
-
-  const fetchAllItems = async () => {
-    try {
-      setItemsLoading(true);
-
-      const stored = await AsyncStorage.getItem("todayTransaction");
-      if (!stored) {
-        setItemsLoading(false);
-        return;
-      }
-
-      const parsed = JSON.parse(stored);
-      const transactionId = parsed?.transactionId;
-      if (!transactionId) {
-        setItemsLoading(false);
-        return;
-      }
-
-      const res = await api.get(
-        `/transaction/todays-transactions/${transactionId}`,
-      );
-
-      if (res.data?.success) {
-        const items = res.data?.transactions?.[0]?.items || [];
-
-        const reversedItems = [...items].reverse();
-
-        setItemsList(reversedItems);
-      }
-    } catch (e) {
-      console.log("Fetch items error:", e);
-    } finally {
-      setItemsLoading(false);
-    }
-  };
 
   // Capture image and run OCR
   const handleCapture = async () => {
@@ -119,12 +148,9 @@ export default function ItemsTransactionScreen({ navigation }) {
         return;
       }
 
-      setLoading(true);
-
       const picture = await cameraRef.current.takePictureAsync({
         base64: true,
         quality: 0.3,
-        // quality: 0.5,
       });
 
       setPhoto(picture);
@@ -135,43 +161,10 @@ export default function ItemsTransactionScreen({ navigation }) {
         name: "photo.jpg",
         type: "image/jpeg",
       });
-
-      const res = await api.post(
-        "/transaction/transaction-calibration/ocr",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        },
-      );
-
-      const ocrText = res.data.weight;
-      const cleanWeight = parseWeight(ocrText);
-
-      if (cleanWeight) {
-        setFetchWeight(cleanWeight.toString());
-      } else {
-        setAlertMessage(
-          "OCR couldn't detect weight.\nPlease enter weight manually or capture again.",
-        );
-        setAlertVisible(true);
-        setFetchWeight("");
-      }
     } catch (e) {
       console.log("Capture Error:", e.message);
-      if (e.response) {
-        console.log("Server responded with:", e.response.data);
-      } else if (e.request) {
-        console.log("No response received:", e.request);
-      } else {
-        console.log("Axios config error:", e.config);
-      }
-
       setAlertMessage("Capture Failed.\nTry again.");
       setAlertVisible(true);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -195,9 +188,6 @@ export default function ItemsTransactionScreen({ navigation }) {
     if (enterWeight.trim() !== "") {
       weight = enterWeight.trim();
       weightSource = "manually";
-    } else {
-      weight = fetchWeight;
-      weightSource = "system";
     }
 
     if (!weight) {
@@ -209,11 +199,9 @@ export default function ItemsTransactionScreen({ navigation }) {
     try {
       setLoading(true);
 
-      const stored = await AsyncStorage.getItem("todayTransaction");
-      const parsed = stored ? JSON.parse(stored) : null;
-      const transactionId = parsed?.transactionId;
+      const resolvedTransactionId = resolveTransactionId();
 
-      if (!transactionId) {
+      if (!resolvedTransactionId) {
         setLoading(false);
         setAlertMessage("Please create or fetch a transaction first!");
         setAlertVisible(true);
@@ -229,28 +217,19 @@ export default function ItemsTransactionScreen({ navigation }) {
       };
 
       const res = await api.post(
-        `/transaction/transaction-items/${transactionId}`,
+        `/transaction/transaction-items/${resolvedTransactionId}`,
         payload,
       );
 
       setLoading(false);
 
       if (res.data?.success) {
-        const returnedItems = res.data.items || [];
-
-        const reversedReturnedItems = [...returnedItems].reverse();
-
-        setItemsList(reversedReturnedItems);
-
-        // reset fields for next item
         setPhoto(null);
         setMaterialType("");
         setMaterialRate("");
-        setFetchWeight("");
         setEnterWeight("");
-
-        // setAlertMessage("Item added successfully!");
-        // setAlertVisible(true);
+        fetchAllItems();
+        showSuccessToast();
       } else {
         console.log("Add item response:", res.data);
         setAlertMessage(res.data?.message || "Item not added.");
@@ -259,30 +238,68 @@ export default function ItemsTransactionScreen({ navigation }) {
     } catch (err) {
       setLoading(false);
       console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
-      setAlertMessage("Something went wrong!");
+      setAlertMessage(
+        err?.response?.data?.message || err?.message || "Something went wrong!",
+      );
       setAlertVisible(true);
     }
   };
+
+  const fetchAllItems = async () => {
+    try {
+      setItemsLoading(true);
+
+      const resolvedTransactionId = resolveTransactionId();
+      if (!resolvedTransactionId) {
+        setItemsList([]);
+        return;
+      }
+
+      const res = await api.get(
+        `/transaction/todays-transactions/${resolvedTransactionId}`,
+      );
+
+      if (res.data?.success) {
+        const items = res.data?.transactions?.[0]?.items || [];
+        setItemsList([...items].reverse());
+      } else {
+        setItemsList([]);
+      }
+    } catch (e) {
+      console.log("Fetch items error:", e);
+      setItemsList([]);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchAllItems();
+    }, [transactionId])
+  );
 
   // Helper to show image for item (either data URI or server filename)
   const getItemImageUri = (imageField) => {
     if (!imageField) return null;
     if (typeof imageField !== "string") return null;
 
-    // If server returned a data: URI (base64 included)
-    if (imageField.startsWith("data:")) return imageField;
+    const trimmedImage = imageField.trim();
 
-    // If server returned a base64 string without prefix (rare), detect by length
-    if (/^[A-Za-z0-9+/=]+$/.test(imageField) && imageField.length > 200) {
-      // assume base64 PNG
-      return `data:image/png;base64,${imageField}`;
+    // If server returned a data: URI (base64 included)
+    if (trimmedImage.startsWith("data:")) return trimmedImage;
+
+    // If server returned a raw base64 string, wrap it as a data URI.
+    const normalizedBase64 = trimmedImage.replace(/\s/g, "");
+    if (/^[A-Za-z0-9+/=]+$/.test(normalizedBase64) && normalizedBase64.length > 100) {
+      return `data:image/jpeg;base64,${normalizedBase64}`;
     }
 
     // Otherwise treat it as filename on server uploads folder
     const base = api?.defaults?.baseURL || "";
-    // adjust path if server stores uploads in /uploads/ or /public/uploads/
-    return `${base.replace(/\/$/, "")}/uploads/${imageField}`;
+    return `${base.replace(/\/$/, "")}/uploads/${encodeURIComponent(trimmedImage)}`;
   };
+
 
   // Permission states
   if (hasPermission === null) {
@@ -310,35 +327,15 @@ export default function ItemsTransactionScreen({ navigation }) {
     );
   }
 
-  const formatDateTime = (isoString) => {
-    if (!isoString) {
-      return { formattedDate: "N/A", formattedTime: "N/A" };
-    }
-    try {
-      const date = new Date(isoString);
-
-      // Format Date (e.g., "Nov 25, 2025")
-      const formattedDate = date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-      });
-
-      // Format Time (e.g., "2:30 PM")
-      const formattedTime = date.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-      return { formattedDate, formattedTime };
-    } catch (e) {
-      console.error("Date formatting error:", e);
-      return { formattedDate: "Invalid Date", formattedTime: "Invalid Time" };
-    }
-  };
-
   return (
     <View style={styles.container}>
+      {successToastVisible && (
+        <View style={styles.successToast}>
+          <MaterialIcons name="check-circle" size={20} color="#fff" />
+          <Text style={styles.successToastText}>Added</Text>
+        </View>
+      )}
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -410,19 +407,11 @@ export default function ItemsTransactionScreen({ navigation }) {
         )}
 
         {/* Weights */}
-        <View style={styles.inputBox}>
-          <TextInput
-            placeholder="Fetched Weight (auto)"
-            style={[styles.input, { color: "#6B7280" }]}
-            value={fetchWeight}
-            editable={false}
-          />
-          <Text style={styles.unit}>kg</Text>
-        </View>
 
         <View style={styles.inputBox}>
           <TextInput
-            placeholder="Enter Weight (manual)"
+            placeholder="Enter Weight"
+            placeholderTextColor="#9ca3af"
             style={styles.input}
             keyboardType="numeric"
             value={enterWeight}
@@ -434,6 +423,13 @@ export default function ItemsTransactionScreen({ navigation }) {
         <TouchableOpacity style={styles.addBtn} onPress={handleAddItem}>
           <Text style={styles.addText}>Add Material</Text>
         </TouchableOpacity>
+
+        <View style={styles.infoBox}>
+          <MaterialIcons name="info-outline" size={22} color={colors.primary} />
+          <Text style={styles.infoText}>
+            Please review all details carefully before submitting. Once added, materials cannot be edited. 
+          </Text>
+        </View>
 
         <Text style={styles.listTitle}>Added Items</Text>
 
@@ -492,6 +488,7 @@ export default function ItemsTransactionScreen({ navigation }) {
             })}
           </View>
         )}
+
       </ScrollView>
 
       {/* Loading overlay */}
@@ -514,6 +511,27 @@ export default function ItemsTransactionScreen({ navigation }) {
 //  STYLES
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#eef2ff" },
+
+  successToast: {
+    position: "absolute",
+    top: 108,
+    alignSelf: "center",
+    zIndex: 1000,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#16a34a",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    elevation: 6,
+  },
+
+  successToastText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+    marginLeft: 8,
+  },
 
   header: {
     flexDirection: "row",
@@ -626,7 +644,7 @@ const styles = StyleSheet.create({
   },
 
   listTitle: {
-    marginTop: 30,
+    marginTop: 1,
     marginLeft: 25,
     fontSize: 20,
     fontWeight: "700",
@@ -696,5 +714,22 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: "#2563eb",
     borderRadius: 10,
+  },
+
+  infoBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#eff6ff",
+    padding: 14,
+    borderRadius: 12,
+    margin: 20,
+  },
+
+  infoText: {
+    color: "#1e3a8b",
+    fontSize: 14,
+    marginLeft: 10,
+    flex: 1,
+    lineHeight: 20,
   },
 });

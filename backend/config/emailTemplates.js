@@ -625,3 +625,166 @@ export const VENDOR_ADDED_TEMPLATE = `
 </body>
 </html>
 `;
+
+export const DAILY_REPORT_EMAIL_TEMPLATE = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Transaction Report</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 24px 0;
+      background: #f3f7fb;
+      font-family: Arial, sans-serif;
+      color: #1f2937;
+    }
+    .container {
+      width: 100%;
+      max-width: 720px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+    .header {
+      background: linear-gradient(135deg, #2563eb, #0f766e);
+      color: #ffffff;
+      padding: 28px 32px;
+    }
+    .header h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+    }
+    .header p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+    .content {
+      padding: 28px 32px 20px;
+    }
+    .intro {
+      margin: 0 0 18px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
+    .meta {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 22px;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111827;
+    }
+    .stats {
+      display: table;
+      width: 100%;
+      margin-bottom: 22px;
+    }
+    .stat {
+      display: table-cell;
+      width: 33.33%;
+      background: #eff6ff;
+      border: 1px solid #dbeafe;
+      text-align: center;
+      padding: 14px 10px;
+    }
+    .stat strong {
+      display: block;
+      font-size: 20px;
+      color: #1d4ed8;
+      margin-bottom: 6px;
+    }
+    .stat span {
+      font-size: 12px;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      font-size: 14px;
+    }
+    .data-table th,
+    .data-table td {
+      border: 1px solid #e5e7eb;
+      padding: 10px 12px;
+      text-align: left;
+    }
+    .data-table th {
+      background: #eff6ff;
+      color: #1e3a8a;
+    }
+    .data-table tfoot td,
+    .total-row td {
+      background: #f8fafc;
+      font-weight: 700;
+    }
+    .footer {
+      padding: 0 32px 28px;
+      color: #64748b;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Daily Transaction Report</h1>
+      <p>Report Date: {{reportDate}}</p>
+    </div>
+    <div class="content">
+      <p class="intro">Dear {{vendorName}},</p>
+      <p class="intro">
+        Please find the daily transaction summary for <strong>{{storeName}}</strong>.
+        The PDF report is attached with this email for your records.
+      </p>
+
+      <div class="meta">
+        <div><strong>Vendor:</strong> {{vendorName}}</div>
+        <div><strong>Store:</strong> {{storeName}}</div>
+        <div><strong>Location:</strong> {{storeLocation}}</div>
+        <div><strong>Transactions:</strong> {{totalTransactions}}</div>
+        <div><strong>Report Date:</strong> {{reportDate}}</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <strong>{{totalItems}}</strong>
+          <span>Total Items</span>
+        </div>
+        <div class="stat">
+          <strong>{{totalWeight}}</strong>
+          <span>Total Weight (kg)</span>
+        </div>
+        <div class="stat">
+          <strong>{{totalAmount}}</strong>
+          <span>Total Amount (INR)</span>
+        </div>
+      </div>
+
+      <h2 class="section-title">Material Summary</h2>
+      {{materialTable}}
+    </div>
+    <div class="footer">
+      This is an automated email from the Decathlon Waste Management System.
+      Please do not reply to this mailbox.
+    </div>
+  </div>
+</body>
+</html>
+`;

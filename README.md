@@ -5,19 +5,60 @@ A comprehensive mobile application for warehouse waste management operations for
 ## 🌟 Key Features
 
 ### Core Application
-- **🔐 Multi-role Authentication** - Admin, Manager, Vendor access levels
-- **📊 Transaction Management** - Complete waste transaction lifecycle
-- **🏪 Store Management** - Add, edit, monitor waste collection stores
-- **📈 Data Analytics** - Comprehensive reporting and insights
-- **👥 User Management** - Role-based administration
+- **🔐 Multi-role Authentication** - Admin, Manager, Vendor, and Store access levels with secure JWT-based authentication
+- **📊 Transaction Management** - Complete waste transaction lifecycle including creation, item addition, and status tracking
+- **🏪 Store Management** - Add, edit, and monitor waste collection stores with location and state details
+- **📈 Data Analytics** - Comprehensive reporting and insights with charts and dashboards
+- **👥 User Management** - Role-based administration for admins, managers, vendors, and stores
+- **📧 Email Notifications** - Automated email services for user registrations, password resets, and daily reports
+- **📄 PDF Generation** - Automated PDF reports for transactions and daily summaries
+- **⏰ Scheduled Tasks** - Cron-based automation for daily report generation and email distribution
 
 ### 🆕 OCR Weight Detection System
-- **📷 Real-time Camera Capture** - Direct weight reading from digital scales
-- **🖼️ Gallery Integration** - Process existing images of weight displays
-- **🧠 Smart AI Recognition** - Multi-layer OCR with intelligent parsing
-- **✏️ Manual Fallback** - Seamless manual entry when OCR fails
-- **💾 Secure Data Storage** - Automatic backend storage with metadata
-- **📱 Cross-platform** - Optimized for iOS and Android devices
+- **📷 Real-time Camera Capture** - Direct weight reading from digital scales using device camera
+- **🖼️ Gallery Integration** - Process existing images of weight displays from device gallery
+- **🧠 Smart AI Recognition** - Multi-layer OCR using Google Gemini API with intelligent parsing for accurate weight extraction
+- **✏️ Manual Fallback** - Seamless manual entry option when OCR fails or is unavailable
+- **💾 Secure Data Storage** - Automatic backend storage with metadata preservation
+- **📱 Cross-platform** - Optimized for iOS and Android devices with Expo framework
+
+### Additional Features
+- **🌐 Offline Support** - Network connectivity detection and offline handling
+- **📍 Location Services** - GPS-based location tracking for store visits
+- **📊 Charts and Visualizations** - Interactive charts for data analysis using react-native-chart-kit
+- **🖊️ Digital Signatures** - Signature capture for transaction approvals
+- **🔄 Data Synchronization** - Secure data sync between mobile app and backend
+- **🛡️ Security** - Password hashing with bcrypt, secure API endpoints, and middleware protection
+- **📱 Responsive UI** - Mobile-first design with Tailwind CSS styling
+- **🔍 Search and Filtering** - Advanced search capabilities for transactions and users
+- **📅 Date and Time Management** - Date picker and timestamp formatting utilities
+
+---
+
+## 🛠️ Tech Stack
+
+### Backend
+- **Node.js** with Express.js for REST API
+- **MongoDB** with Mongoose for data storage
+- **JWT** for authentication
+- **Bcrypt** for password hashing
+- **Nodemailer** for email services
+- **PDFKit** for PDF generation
+- **Sharp** for image processing
+- **Node-cron** for scheduled tasks
+- **Multer** for file uploads
+- **Google Gemini API** for OCR processing
+
+### Frontend
+- **React Native** with Expo for cross-platform mobile app
+- **React Navigation** for app navigation
+- **Axios** for API calls
+- **AsyncStorage** for local data storage
+- **Expo Camera** for camera functionality
+- **Expo Media Library** for gallery access
+- **React Native Chart Kit** for data visualization
+- **React Native Signature Canvas** for digital signatures
+- **Tailwind CSS** for styling
 
 ---
 
@@ -27,9 +68,11 @@ A comprehensive mobile application for warehouse waste management operations for
 - Backend: Node.js/Express (REST API)
 
 ## Highlights
-- Clean, mobile-first UI optimized for shopping and product discovery
+- Clean, mobile-first UI optimized for warehouse operations
 - Expo-managed workflow for fast iteration and testing
 - Modular folder structure to scale features and teams
+- Advanced OCR integration for automated data entry
+- Comprehensive reporting system with automated email distribution
 - Prepared for CI, automated testing and easy deployment
 
 ## Quickstart (local)
@@ -68,11 +111,42 @@ Or Docker (Backend):
 - Follow feature-branch workflow and open PRs for review
 
 ## Project structure (high level)
-- frontend/ — Expo app
-  - assets/ — icons, images (logo at frontend/assets/icon.png)
-  - src/ — app source code (screens, components, navigation, services)
+- frontend/ — Expo React Native mobile app
+  - assets/ — App icons, images, and splash screens
+  - src/ — Main application source code
+    - api/ — API service functions for backend communication
+    - Components/ — Reusable UI components (Alert, Input, LoadingScreen, etc.)
+    - context/ — React contexts for state management (Auth, Internet connectivity)
+    - lib/ — Utility libraries (timestamp formatting, password generation, image preview)
+    - navigation/ — App navigation configuration and stack definitions
+    - ocr/ — OCR-related utilities for weight parsing
+    - screens/ — App screens organized by role
+      - Admin/ — Admin-specific screens (ManageAdmin, ManageManager, ManageRegion)
+      - Manager/ — Manager-specific screens
+      - User/ — General user screens (Login, Home, Profile, etc.)
+    - utils/ — Additional utilities (permissions, storage helpers)
+  - android/ — Android-specific build configurations and native code
+  - App.js — Main app component
+  - package.json — Frontend dependencies and scripts
+- backend/ — Node.js Express server
+  - controllers/ — API endpoint handlers
+  - models/ — MongoDB schemas
+  - services/ — Business logic (OCR, email, PDF, cron)
+  - config/ — Configuration files (email templates, DB, etc.)
+  - middlewares/ — Authentication and authorization middleware
+  - routes/ — API routes
+  - utils/ — Utility functions
 - docs/ — design and specs
 - scripts/ — helper scripts
+
+## Documentation
+For detailed information about the application, refer to the following documentation files:
+
+- **[API Documentation](temp/Transactions_Documentations/API_DOCUMENTATION.md)** - Complete API endpoints and usage guide
+- **[Implementation Summary](temp/Transactions_Documentations/IMPLEMENTATION_SUMMARY.md)** - Overview of the implementation details
+- **[Installation Guide](temp/Transactions_Documentations/INSTALLATION.md)** - Step-by-step installation instructions
+- **[Daily Report Setup](temp/Transactions_Documentations/DAILY_REPORT_SETUP.md)** - Configuration for automated daily reports
+- **[Quick Reference](temp/Transactions_Documentations/QUICK_REFERENCE.md)** - Quick reference guide for common tasks
 
 ## Contributing
 Contributions welcome. Please:

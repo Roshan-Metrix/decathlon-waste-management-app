@@ -1,147 +1,159 @@
-# ![DecaWaste Logo](frontend/assets/splash-icon.png) DecaWaste
+# ![Decathlon Logo](frontend/assets/splash-icon.png) DecaWaste
 
-DecaWaste is a waste transaction management system built for Decathlon operations. It combines a React Native mobile app with an Express and MongoDB backend to help admins, managers, stores, and vendors manage waste collection workflows, OCR-based weight capture, reporting, and transaction analysis.
+A comprehensive mobile application for warehouse waste management operations for Decathlon Company featuring **advanced OCR (Optical Character Recognition)** for automated weight detection from digital scales and measuring devices.
 
-## Overview
+## 🌟 Key Features
 
-- Mobile app built with Expo and React Native
-- Backend API built with Express and MongoDB
-- Role-based access for admin, manager, store, and vendor flows
-- OCR-assisted weight recognition from captured scale images
-- Daily PDF report generation with scheduled email delivery
+### Core Application
+- **🔐 Multi-role Authentication** - Admin, Manager, Vendor, and Store access levels with secure JWT-based authentication
+- **📊 Transaction Management** - Complete waste transaction lifecycle including creation, item addition, and status tracking
+- **🏪 Store Management** - Add, edit, and monitor waste collection stores with location and state details
+- **📈 Data Analytics** - Comprehensive reporting and insights with charts and dashboards
+- **👥 User Management** - Role-based administration for admins, managers, vendors, and stores
+- **📧 Email Notifications** - Automated email services for user registrations, password resets, and daily reports
+- **📄 PDF Generation** - Automated PDF reports for transactions and daily summaries
+- **⏰ Scheduled Tasks** - Cron-based automation for daily report generation and email distribution
 
-## Main Features
+### 🆕 OCR Weight Detection System
+- **📷 Real-time Camera Capture** - Direct weight reading from digital scales using device camera
+- **🖼️ Gallery Integration** - Process existing images of weight displays from device gallery
+- **🧠 Smart AI Recognition** - Multi-layer OCR using Google Gemini API with intelligent parsing for accurate weight extraction
+- **✏️ Manual Fallback** - Seamless manual entry option when OCR fails or is unavailable
+- **💾 Secure Data Storage** - Automatic backend storage with metadata preservation
+- **📱 Cross-platform** - Optimized for iOS and Android devices with Expo framework
 
-### Mobile application
-- Secure login, logout, password reset OTP, and password change flows
-- Role-based navigation and access control
-- Admin tools for stores, admins, managers, vendors, and regions
-- Material and rate management by region
-- Manager transaction workflow with multi-step processing screens
-- Vendor-related transaction access and store-level summaries
-- Profile management and offline/internet state handling
+### Additional Features
+- **🌐 Offline Support** - Network connectivity detection and offline handling
+- **📍 Location Services** - GPS-based location tracking for store visits
+- **📊 Charts and Visualizations** - Interactive charts for data analysis using react-native-chart-kit
+- **🖊️ Digital Signatures** - Signature capture for transaction approvals
+- **🔄 Data Synchronization** - Secure data sync between mobile app and backend
+- **🛡️ Security** - Password hashing with bcrypt, secure API endpoints, and middleware protection
+- **📱 Responsive UI** - Mobile-first design with Tailwind CSS styling
+- **🔍 Search and Filtering** - Advanced search capabilities for transactions and users
+- **📅 Date and Time Management** - Date picker and timestamp formatting utilities
 
-### Transaction workflow
-- Create waste transactions
-- Add item-wise material details
-- Run calibration and OCR for weight extraction
-- Verify credentials and capture vendor signatures
-- Review transaction items and billing/export screens
-- Filter and inspect store transactions by date range
+---
 
-### Reporting and automation
-- Store and transaction analytics screens
-- PDF report generation for daily transactions
-- Scheduled daily report emails using cron
-- Manual API endpoint for daily report generation
-
-## Tech Stack
-
-### Frontend
-- Expo 55
-- React 19
-- React Native 0.83
-- React Navigation
-- Axios
-- Expo Camera, Media Library, File System, Print, Sharing
+## 🛠️ Tech Stack
 
 ### Backend
-- Node.js
-- Express 5
-- MongoDB with Mongoose
-- JWT authentication
-- Nodemailer
-- PDFKit
-- node-cron
-- Multer
+- **Node.js** with Express.js for REST API
+- **MongoDB** with Mongoose for data storage
+- **JWT** for authentication
+- **Bcrypt** for password hashing
+- **Nodemailer** for email services
+- **PDFKit** for PDF generation
+- **Sharp** for image processing
+- **Node-cron** for scheduled tasks
+- **Multer** for file uploads
+- **Google Gemini API** for OCR processing
 
-## Project Structure
+### Frontend
+- **React Native** with Expo for cross-platform mobile app
+- **React Navigation** for app navigation
+- **Axios** for API calls
+- **AsyncStorage** for local data storage
+- **Expo Camera** for camera functionality
+- **Expo Media Library** for gallery access
+- **React Native Chart Kit** for data visualization
+- **React Native Signature Canvas** for digital signatures
+- **Tailwind CSS** for styling
 
-```text
-Decathlon_V2.1/
-+-- frontend/                # Expo React Native app
-|   +-- assets/              # App icons and splash assets
-|   +-- src/
-|   |   +-- api/             # API client setup
-|   |   +-- Components/      # Shared UI components
-|   |   +-- context/         # Auth and internet state
-|   |   +-- navigation/      # App navigation
-|   |   +-- ocr/             # Weight parsing helpers
-|   |   +-- screens/         # Admin, manager, auth, profile screens
-|   |   +-- utils/           # Storage and permission helpers
-|   +-- android/             # Native Android project
-+-- backend/
-|   +-- config/              # MongoDB, email, templates
-|   +-- controllers/         # Route controllers
-|   +-- lib/                 # OCR service integrations
-|   +-- middlewares/         # Auth and role middleware
-|   +-- models/              # Mongoose models
-|   +-- routes/              # Auth, transaction, vendor APIs
-|   +-- services/            # PDF, email, cron, transaction services
-|   +-- utils/               # Report and ID utilities
-|   +-- temp/                # Generated report files
-+-- README.md
-+-- license.txt
-```
+---
 
-## Frontend Setup
+## Status
+- Development: In active development (work in progress)
+- Platform: Expo (React Native)
+- Backend: Node.js/Express (REST API)
 
-### Prerequisites
-- Node.js LTS
-- npm
-- Expo CLI optional: `npm install -g expo-cli`
-- Android Studio or Expo Go for testing
+## Highlights
+- Clean, mobile-first UI optimized for warehouse operations
+- Expo-managed workflow for fast iteration and testing
+- Modular folder structure to scale features and teams
+- Advanced OCR integration for automated data entry
+- Comprehensive reporting system with automated email distribution
+- Prepared for CI, automated testing and easy deployment
 
-### Install and run
+## Quickstart (local)
+Prerequisites:
+- Node LTS
+- npm or yarn
+- Docker (optional — for backend)
+- Expo CLI: `npm install -g expo-cli` (optional — you can use `npx`)
 
-```bash
-cd frontend
-npm install
-npx expo start
-```
+<b>Steps:</b>
+### npm or yarn install
+1. Clone the repo
+2. cd into the project root
+3. Install dependencies
+    - npm: `npm install`
+    - yarn: `yarn`
+4. Start the backend server
+    - `cd backend`
+    - `node server.js`
+5. Start the app
+    - `cd frontend`
+    - `npx expo start`
+6. Open on device or simulator using the Expo app / emulator
 
-Useful scripts:
+Or Docker (Backend):
+### Docker
+1. Ensure Docker is installed and running
+2. From the project root, build and start containers:
+   - `docker-compose up --build`
+3. Access the app via Expo as above
 
-```bash
-npm run start
-npm run android
-npm run ios
-npm run web
-```
+## Development tips
+- Use the Expo dev tools to reload and debug
+- Keep environment secrets out of source; use `.env` and `.env.example`
+> **Note:** Use [Gmail App Passwords](https://support.google.com/accounts/answer/185833) for secure email sending.
+- Follow feature-branch workflow and open PRs for review
 
-## Backend Setup
+## Project structure (high level)
+- frontend/ — Expo React Native mobile app
+  - assets/ — App icons, images, and splash screens
+  - src/ — Main application source code
+    - api/ — API service functions for backend communication
+    - Components/ — Reusable UI components (Alert, Input, LoadingScreen, etc.)
+    - context/ — React contexts for state management (Auth, Internet connectivity)
+    - lib/ — Utility libraries (timestamp formatting, password generation, image preview)
+    - navigation/ — App navigation configuration and stack definitions
+    - ocr/ — OCR-related utilities for weight parsing
+    - screens/ — App screens organized by role
+      - Admin/ — Admin-specific screens (ManageAdmin, ManageManager, ManageRegion)
+      - Manager/ — Manager-specific screens
+      - User/ — General user screens (Login, Home, Profile, etc.)
+    - utils/ — Additional utilities (permissions, storage helpers)
+  - android/ — Android-specific build configurations and native code
+  - App.js — Main app component
+  - package.json — Frontend dependencies and scripts
+- backend/ — Node.js Express server
+  - controllers/ — API endpoint handlers
+  - models/ — MongoDB schemas
+  - services/ — Business logic (OCR, email, PDF, cron)
+  - config/ — Configuration files (email templates, DB, etc.)
+  - middlewares/ — Authentication and authorization middleware
+  - routes/ — API routes
+  - utils/ — Utility functions
+- docs/ — design and specs
+- scripts/ — helper scripts
 
-### Prerequisites
-- Node.js LTS
-- npm
-- MongoDB local instance or MongoDB Atlas
+## Documentation
+For detailed information about the application, refer to the following documentation files:
 
-### Install and run
+- **[API Documentation](temp/Transactions_Documentations/API_DOCUMENTATION.md)** - Complete API endpoints and usage guide
+- **[Implementation Summary](temp/Transactions_Documentations/IMPLEMENTATION_SUMMARY.md)** - Overview of the implementation details
+- **[Installation Guide](temp/Transactions_Documentations/INSTALLATION.md)** - Step-by-step installation instructions
+- **[Daily Report Setup](temp/Transactions_Documentations/DAILY_REPORT_SETUP.md)** - Configuration for automated daily reports
+- **[Quick Reference](temp/Transactions_Documentations/QUICK_REFERENCE.md)** - Quick reference guide for common tasks
 
-```bash
-cd backend
-npm install
-npm start
-```
-
-Development mode:
-
-```bash
-npm run server
-```
-
-The backend starts on `process.env.PORT` or `3000` by default.
-
-## Environment Variables
-
-Create `backend/.env` and configure at least:
-
-```env
-PORT=3000
-NODE_ENV=development
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-FRONTEND_URI=http://localhost:8081
+## Contributing
+Contributions welcome. Please:
+1. Fork the repo
+2. Create a feature branch
+3. Open a PR with description and screenshots
+4. Follow code style and include tests where applicable
 
 SENDER_EMAIL=your_email@gmail.com
 EMAIL_PASSWORD=your_gmail_app_password

@@ -78,26 +78,34 @@ const generateEmailHTML = (reportData) => {
 
 /**
  * Send daily transaction report email with PDF attachment
- * @param {string} vendorEmail - Email address of vendor
- * @param {string} vendorName - Name of vendor
+ * @param {string|string[]} recipientEmails - Email address(es) for the report
+ * @param {string} recipientLabel - Display label for logging/context
  * @param {Object} reportData - Transaction report data
  * @param {string} pdfFilePath - Path to PDF file attachment
  * @returns {Promise<Object>} Email sending result
  */
 export const sendDailyReportEmail = async (
-  vendorEmail,
-  vendorName,
+  recipientEmails,
+  recipientLabel,
   reportData,
   pdfFilePath
 ) => {
   try {
+    const recipients = Array.isArray(recipientEmails)
+      ? recipientEmails.filter(Boolean)
+      : [recipientEmails].filter(Boolean);
+
+    if (recipients.length === 0) {
+      throw new Error("No recipient emails provided for daily report");
+    }
+
     // Generate email HTML content
     const emailHTML = generateEmailHTML(reportData);
 
     // Prepare mail options
     const mailOptions = {
       from: process.env.SENDER_EMAIL,
-      to: vendorEmail,
+      to: recipients.join(", "),
       subject: `Daily Transaction Report - ${reportData.storeName} - ${reportData.reportDate}`,
       html: emailHTML,
       attachments: [
@@ -110,7 +118,7 @@ export const sendDailyReportEmail = async (
     };
 
     console.log(
-      `Attempting daily report email to ${vendorEmail} for store ${reportData.storeName}`
+      `Attempting daily report email to ${recipients.join(", ")} for store ${reportData.storeName} (${recipientLabel})`
     );
 
     const result = await Promise.race([
@@ -129,13 +137,14 @@ export const sendDailyReportEmail = async (
     ]);
 
     console.log(
-      `Daily report email sent to ${vendorEmail} for store ${reportData.storeName}`
+      `Daily report email sent to ${recipients.join(", ")} for store ${reportData.storeName}`
     );
 
     return {
       success: true,
       message: "Email sent successfully",
       response: result.response,
+      recipients,
     };
   } catch (error) {
     console.error("Error in sendDailyReportEmail:", error);
@@ -157,8 +166,8 @@ export const sendBulkDailyReports = async (emailList) => {
   for (const emailConfig of emailList) {
     try {
       const result = await sendDailyReportEmail(
-        emailConfig.vendorEmail,
-        emailConfig.vendorName,
+        emailConfig.recipientEmails || emailConfig.vendorEmail,
+        emailConfig.recipientLabel || emailConfig.vendorName,
         emailConfig.reportData,
         emailConfig.pdfFilePath
       );
@@ -166,18 +175,20 @@ export const sendBulkDailyReports = async (emailList) => {
       results.success.push({
         vendor: emailConfig.vendorName,
         store: emailConfig.reportData.storeName,
-        email: emailConfig.vendorEmail,
+        email: result.recipients.join(", "),
       });
     } catch (error) {
       console.error(
-        `Failed to send email to ${emailConfig.vendorEmail}:`,
+        `Failed to send email to ${emailConfig.recipientEmails || emailConfig.vendorEmail}:`,
         error.message
       );
 
       results.failed.push({
         vendor: emailConfig.vendorName,
         store: emailConfig.reportData.storeName,
-        email: emailConfig.vendorEmail,
+        email: Array.isArray(emailConfig.recipientEmails)
+          ? emailConfig.recipientEmails.join(", ")
+          : emailConfig.vendorEmail,
         error: error.message,
       });
     }

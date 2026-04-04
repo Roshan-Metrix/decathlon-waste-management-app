@@ -95,6 +95,8 @@ export const fetchTransactionsByDateRange = async (
       storeName: transactions.length > 0 ? transactions[0].store.storeName : "N/A",
       storeLocation:
         transactions.length > 0 ? transactions[0].store.storeLocation : "N/A",
+      storeState:
+        transactions.length > 0 ? transactions[0].store.storeState : "N/A",
       totalTransactions: transactions.length,
       totalItems,
       totalWeight: parseFloat(totalWeight.toFixed(2)),
@@ -130,6 +132,7 @@ export const fetchAllStoresForVendor = async (vendorName) => {
           storeId: txn.store.storeId,
           storeName: txn.store.storeName,
           storeLocation: txn.store.storeLocation,
+          storeState: txn.store.storeState,
         });
       }
     });

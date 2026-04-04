@@ -6,23 +6,7 @@ import {
 } from "./transactionService.js";
 import { generatePDF, deletePDF } from "./pdfService.js";
 import { sendDailyReportEmail } from "./emailService.js";
-import vendorModel from "../models/vendorModel.js";
-
-const escapeRegex = (value = "") =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const findVendorByTransactionName = async (vendorName) => {
-  if (!vendorName) {
-    return null;
-  }
-
-  return vendorModel.findOne({
-    name: {
-      $regex: `^${escapeRegex(vendorName.trim())}$`,
-      $options: "i",
-    },
-  });
-};
+import { getReportRecipientsByState } from "../config/reportRecipientsByState.js";
 
 /**
  * Get current date in IST timezone as string format (YYYY-MM-DD)
@@ -90,18 +74,7 @@ export const generateAndSendDailyReports = async () => {
     // Process each vendor
     for (const vendorName of vendors) {
       try {
-        // Get vendor details including email
-        const vendor = await findVendorByTransactionName(vendorName);
-
-        if (!vendor) {
-          console.log(
-            `Vendor "${vendorName}" not found in database. Check transaction vendorName vs vendor master data.`
-          );
-          continue;
-        }
-
-        const vendorEmail = vendor.email;
-        console.log(`\nProcessing vendor: ${vendorName} (${vendorEmail})`);
+        console.log(`\nProcessing vendor: ${vendorName}`);
 
         // Fetch all stores for this vendor
         const stores = await fetchAllStoresForVendor(vendorName);
@@ -130,6 +103,16 @@ export const generateAndSendDailyReports = async () => {
             reportData.reportDate = reportDate;
             reportData.storeId = store.storeId;
 
+            const recipientEmails = getReportRecipientsByState(
+              reportData.storeState || store.storeState
+            );
+
+            if (recipientEmails.length === 0) {
+              throw new Error(
+                `No report recipient emails configured for state "${reportData.storeState || store.storeState}"`
+              );
+            }
+
             // Generate PDF
             const pdfFileName = `daily-report-${store.storeId}-${reportDate}.pdf`;
             console.log(`    Generating PDF: ${pdfFileName}`);
@@ -138,11 +121,11 @@ export const generateAndSendDailyReports = async () => {
             console.log(`    PDF generated successfully`);
 
             // Send email with PDF attachment
-            console.log(`    Sending email to ${vendorEmail}`);
+            console.log(`    Sending email to ${recipientEmails.join(", ")}`);
 
             await sendDailyReportEmail(
-              vendorEmail,
-              vendorName,
+              recipientEmails,
+              reportData.storeState || store.storeState,
               reportData,
               pdfFilePath
             );

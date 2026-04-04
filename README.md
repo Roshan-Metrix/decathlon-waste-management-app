@@ -155,21 +155,74 @@ Contributions welcome. Please:
 3. Open a PR with description and screenshots
 4. Follow code style and include tests where applicable
 
-## License
-MIT — see LICENSE file for details. [MIT License](license.txt)
+SENDER_EMAIL=your_email@gmail.com
+EMAIL_PASSWORD=your_gmail_app_password
+```
+
+Notes:
+- `FRONTEND_URI` must match the frontend origin used for API requests.
+- Gmail SMTP should use an App Password, not your normal account password.
+
+## API Modules
+
+Base server routes:
+
+- `/api/v1/auth`
+- `/api/v1/transaction`
+- `/api/v1/vendor`
+
+Examples of supported backend capabilities:
+
+- Authentication and profile endpoints
+- Admin registration and management flows
+- Store and manager management
+- Transaction creation and item handling
+- OCR image upload for calibration
+- Vendor transaction lookup
+- Manual daily report generation
+
+## OCR and Reporting
+
+The project includes OCR-related services for extracting weight readings from uploaded images during transaction calibration. On the backend, reporting services generate daily PDF summaries and can automatically email them to vendors on a scheduled cron job.
+
+Related docs already present in the repo:
+
+- `backend/DAILY_REPORT_SETUP.md`
+- `backend/API_DOCUMENTATION.md`
+- `backend/INSTALLATION.md`
+- `backend/IMPLEMENTATION_SUMMARY.md`
+- `backend/QUICK_REFERENCE.md`
+
+## Docker
+
+A Docker Compose file is available in `backend/docker-compose.yml` for running the backend with MongoDB.
+
+From the `backend` directory:
+
+```bash
+docker-compose up --build
+```
+
+The compose file maps:
+
+- Backend: `4000:4000`
+- MongoDB: `27017:27017`
+
+Make sure your `.env` values match the container setup before using Docker.
+
+## Current Status
+
+- Mobile frontend is organized around admin and manager workflows
+- Backend includes authentication, transaction, vendor, OCR, and reporting services
+- Android native project is committed inside `frontend/android`
+- Daily reporting and email automation are implemented in the backend
 
 ## Contact
-For product or design queries, link to Decathlon stakeholders or internal channels.
 
-Note: This is an internal-in-development app for Decathlon.
+- Email: `roshanpatel12309@gmail.com`
+- GitHub: [Roshan-Metrix](https://github.com/Roshan-Metrix)
+- LinkedIn: [Roshan Patel](https://www.linkedin.com/in/roshannnn/)
 
-> **Contact Information**
->
-> For any inquiries or support, please reach out to developer:
->
-> - **Email:** roshanpatel12309@gmail.com
-> - **GitHub:** [Roshan-Metrix](https://github.com/Roshan-Metrix)
-> - **LinkedIn:** [Roshan Patel](https://www.linkedin.com/in/roshannnn/)
+## License
 
----
-*This README was generated to provide an overview of the Decathlon Mobile app - DecaWaste prototype.*
+This project includes an MIT license. See `license.txt`.

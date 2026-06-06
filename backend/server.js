@@ -1,9 +1,10 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv'
 dotenv.config();
-import cookieParser from 'cookie-parser';
+
+import express from 'express';
 import connectDB from './config/mongodb.js';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import authRouter from './routes/authRoutes.js'
 import transactionRouter from './routes/transactionRoutes.js';
 import vendorRouter from './routes/vendorRoutes.js';
@@ -24,8 +25,10 @@ const allowedOrigins = [
 app.use(cookieParser());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 
-if(process.env.NODE_ENV === 'development') {
-  app.use(morgan('dev')); 
+if (process.env.NODE_ENV === 'development') {
+    app.use(morgan('dev'));
+} else {
+    app.use(morgan('combined'));
 }
 
 // API Endpoints

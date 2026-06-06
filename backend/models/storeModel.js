@@ -32,6 +32,8 @@ const storeSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      trim: true,
+      lowercase: true,
     },
    password: {
       type: String,
@@ -61,6 +63,9 @@ const storeSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+// Indexes to optimize queries
+storeSchema.index({ createdAt: -1 });
 
 const storeModel = mongoose.model("store", storeSchema);
 

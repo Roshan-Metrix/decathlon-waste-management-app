@@ -39,7 +39,7 @@ const transactionSchema = new mongoose.Schema(
     transactionId: {
       type: String,
       required: true,
-      unique: true,
+      unique: true, // Automatically creates a unique index
     },
     managerName: {
       type: String,
@@ -78,12 +78,30 @@ const transactionSchema = new mongoose.Schema(
     items: [itemSchema],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "store" || "manager",
       required: true,
+      refPath: "creatorModel",
+    },
+    creatorModel: {
+      type: String,
+      required: true,
+      enum: ["store", "manager"],
     },
   },
   { timestamps: true }
 );
+
+
+// Indexes to optimize queries
+// Optimizes 'getAllRelatedStoresTransactions' and 'ParticularTransactionController'
+transactionSchema.index({ "store.storeId": 1, vendorName: 1 });
+
+// Optimizes 'getAllRelatedStores'
+transactionSchema.index({ vendorName: 1 });
+
+// Handles store + date range queries instantly
+transactionSchema.index({ "store.storeId": 1, createdAt: 1 });
+
+transactionSchema.index({ createdAt: -1 });
 
 const transactionModel = mongoose.model("transaction", transactionSchema);
 

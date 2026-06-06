@@ -39,9 +39,10 @@ export default function ViewAllStoresScreen({ navigation }) {
         `/auth/admin/get-all-stores?page=${page}&limit=${LIMIT}`,
       );
       if (data.success) {
-        const newStores = Array.isArray(data.stores[0])
-          ? data.stores.flat()
-          : data.stores;
+        const newStores = data.stores;
+        // const newStores = Array.isArray(data.stores[0])
+        //   ? data.stores.flat()
+        //   : data.stores;
 
         setStores((prev) => [...prev, ...newStores]);
         setFilteredStores((prev) => [...prev, ...newStores]);

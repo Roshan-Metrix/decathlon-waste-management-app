@@ -12,6 +12,7 @@ const managerSchema = new mongoose.Schema(
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
     },
     password: {
       type: String,
@@ -22,6 +23,7 @@ const managerSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     role: {
       type: String,
@@ -46,6 +48,7 @@ const managerSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 const managerModel =
   mongoose.models.manager || mongoose.model("manager", managerSchema);

@@ -2,13 +2,19 @@ import { runOcrOnImage } from "../lib/ocrService.js";
 import transactionModel from "../models/transactionModel.js";
 import { generateTransactionId } from "../utils/generateTransactionId.js";
 
-// Add Transaction Detail Controller
+// Add Transaction Detail Controller --
 export const AddTransactionDetailController = async (req, res) => {
   try {
-    const { storeId, storeName, storeLocation, storeState, managerName, vendorName } =
-      req.body;
+    const {
+      storeId,
+      storeName,
+      storeLocation,
+      storeState,
+      managerName,
+      vendorName,
+    } = req.body;
 
-      const createdBy = req.user.id;
+    const createdBy = req.user.id;
 
     if (
       !storeId ||
@@ -23,48 +29,117 @@ export const AddTransactionDetailController = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    // Generate unique transactionId
     const transactionId = await generateTransactionId(storeId);
 
-    const newTransaction = new transactionModel({
+    const newTransaction = await transactionModel.create({
       transactionId,
       store: {
         storeId,
         storeName,
         storeLocation,
-        storeState
+        storeState,
       },
       managerName,
       vendorName,
       calibration: {
         image: "",
+        error: 0,
       },
       items: [],
       createdBy,
+      creatorModel: req.user.role,
     });
-
-    await newTransaction.save();
 
     return res.status(201).json({
       success: true,
       message: "Transaction created successfully",
-      transactionId,
+      transactionId: newTransaction.transactionId,
     });
   } catch (error) {
-    console.log("Error in AddTransactionDetailController:", error);
+    console.error("Error in AddTransactionDetailController:", error);
+
+    if (error.code === 11000) {
+      return res.status(409).json({
+        success: false,
+        message: "Transaction ID conflict occurred. Please try again.",
+      });
+    }
+
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// Transaction Items Controller
+// Transaction Items Controller --
+// export const TransactionItemsController = async (req, res) => {
+//   try {
+//     const { transactionId } = req.params;
+//     const { materialType, image, weight, weightSource, materialRate } = req.body;
+
+//     // Validate required fields
+//     if (!materialType) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Material Type is required" });
+//     }
+//     if (!weight) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "weight is required" });
+//     }
+//     if (!weightSource || !["manually", "system"].includes(weightSource)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "weightSource must be 'manually' or 'system'",
+//       });
+//     }
+
+//     // Find transaction
+//     const transaction = await transactionModel.findOne({ transactionId });
+//     if (!transaction) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Transaction not found" });
+//     }
+
+//     // Converting weight to positive number
+//     const positiveWeight = Math.abs(weight);
+
+//     // Auto-generate item number
+//     const itemNo = transaction.items.length + 1;
+
+//     // Push item
+//     transaction.items.push({
+//       itemNo,
+//       materialType,
+//       materialRate,
+//       image,
+//       weight: (positiveWeight - transaction.calibration.error).toFixed(3),
+//       weightSource,
+//     });
+
+//     // Save transaction
+//     await transaction.save();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Item added successfully",
+//       items: transaction.items,
+//     });
+//   } catch (error) {
+//     console.log("Error in TransactionItemsController:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal Server Error" });
+//   }
+// };
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { materialType, image, weight, weightSource, materialRate } = req.body;
+    const { materialType, image, weight, weightSource, materialRate } =
+      req.body;
 
-    // Validate required fields
     if (!materialType) {
       return res
         .status(400)
@@ -82,40 +157,52 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
-    // Find transaction
-    const transaction = await transactionModel.findOne({ transactionId });
-    if (!transaction) {
+    const transactionMeta = await transactionModel
+      .findOne({ transactionId })
+      .select("calibration.error items.itemNo")
+      .lean();
+
+    if (!transactionMeta) {
       return res
         .status(404)
         .json({ success: false, message: "Transaction not found" });
     }
 
-    // Converting weight to positive number
-    const positiveWeight = Math.abs(weight);
+    const positiveWeight = Math.abs(Number(weight) || 0);
+    const calibrationError = Number(transactionMeta.calibration?.error || 0);
 
-    // Auto-generate item number
-    const itemNo = transaction.items.length + 1;
+    const finalWeight = parseFloat(
+      (positiveWeight - calibrationError).toFixed(3),
+    );
 
-    // Push item
-    transaction.items.push({
-      itemNo,
-      materialType,
-      materialRate,
-      image,
-      weight: (positiveWeight - transaction.calibration.error).toFixed(3),
-      weightSource,
-    });
+    const nextItemNo = (transactionMeta.items?.length || 0) + 1;
 
-    // Save transaction
-    await transaction.save();
+    const updatedTransaction = await transactionModel
+      .findOneAndUpdate(
+        { transactionId },
+        {
+          $push: {
+            items: {
+              itemNo: nextItemNo,
+              materialType,
+              materialRate: Number(materialRate) || 0,
+              image: image || "",
+              weight: finalWeight,
+              weightSource,
+            },
+          },
+        },
+        { new: true, select: "items" },
+      )
+      .lean();
 
     return res.status(200).json({
       success: true,
       message: "Item added successfully",
-      items: transaction.items,
+      items: updatedTransaction.items,
     });
   } catch (error) {
-    console.log("Error in TransactionItemsController:", error);
+    console.error("Error in TransactionItemsController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
@@ -126,16 +213,15 @@ export const TransactionItemsController = async (req, res) => {
 export const recognizeWithGeminiController = async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'Image is required' });
+      return res.status(400).json({ error: "Image is required" });
     }
 
     const weight = await runOcrOnImage(req.file.buffer);
 
     res.json({
       success: true,
-      weight
+      weight,
     });
-
   } catch (err) {
     console.error("Error in recognizeWithGeminiController:", err);
     res.status(500).json({
@@ -143,8 +229,9 @@ export const recognizeWithGeminiController = async (req, res) => {
       error: "Internal Server Error",
     });
   }
-}
-// Calibration Controller
+};
+
+// Transaction Calibration Controller --
 export const TransactionCalibrationController = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -156,63 +243,75 @@ export const TransactionCalibrationController = async (req, res) => {
         .json({ success: false, message: "All fields are required" });
     }
 
-    // Always subtract greater number from smaller
     const fw = parseFloat(fetchWeight) || 0;
     const ew = parseFloat(enterWeight) || 0;
-    let error = fw > ew ? fw - ew : ew - fw;
+    const error = parseFloat(Math.abs(fw - ew).toFixed(3));
 
-    error = Number(error.toFixed(3));
-
-    if (error >= 0.1) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Zero error must be less than or equal to 0.1 kg",
-        });
+    if (error > 0.1) {
+      return res.status(400).json({
+        success: false,
+        message: "Zero error must be less than or equal to 0.1 kg",
+      });
     }
 
-    const transaction = await transactionModel.findOne({ transactionId });
+    const updatedTransaction = await transactionModel
+      .findOneAndUpdate(
+        { transactionId },
+        {
+          $set: {
+            calibration: { image, error },
+          },
+        },
+        { new: true, select: "calibration" },
+      )
+      .lean();
 
-    if (!transaction) {
+    if (!updatedTransaction) {
       return res
         .status(404)
         .json({ success: false, message: "Transaction not found" });
     }
 
-    transaction.calibration = { image, error };
-
-    await transaction.save();
-
     return res.status(200).json({
       success: true,
       message: "Calibration added successfully",
-      calibration: transaction.calibration,
-      error: (transaction.calibration.error).toFixed(3),
+      calibration: updatedTransaction.calibration,
+      error: updatedTransaction.calibration.error.toFixed(3),
     });
   } catch (error) {
-    console.log("Error in TransactionCalibrationController:", error);
+    console.error("Error in TransactionCalibrationController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
 
+// Store Total Transaction Controller with pagination and store details --
 export const StoreTotalTransactionController = async (req, res) => {
-  const storeId = req.params.storeId;
+  const { storeId } = req.params;
 
-  // pagination params
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 4;
+  // Pagination parameters
+  const page = Math.max(parseInt(req.query.page) || 1, 1);
+  const limit = Math.max(parseInt(req.query.limit) || 4, 1);
   const skip = (page - 1) * limit;
 
   try {
-    // fetch paginated transactions
     const transactions = await transactionModel
       .find({ "store.storeId": storeId })
-      .sort({ createdAt: -1 })
+      .select({
+        transactionId: 1,
+        managerName: 1,
+        createdAt: 1,
+        "store.storeId": 1,
+        "store.storeName": 1,
+        createdBy: 1,
+        creatorModel: 1,
+        itemsCount: { $size: "$items" },
+      })
+      .sort({ createdAt: 1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     if (!transactions || transactions.length === 0) {
       return res.status(200).json({
@@ -222,7 +321,6 @@ export const StoreTotalTransactionController = async (req, res) => {
       });
     }
 
-    // total count (for hasMore)
     const totalCount = await transactionModel.countDocuments({
       "store.storeId": storeId,
     });
@@ -235,9 +333,12 @@ export const StoreTotalTransactionController = async (req, res) => {
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
       managerName: txn.managerName,
-      item: txn.items.length,
+      item: txn.itemsCount,
       createdAt: txn.createdAt,
+      creatorType: txn.creatorModel,
     }));
+
+    formattedTransactions.reverse();
 
     return res.status(200).json({
       success: true,
@@ -248,21 +349,34 @@ export const StoreTotalTransactionController = async (req, res) => {
       hasMore: skip + transactions.length < totalCount,
     });
   } catch (error) {
-    console.log("Error in StoreTotalTransactionController:", error);
+    console.error("Error in StoreTotalTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// Particular Transaction Controller
+// Particular Transaction Controller with all details --
 export const ParticularTransactionController = async (req, res) => {
   const transactionId = req.params.transactionId;
 
   try {
-    const transactions = await transactionModel.find({ transactionId });
+    const txn = await transactionModel
+      .findOne({ transactionId })
+      .select(
+        "transactionId managerName vendorName calibration store items createdAt updatedAt",
+      )
+      .lean();
 
-    const formattedTransactions = transactions.map((txn) => ({
+    // If no transaction is found, return a 404 immediately
+    if (!txn) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    const formattedTransaction = {
       transactionId: txn.transactionId,
       managerName: txn.managerName,
       vendorName: txn.vendorName,
@@ -275,37 +389,73 @@ export const ParticularTransactionController = async (req, res) => {
         storeName: txn.store?.storeName || null,
         storeLocation: txn.store?.storeLocation || null,
       },
-      items: txn.items.map((item) => ({
-        itemNo: item.itemNo,
-        materialType: item.materialType,
-        materialRate: item.materialRate,
-        image: item.image,
-        weight: item.weight,
-        weightSource: item.weightSource,
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      })),
+
+      items: Array.isArray(txn.items)
+        ? txn.items.map((item) => ({
+            itemNo: item.itemNo,
+            materialType: item.materialType,
+            materialRate: item.materialRate,
+            image: item.image,
+            weight: item.weight,
+            weightSource: item.weightSource,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          }))
+        : [],
       createdAt: txn.createdAt,
       updatedAt: txn.updatedAt,
-    }));
+    };
 
     return res.status(200).json({
       success: true,
-      message: "Transactions fetched successfully",
-      transactions: formattedTransactions,
+      message: "Transaction fetched successfully",
+      transactions: [formattedTransaction],
     });
   } catch (error) {
-    console.log("Error in ParticularTransactionController:", error);
+    console.error("Error in ParticularTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
 
-// Get total transaction of all store
+// Get total transaction of all store --
 export const AllTransactionsController = async (req, res) => {
   try {
-    const transactions = await transactionModel.find().select("-password -__v");
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit) || 3, 1);
+    const skip = (page - 1) * limit;
+
+    const transactions = await transactionModel
+      .find()
+      .select({
+        transactionId: 1,
+        managerName: 1,
+        vendorName: 1,
+        "calibration.image": 1,
+        "store.storeId": 1,
+        "store.storeName": 1,
+        "store.storeLocation": 1,
+        items: 1,
+        createdAt: 1,
+        updatedAt: 1,
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .allowDiskUse()
+      .lean();
+
+    if (!transactions || transactions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        transactions: [],
+        hasMore: false,
+      });
+    }
+
+
+    const totalCount = await transactionModel.estimatedDocumentCount(); 
 
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
@@ -319,7 +469,7 @@ export const AllTransactionsController = async (req, res) => {
         storeName: txn.store?.storeName || null,
         storeLocation: txn.store?.storeLocation || null,
       },
-      items: txn.items.map((item) => ({
+      items: (txn.items || []).map((item) => ({
         itemNo: item.itemNo,
         materialType: item.materialType,
         image: item.image,
@@ -336,34 +486,44 @@ export const AllTransactionsController = async (req, res) => {
       success: true,
       message: "All transactions fetched successfully",
       transactions: formattedTransactions,
+      page,
+      hasMore: skip + transactions.length < totalCount,
     });
   } catch (error) {
-    console.log("Error in AllTransactionController:", error);
+    console.error("Error in AllTransactionController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });
   }
 };
 
+// Selected Transaction Items Controller --
 export const SelectedTransactionItemsController = async (req, res) => {
   const { transactionId } = req.params;
-  try { 
-    const transaction = await transactionModel.findOne({ transactionId });
+  try {
+    const transaction = await transactionModel
+      .findOne({ transactionId })
+      .select({
+        vendorName: 1,
+        items: 1,
+        _id: 0,
+      })
+      .lean(); 
 
     if (!transaction) {
       return res
         .status(404)
         .json({ success: false, message: "Transaction not found" });
     }
+
     return res.status(200).json({
       success: true,
       message: "Transaction fetched successfully",
       vendorName: transaction.vendorName,
       items: transaction.items,
     });
-  }
-  catch (error) {
-    console.log("Error in SelectedTransactionItemsController:", error);
+  } catch (error) {
+    console.error("Error in SelectedTransactionItemsController:", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal Server Error" });

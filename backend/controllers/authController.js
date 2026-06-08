@@ -364,6 +364,14 @@ export const loginUser = async (req, res) => {
       { expiresIn: "15d" }
     );
 
+        // Set cookie state securely
+    res.cookie("adminToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+      maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
+    });
+
     return res.status(200).json({
       success: true,
       token,

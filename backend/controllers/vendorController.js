@@ -108,12 +108,19 @@ export const vendorRegister = async (req, res) => {
 
 // Vendor Login --
 export const vendorLogin = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({
       success: false,
       message: "Email and password are required.",
+    });
+  }
+
+  if(role != 'vendor'){
+   return res.status(400).json({
+      success: false,
+      message: "Vendor can only authorize.",
     });
   }
 
@@ -143,7 +150,7 @@ export const vendorLogin = async (req, res) => {
     const token = jwt.sign(
       { id: vendor._id, role: vendor.role },
       process.env.JWT_SECRET,
-      { expiresIn: "7d" }
+      { expiresIn: "15d" }
     );
 
     // Set cookie state securely
@@ -151,7 +158,7 @@ export const vendorLogin = async (req, res) => {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: 15 * 24 * 60 * 60 * 1000, // 15 days
     });
 
     // Send optimized response

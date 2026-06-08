@@ -3,6 +3,7 @@ import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { AllTransactionsVendorController, deleteVendor, generateDailyReportManual, getAllRelatedStores, getAllRelatedStoresTransactions, getAllVendors, getTotalWeightsByDates, getVendorLoggedInDetails, logoutVendor, vendorLogin, vendorRegister } from '../controllers/vendorController.js';
 import vendorMiddleware from '../middlewares/vendorMiddleware.js';
 import { ParticularTransactionController } from '../controllers/transactionController.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const vendorRouter = express.Router();
 
@@ -20,7 +21,7 @@ vendorRouter.get('/profile',vendorMiddleware,getVendorLoggedInDetails);
 vendorRouter.get('/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
 vendorRouter.get('/get-related-stores',vendorMiddleware,getAllRelatedStores);
 vendorRouter.get('/get-all-vendors',getAllVendors);
-vendorRouter.get('/particular-transactions/:transactionId',vendorMiddleware,ParticularTransactionController);
+vendorRouter.get('/particular-transactions/:transactionId', authMiddleware,ParticularTransactionController);
 vendorRouter.get('/transactions-particular-store/:storeId', vendorMiddleware,getAllRelatedStoresTransactions);
 // Get total transactions according to material type of a particular store
 vendorRouter.get('/transactions-particular-store/:storeId/:from/:to', vendorMiddleware,getTotalWeightsByDates);

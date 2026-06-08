@@ -107,16 +107,17 @@ export default function ShowAllTransaction({ navigation }) {
     });
   };
 
-  const handleExportPress = (transactionId) => {
-    navigation.navigate("BillingExportTransactionScreen", { transactionId });
-  };
-
   /** Sort once */
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort(
       (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
     );
   }, [transactions]);
+  
+  const handleExportPress = (transactionId) => {
+    navigation.navigate("BillingExportTransactionScreen", { transactionId });
+  };
+
 
   const renderTransaction = ({ item: txn, index }) => (
     <TouchableOpacity

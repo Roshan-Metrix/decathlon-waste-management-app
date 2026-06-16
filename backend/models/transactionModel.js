@@ -22,6 +22,11 @@ const itemSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    // AI extracted weight
+    aiWeight: {
+      type: Number,
+      default: null,
+    },
     weightSource: {
       type: String,
       enum: ["manually", "system"],

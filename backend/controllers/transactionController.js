@@ -398,6 +398,7 @@ export const ParticularTransactionController = async (req, res) => {
             image: item.image,
             weight: item.weight,
             weightSource: item.weightSource,
+            aiWeight: item.aiWeight,
             createdAt: item.createdAt,
             updatedAt: item.updatedAt,
           }))

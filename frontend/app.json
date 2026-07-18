@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -29,10 +28,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "package": "com.decathlon.decawaste",
-      "versionCode": 1,
-      "usesCleartextTraffic": true
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -42,6 +39,9 @@
       "eas": {
         "projectId": "46ffd453-bdf9-4fb4-bc2e-3a1502cc3b7e"
       }
-    }
+    },
+    "plugins": [
+      "expo-sharing"
+    ]
   }
 }

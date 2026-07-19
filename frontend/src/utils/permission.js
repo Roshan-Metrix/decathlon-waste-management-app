@@ -21,7 +21,7 @@ export const askLocationPermission = async () => {
   return status === "granted";
 };
 
-// MAIN FUNCTION — ask all permissions + reopen modal if denied
+// MAIN FUNCTION — ask all permissions + reopen modal if denied permission 
 export const usePermissionHandler = () => {
   const [visible, setVisible] = useState(false);
   const [retry, setRetry] = useState(() => () => {});

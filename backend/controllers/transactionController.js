@@ -71,69 +71,6 @@ export const AddTransactionDetailController = async (req, res) => {
   }
 };
 
-// Transaction Items Controller --
-// export const TransactionItemsController = async (req, res) => {
-//   try {
-//     const { transactionId } = req.params;
-//     const { materialType, image, weight, weightSource, materialRate } = req.body;
-
-//     // Validate required fields
-//     if (!materialType) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Material Type is required" });
-//     }
-//     if (!weight) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "weight is required" });
-//     }
-//     if (!weightSource || !["manually", "system"].includes(weightSource)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "weightSource must be 'manually' or 'system'",
-//       });
-//     }
-
-//     // Find transaction
-//     const transaction = await transactionModel.findOne({ transactionId });
-//     if (!transaction) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Transaction not found" });
-//     }
-
-//     // Converting weight to positive number
-//     const positiveWeight = Math.abs(weight);
-
-//     // Auto-generate item number
-//     const itemNo = transaction.items.length + 1;
-
-//     // Push item
-//     transaction.items.push({
-//       itemNo,
-//       materialType,
-//       materialRate,
-//       image,
-//       weight: (positiveWeight - transaction.calibration.error).toFixed(3),
-//       weightSource,
-//     });
-
-//     // Save transaction
-//     await transaction.save();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Item added successfully",
-//       items: transaction.items,
-//     });
-//   } catch (error) {
-//     console.log("Error in TransactionItemsController:", error);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Internal Server Error" });
-//   }
-// };
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;

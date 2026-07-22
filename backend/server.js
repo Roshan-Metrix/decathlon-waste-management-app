@@ -18,12 +18,14 @@ connectDB();
 app.use(express.json({limit: '10mb'}));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-const allowedOrigins = [
-  process.env.FRONTEND_URI,
-];
+// const allowedOrigins = ["*"];
+// const allowedOrigins = [
+//   process.env.FRONTEND_URI,
+// ];
 
 app.use(cookieParser());
-app.use(cors({ origin: allowedOrigins, credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
+// app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'));
@@ -35,6 +37,10 @@ if (process.env.NODE_ENV === 'development') {
 app.get('/',(req,res) => {
     res.send('API Running...');
 })
+
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+});
 
 app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/transaction',transactionRouter)

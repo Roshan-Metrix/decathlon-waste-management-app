@@ -62,7 +62,7 @@ export default function ViewOwnStoreManagersScreen({ navigation }) {
           <Text style={styles.name}>{item.name}</Text>
 
           <Text style={styles.meta}>
-            Email: <Text style={styles.highlight}>{item.email}</Text>
+            <Text style={styles.highlight}>{item.email}</Text>
           </Text>
         </View>
       </View>
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 
-  // ⭐ Total Count Card
+  //  Total Count Card
   countCard: {
     flexDirection: "row",
     alignItems: "center",

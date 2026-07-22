@@ -34,6 +34,7 @@ transactionRouter.post(
 // Material add controller
 transactionRouter.post(
   "/transaction-items/:transactionId",
+  upload.single("image"),
   authMiddleware,
   TransactionItemsController,
 );
@@ -48,6 +49,7 @@ transactionRouter.post(
 
 transactionRouter.post(
   "/transaction-calibration/:transactionId",
+  upload.single("image"),
   authMiddleware,
   TransactionCalibrationController,
 );

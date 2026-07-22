@@ -76,7 +76,7 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     return "";
   };
 
- const formatDateTime = (isoString) => {
+  const formatDateTime = (isoString) => {
     if (!isoString) {
       return { formattedDate: "N/A", formattedTime: "N/A" };
     }
@@ -139,7 +139,112 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     };
   }, []);
 
-  // Capture image and run OCR
+  // Add item to backend
+  // const handleAddItem = async () => {
+  //   if (!materialType) {
+  //     setAlertMessage("Please select material type!");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+  //   if (!photo) {
+  //     setAlertMessage("Please capture an image first!");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   // Determine weight and source
+  //   let weight = "";
+  //   let weightSource = "";
+
+  //   if (enterWeight.trim() !== "") {
+  //     weight = enterWeight.trim();
+  //     weightSource = "manually";
+  //   }
+
+  //   if (!weight) {
+  //     setAlertMessage("No weight detected or entered.");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   try {
+  //     setLoading(true);
+
+  //     const resolvedTransactionId = resolveTransactionId();
+
+  //     if (!resolvedTransactionId) {
+  //       setLoading(false);
+  //       setAlertMessage("Please create or fetch a transaction first!");
+  //       setAlertVisible(true);
+  //       return;
+  //     }
+
+  //     const payload = {
+  //       materialType,
+  //       materialRate,
+  //       weight,
+  //       weightSource,
+  //       image: photo.base64,
+  //     };
+
+  //     const res = await api.post(
+  //       `/transaction/transaction-items/${resolvedTransactionId}`,
+  //       payload,
+  //     );
+
+  //     setLoading(false);
+
+  //     if (res.data?.success) {
+  //       setPhoto(null);
+  //       setMaterialType("");
+  //       setMaterialRate("");
+  //       setEnterWeight("");
+  //       fetchAllItems();
+  //       showSuccessToast();
+  //     } else {
+  //       console.log("Add item response:", res.data);
+  //       setAlertMessage(res.data?.message || "Item not added.");
+  //       setAlertVisible(true);
+  //     }
+  //   } catch (err) {
+  //     setLoading(false);
+  //     console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
+  //     setAlertMessage(
+  //       err?.response?.data?.message || err?.message || "Something went wrong!",
+  //     );
+  //     setAlertVisible(true);
+  //   }
+  // };
+
+  const fetchAllItems = async () => {
+    try {
+      setItemsLoading(true);
+
+      const resolvedTransactionId = resolveTransactionId();
+      if (!resolvedTransactionId) {
+        setItemsList([]);
+        return;
+      }
+
+      const res = await api.get(
+        `/transaction/todays-transactions/${resolvedTransactionId}`,
+      );
+
+      if (res.data?.success) {
+        const items = res.data?.transactions?.[0]?.items || [];
+        setItemsList([...items].reverse());
+      } else {
+        setItemsList([]);
+      }
+    } catch (e) {
+      console.log("Fetch items error:", e);
+      setItemsList([]);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  // Capture image
   const handleCapture = async () => {
     try {
       if (!cameraRef.current) {
@@ -149,18 +254,10 @@ export default function ItemsTransactionScreen({ navigation, route }) {
       }
 
       const picture = await cameraRef.current.takePictureAsync({
-        base64: true,
         quality: 0.3,
       });
 
       setPhoto(picture);
-
-      const formData = new FormData();
-      formData.append("image", {
-        uri: picture.uri,
-        name: "photo.jpg",
-        type: "image/jpeg",
-      });
     } catch (e) {
       console.log("Capture Error:", e.message);
       setAlertMessage("Capture Failed.\nTry again.");
@@ -208,17 +305,35 @@ export default function ItemsTransactionScreen({ navigation, route }) {
         return;
       }
 
-      const payload = {
-        materialType,
-        materialRate,
-        weight,
-        weightSource,
-        image: photo.base64,
-      };
+      // const payload = {
+      //   materialType,
+      //   materialRate,
+      //   weight,
+      //   weightSource,
+      //   image: photo.base64,
+      // };
+
+      const formData = new FormData();
+
+      formData.append("image", {
+        uri: photo.uri,
+        name: `item-${Date.now()}.jpg`,
+        type: "image/jpeg",
+      });
+
+      formData.append("materialType", materialType);
+      formData.append("materialRate", materialRate);
+      formData.append("weight", weight);
+      formData.append("weightSource", weightSource);
 
       const res = await api.post(
         `/transaction/transaction-items/${resolvedTransactionId}`,
-        payload,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
       );
 
       setLoading(false);
@@ -245,61 +360,11 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     }
   };
 
-  const fetchAllItems = async () => {
-    try {
-      setItemsLoading(true);
-
-      const resolvedTransactionId = resolveTransactionId();
-      if (!resolvedTransactionId) {
-        setItemsList([]);
-        return;
-      }
-
-      const res = await api.get(
-        `/transaction/todays-transactions/${resolvedTransactionId}`,
-      );
-
-      if (res.data?.success) {
-        const items = res.data?.transactions?.[0]?.items || [];
-        setItemsList([...items].reverse());
-      } else {
-        setItemsList([]);
-      }
-    } catch (e) {
-      console.log("Fetch items error:", e);
-      setItemsList([]);
-    } finally {
-      setItemsLoading(false);
-    }
-  };
-
   useFocusEffect(
     React.useCallback(() => {
       fetchAllItems();
-    }, [transactionId])
+    }, [transactionId]),
   );
-
-  // Helper to show image for item (either data URI or server filename)
-  const getItemImageUri = (imageField) => {
-    if (!imageField) return null;
-    if (typeof imageField !== "string") return null;
-
-    const trimmedImage = imageField.trim();
-
-    // If server returned a data: URI (base64 included)
-    if (trimmedImage.startsWith("data:")) return trimmedImage;
-
-    // If server returned a raw base64 string, wrap it as a data URI.
-    const normalizedBase64 = trimmedImage.replace(/\s/g, "");
-    if (/^[A-Za-z0-9+/=]+$/.test(normalizedBase64) && normalizedBase64.length > 100) {
-      return `data:image/jpeg;base64,${normalizedBase64}`;
-    }
-
-    // Otherwise treat it as filename on server uploads folder
-    const base = api?.defaults?.baseURL || "";
-    return `${base.replace(/\/$/, "")}/uploads/${encodeURIComponent(trimmedImage)}`;
-  };
-
 
   // Permission states
   if (hasPermission === null) {
@@ -427,7 +492,8 @@ export default function ItemsTransactionScreen({ navigation, route }) {
         <View style={styles.infoBox}>
           <MaterialIcons name="info-outline" size={22} color={colors.primary} />
           <Text style={styles.infoText}>
-            Please review all details carefully before submitting. Once added, materials cannot be edited. 
+            Please review all details carefully before submitting. Once added,
+            materials cannot be edited.
           </Text>
         </View>
 
@@ -444,7 +510,7 @@ export default function ItemsTransactionScreen({ navigation, route }) {
         ) : (
           <View style={{ marginTop: 10 }}>
             {itemsList.map((item) => {
-              const imgUri = getItemImageUri(item.image);
+              const imgUri = item.image ? item.image : null;
               const { formattedDate, formattedTime } = formatDateTime(
                 item.createdAt,
               );
@@ -488,7 +554,6 @@ export default function ItemsTransactionScreen({ navigation, route }) {
             })}
           </View>
         )}
-
       </ScrollView>
 
       {/* Loading overlay */}

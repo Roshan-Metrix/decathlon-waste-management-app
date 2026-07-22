@@ -1,7 +1,10 @@
+import crypto from "crypto";
 import { runOcrOnImage } from "../lib/ocrService.js";
 import transactionModel from "../models/transactionModel.js";
 import { generateTransactionId } from "../utils/generateTransactionId.js";
 import { getImageUrl } from "../utils/s3.js";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import s3 from "../config/s3.js";
 
 // Add Transaction Detail Controller --
 export const AddTransactionDetailController = async (req, res) => {
@@ -72,22 +75,111 @@ export const AddTransactionDetailController = async (req, res) => {
   }
 };
 
+// export const TransactionItemsController = async (req, res) => {
+//   try {
+//     const { transactionId } = req.params;
+//     const { materialType, image, weight, weightSource, materialRate } =
+//       req.body;
+
+//     if (!materialType) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "Material Type is required" });
+//     }
+//     if (!weight) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "weight is required" });
+//     }
+//     if (!weightSource || !["manually", "system"].includes(weightSource)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "weightSource must be 'manually' or 'system'",
+//       });
+//     }
+
+//     const transactionMeta = await transactionModel
+//       .findOne({ transactionId })
+//       .select("calibration.error items.itemNo")
+//       .lean();
+
+//     if (!transactionMeta) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Transaction not found" });
+//     }
+
+//     const positiveWeight = Math.abs(Number(weight) || 0);
+//     const calibrationError = Number(transactionMeta.calibration?.error || 0);
+
+//     const finalWeight = parseFloat(
+//       (positiveWeight - calibrationError).toFixed(3),
+//     );
+
+//     const nextItemNo = (transactionMeta.items?.length || 0) + 1;
+
+//     const updatedTransaction = await transactionModel
+//       .findOneAndUpdate(
+//         { transactionId },
+//         {
+//           $push: {
+//             items: {
+//               itemNo: nextItemNo,
+//               materialType,
+//               materialRate: Number(materialRate) || 0,
+//               image: image || "",
+//               weight: finalWeight,
+//               weightSource,
+//             },
+//           },
+//         },
+//         { new: true, select: "items" },
+//       )
+//       .lean();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Item added successfully",
+//       items: updatedTransaction.items,
+//     });
+//   } catch (error) {
+//     console.error("Error in TransactionItemsController:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
+// Calibration GEMINI OCR Recognition
+
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { materialType, image, weight, weightSource, materialRate } =
-      req.body;
+    const { materialType, weight, weightSource, materialRate } = req.body;
+
+    const imageFile = req.file;
 
     if (!materialType) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Material Type is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Material Type is required",
+      });
     }
+
+    if (!imageFile) {
+      return res.status(400).json({
+        success: false,
+        message: "Item image is required",
+      });
+    }
+
     if (!weight) {
-      return res
-        .status(400)
-        .json({ success: false, message: "weight is required" });
+      return res.status(400).json({
+        success: false,
+        message: "Weight is required",
+      });
     }
+
     if (!weightSource || !["manually", "system"].includes(weightSource)) {
       return res.status(400).json({
         success: false,
@@ -95,25 +187,48 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
+    // Get transaction details
     const transactionMeta = await transactionModel
       .findOne({ transactionId })
       .select("calibration.error items.itemNo")
       .lean();
 
     if (!transactionMeta) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Transaction not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
     }
 
+    // Calculate corrected weight
     const positiveWeight = Math.abs(Number(weight) || 0);
     const calibrationError = Number(transactionMeta.calibration?.error || 0);
 
     const finalWeight = parseFloat(
-      (positiveWeight - calibrationError).toFixed(3),
+      (positiveWeight - calibrationError).toFixed(3)
     );
 
     const nextItemNo = (transactionMeta.items?.length || 0) + 1;
+
+    // Upload image to S3
+
+    const extension =
+      imageFile.originalname.split(".").pop() ||
+      imageFile.mimetype.split("/")[1] ||
+      "jpg";
+
+    const imageKey = `transactions/${transactionId}/items/item-${nextItemNo}-${crypto.randomUUID()}.${extension}`;
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_BUCKET,
+        Key: imageKey,
+        Body: imageFile.buffer,
+        ContentType: imageFile.mimetype,
+      })
+    );
+
+    // Saving in MongoDB
 
     const updatedTransaction = await transactionModel
       .findOneAndUpdate(
@@ -124,13 +239,16 @@ export const TransactionItemsController = async (req, res) => {
               itemNo: nextItemNo,
               materialType,
               materialRate: Number(materialRate) || 0,
-              image: image || "",
+              image: imageKey, // Save S3 key
               weight: finalWeight,
               weightSource,
             },
           },
         },
-        { new: true, select: "items" },
+        {
+          new: true,
+          select: "items",
+        }
       )
       .lean();
 
@@ -139,15 +257,17 @@ export const TransactionItemsController = async (req, res) => {
       message: "Item added successfully",
       items: updatedTransaction.items,
     });
+
   } catch (error) {
     console.error("Error in TransactionItemsController:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 
-// Calibration GEMINI OCR Recognition
 export const recognizeWithGeminiController = async (req, res) => {
   try {
     if (!req.file) {
@@ -170,15 +290,72 @@ export const recognizeWithGeminiController = async (req, res) => {
 };
 
 // Transaction Calibration Controller --
+// export const TransactionCalibrationController = async (req, res) => {
+//   try {
+//     const { transactionId } = req.params;
+//     const { image, fetchWeight, enterWeight } = req.body;
+
+//     if (!image || !fetchWeight || !enterWeight) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: "All fields are required" });
+//     }
+
+//     const fw = parseFloat(fetchWeight) || 0;
+//     const ew = parseFloat(enterWeight) || 0;
+//     const error = parseFloat(Math.abs(fw - ew).toFixed(3));
+
+//     if (error > 0.1) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Zero error must be less than or equal to 0.1 kg",
+//       });
+//     }
+
+//     const updatedTransaction = await transactionModel
+//       .findOneAndUpdate(
+//         { transactionId },
+//         {
+//           $set: {
+//             calibration: { image, error },
+//           },
+//         },
+//         { new: true, select: "calibration" },
+//       )
+//       .lean();
+
+//     if (!updatedTransaction) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Transaction not found" });
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Calibration added successfully",
+//       calibration: updatedTransaction.calibration,
+//       error: updatedTransaction.calibration.error.toFixed(3),
+//     });
+//   } catch (error) {
+//     console.error("Error in TransactionCalibrationController:", error);
+//     return res
+//       .status(500)
+//       .json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 export const TransactionCalibrationController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { image, fetchWeight, enterWeight } = req.body;
+    const { fetchWeight, enterWeight } = req.body;
 
-    if (!image || !fetchWeight || !enterWeight) {
-      return res
-        .status(400)
-        .json({ success: false, message: "All fields are required" });
+    const imageFile = req.file;
+
+    if (!imageFile || !fetchWeight || !enterWeight) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
     }
 
     const fw = parseFloat(fetchWeight) || 0;
@@ -192,22 +369,49 @@ export const TransactionCalibrationController = async (req, res) => {
       });
     }
 
+    //  Upload calibration image to S3 
+
+    const extension =
+      imageFile.originalname.split(".").pop() ||
+      imageFile.mimetype.split("/")[1] ||
+      "jpg";
+
+    const imageKey = `transactions/${transactionId}/calibration.${extension}`;
+
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.AWS_BUCKET,
+        Key: imageKey,
+        Body: imageFile.buffer,
+        ContentType: imageFile.mimetype,
+      })
+    );
+
+    // Update MongoDB 
+
     const updatedTransaction = await transactionModel
       .findOneAndUpdate(
         { transactionId },
         {
           $set: {
-            calibration: { image, error },
+            calibration: {
+              image: imageKey,
+              error,
+            },
           },
         },
-        { new: true, select: "calibration" },
+        {
+          new: true,
+          select: "calibration",
+        }
       )
       .lean();
 
     if (!updatedTransaction) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Transaction not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
     }
 
     return res.status(200).json({
@@ -216,11 +420,13 @@ export const TransactionCalibrationController = async (req, res) => {
       calibration: updatedTransaction.calibration,
       error: updatedTransaction.calibration.error.toFixed(3),
     });
+
   } catch (error) {
     console.error("Error in TransactionCalibrationController:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -439,6 +645,7 @@ export const AllTransactionsController = async (req, res) => {
 // Selected Transaction Items Controller --
 export const SelectedTransactionItemsController = async (req, res) => {
   const { transactionId } = req.params;
+
   try {
     const transaction = await transactionModel
       .findOne({ transactionId })
@@ -447,13 +654,19 @@ export const SelectedTransactionItemsController = async (req, res) => {
         items: 1,
         _id: 0,
       })
-      .lean(); 
+      .lean();
 
     if (!transaction) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Transaction not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
     }
+
+    transaction.items = transaction.items.map((item) => ({
+      ...item,
+      image: getImageUrl(item.image),
+    }));
 
     return res.status(200).json({
       success: true,
@@ -461,10 +674,13 @@ export const SelectedTransactionItemsController = async (req, res) => {
       vendorName: transaction.vendorName,
       items: transaction.items,
     });
+
   } catch (error) {
     console.error("Error in SelectedTransactionItemsController:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal Server Error" });
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };

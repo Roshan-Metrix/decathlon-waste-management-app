@@ -61,7 +61,6 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
     }
     try {
       const picture = await cameraRef.current.takePictureAsync({
-        base64: true,
         quality: 0.3,
       });
 
@@ -82,62 +81,121 @@ export default function CalibrationPhaseScreen({ navigation,route }) {
     setCanCalibrate(false);
   };
 
+  // const handleCalibrate = async () => {
+  //   if (loading) return;
+
+  //   if (!transactionId) {
+  //     setAlertMessage("Transaction ID is missing.");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   if (!photo) {
+  //     setAlertMessage("Please capture image first!");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   if (!photo.base64) {
+  //     setAlertMessage("Captured image is invalid. Please capture again.");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   if (manualInput.trim() === "") {
+  //     setAlertMessage("Please enter manual input weight.");
+  //     setAlertVisible(true);
+  //     return;
+  //   }
+
+  //   const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
+
+  //   try {
+  //     setLoading(true);
+
+  //     const payload = {
+  //       fetchWeight: manualInput,
+  //       enterWeight: finalEnterWeight,
+  //       image: `data:image/jpeg;base64,${photo.base64}`,
+  //     };
+
+
+  //     const res = await api.post(
+  //       `/transaction/transaction-calibration/${transactionId}`,
+  //       payload,
+  //     );
+
+  //     if (res.data.success) {
+  //       await AsyncStorage.setItem("calibrationStatus", "Completed");
+  //       navigation.navigate("ProcessTransactionScreen");
+  //     }
+  //   } catch (err) {
+  //     console.log(err?.response?.data?.message);
+  //     setAlertMessage(err?.response?.data?.message || "Calibration failed!");
+  //     setAlertVisible(true);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
   const handleCalibrate = async () => {
-    if (loading) return;
+  if (loading) return;
 
-    if (!transactionId) {
-      setAlertMessage("Transaction ID is missing.");
-      setAlertVisible(true);
-      return;
+  if (!transactionId) {
+    setAlertMessage("Transaction ID is missing.");
+    setAlertVisible(true);
+    return;
+  }
+
+  if (!photo) {
+    setAlertMessage("Please capture image first!");
+    setAlertVisible(true);
+    return;
+  }
+
+  if (manualInput.trim() === "") {
+    setAlertMessage("Please enter manual input weight.");
+    setAlertVisible(true);
+    return;
+  }
+
+  const finalEnterWeight =
+    enterWeight.trim() === "" ? "0" : enterWeight.trim();
+
+  try {
+    setLoading(true);
+
+    const formData = new FormData();
+
+    formData.append("image", {
+      uri: photo.uri,
+      name: `calibration-${Date.now()}.jpg`,
+      type: "image/jpeg",
+    });
+
+    formData.append("fetchWeight", manualInput);
+    formData.append("enterWeight", finalEnterWeight);
+
+    const res = await api.post(
+      `/transaction/transaction-calibration/${transactionId}`,
+      formData
+    );
+
+    if (res.data.success) {
+      await AsyncStorage.setItem("calibrationStatus", "Completed");
+      navigation.navigate("ProcessTransactionScreen");
     }
+  } catch (err) {
+    console.log(err?.response?.data || err);
 
-    if (!photo) {
-      setAlertMessage("Please capture image first!");
-      setAlertVisible(true);
-      return;
-    }
-
-    if (!photo.base64) {
-      setAlertMessage("Captured image is invalid. Please capture again.");
-      setAlertVisible(true);
-      return;
-    }
-
-    if (manualInput.trim() === "") {
-      setAlertMessage("Please enter manual input weight.");
-      setAlertVisible(true);
-      return;
-    }
-
-    const finalEnterWeight = enterWeight.trim() === "" ? "0" : enterWeight;
-
-    try {
-      setLoading(true);
-
-      const payload = {
-        fetchWeight: manualInput,
-        enterWeight: finalEnterWeight,
-        image: `data:image/jpeg;base64,${photo.base64}`,
-      };
-
-
-      const res = await api.post(
-        `/transaction/transaction-calibration/${transactionId}`,
-        payload,
-      );
-
-      if (res.data.success) {
-        await AsyncStorage.setItem("calibrationStatus", "Completed");
-        navigation.navigate("ProcessTransactionScreen");
-      }
-    } catch (err) {
-      console.log(err?.response?.data?.message);
-      setAlertMessage(err?.response?.data?.message || "Calibration failed!");
-      setAlertVisible(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setAlertMessage(
+      err?.response?.data?.message || "Calibration failed!"
+    );
+    setAlertVisible(true);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (hasPermission === null) {
     return (

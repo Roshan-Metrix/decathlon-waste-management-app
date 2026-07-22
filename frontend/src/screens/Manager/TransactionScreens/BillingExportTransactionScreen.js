@@ -61,20 +61,6 @@ export default function BillingExportTransactionScreen({ navigation }) {
     }
   };
 
-  // Helper to show image URI for item.
-  const getItemImageUri = (imageField) => {
-    if (!imageField) return null;
-    if (typeof imageField !== "string") return null;
-
-    if (imageField.startsWith("data:")) return imageField;
-    if (/^[A-Za-z0-9+/=]+$/.test(imageField) && imageField.length > 200) {
-      return `data:image/png;base64,${imageField}`;
-    }
-
-    const base = api?.defaults?.baseURL || "";
-    return `${base.replace(/\/$/, "")}/uploads/${imageField}`;
-  };
-
   // Calculates the grand total weight of all items.
   const calculateGrandTotal = (items) => {
     return items
@@ -340,7 +326,7 @@ export default function BillingExportTransactionScreen({ navigation }) {
               </Text>
             ) : (
               itemsList.map((item, index) => {
-                const imgUri = getItemImageUri(item.image);
+                const imgUri = item.image ? item.image : null;
                 const { date, time } = formatISTDateTime(item.createdAt);
                 const serialNumber = index + 1;
                 const weightSourceTag =

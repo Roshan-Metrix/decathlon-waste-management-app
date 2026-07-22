@@ -42,6 +42,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
       );
       if (response.data?.success) {
         setTransaction(response.data);
+        // console.log(response.data)
       } else {
         setAlertMessage(response.data?.message || "Failed to load.");
         setAlertVisible(true);
@@ -66,21 +67,7 @@ export default function SelectedTransactionItems({ route, navigation }) {
     fetchTransactions();
   }, [transactionId]);
 
-  const getImageSource = (base64Data) => {
-    if (!base64Data || typeof base64Data !== "string") return null;
-    if (base64Data.length < 50 || base64Data.includes(".")) {
-      return {
-        uri: `https://placehold.co/400x200/${PRIMARY_COLOR.substring(
-          1,
-        )}/ffffff?text=Image+Placeholder+for+${base64Data}`,
-      };
-    }
-
-    return { uri: `data:image/jpeg;base64,${base64Data}` };
-  };
-
   const renderItemCard = (item, index) => {
-    const imageSource = getImageSource(item.image);
 
     return (
       <View key={index} style={styles.itemCard}>
@@ -91,13 +78,13 @@ export default function SelectedTransactionItems({ route, navigation }) {
         </View>
 
         {/* Item Image */}
-        {imageSource ? (
+        {item.image ? (
           <TouchableOpacity
             activeOpacity={0.85}
-            onPress={() => openImage(imageSource)}
+            onPress={() => openImage({ uri: item.image})}
           >
             <Image
-              source={imageSource}
+              source={{ uri: item.image}}
               style={styles.itemImage}
               resizeMode="cover"
             />

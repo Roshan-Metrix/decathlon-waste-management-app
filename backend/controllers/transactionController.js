@@ -1,6 +1,7 @@
 import { runOcrOnImage } from "../lib/ocrService.js";
 import transactionModel from "../models/transactionModel.js";
 import { generateTransactionId } from "../utils/generateTransactionId.js";
+import { getImageUrl } from "../utils/s3.js";
 
 // Add Transaction Detail Controller --
 export const AddTransactionDetailController = async (req, res) => {
@@ -318,7 +319,7 @@ export const ParticularTransactionController = async (req, res) => {
       managerName: txn.managerName,
       vendorName: txn.vendorName,
       calibration: {
-        image: txn.calibration?.image || null,
+        image: getImageUrl(txn.calibration?.image) || null,
         error: txn.calibration?.error || null,
       },
       store: {
@@ -332,7 +333,7 @@ export const ParticularTransactionController = async (req, res) => {
             itemNo: item.itemNo,
             materialType: item.materialType,
             materialRate: item.materialRate,
-            image: item.image,
+            image: getImageUrl(item.image) || null,
             weight: item.weight,
             weightSource: item.weightSource,
             aiWeight: item.aiWeight,
@@ -400,7 +401,7 @@ export const AllTransactionsController = async (req, res) => {
       managerName: txn.managerName,
       vendorName: txn.vendorName,
       calibration: {
-        image: txn.calibration?.image || null,
+        image: getImageUrl(txn.calibration?.image) || null,
       },
       store: {
         storeId: txn.store?.storeId || null,
@@ -410,7 +411,7 @@ export const AllTransactionsController = async (req, res) => {
       items: (txn.items || []).map((item) => ({
         itemNo: item.itemNo,
         materialType: item.materialType,
-        image: item.image,
+        image: getImageUrl(item.image) || null,
         weight: item.weight,
         weightSource: item.weightSource,
         createdAt: item.createdAt,

@@ -9,6 +9,7 @@ import { fetchTransactionsByDateRange } from "../services/transactionService.js"
 import { generatePDF, deletePDF } from "../services/pdfService.js";
 import { sendDailyReportEmail } from "../services/emailService.js";
 import { formatDateTime } from "../utils/reportUtils.js";
+import { getImageUrl } from "../utils/s3.js";
 
 // Vendor Registration by Admin only --
 export const vendorRegister = async (req, res) => {
@@ -411,7 +412,7 @@ export const AllTransactionsVendorController = async (req, res) => {
       storeName: txn.store?.storeName || null,
       managerName: txn.managerName,
       calibration: {
-        image: txn.calibration?.image || null,
+        image: getImageUrl(txn.calibration?.image) || null,
         error: txn.calibration?.error ?? null,
       },
       store: {
@@ -422,7 +423,7 @@ export const AllTransactionsVendorController = async (req, res) => {
       items: (txn.items || []).map((item) => ({
         itemNo: item.itemNo,
         materialType: item.materialType,
-        image: item.image,
+        image: getImageUrl(item.image) || null,
         weight: item.weight,
         weightSource: item.weightSource,
         createdAt: item.createdAt,
@@ -431,7 +432,6 @@ export const AllTransactionsVendorController = async (req, res) => {
       createdAt: txn.createdAt,
       updatedAt: txn.updatedAt,
     }));
-
     return res.status(200).json({
       success: true,
       message: "All transactions fetched successfully",

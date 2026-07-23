@@ -2,40 +2,40 @@
 
 A comprehensive mobile application for warehouse waste management operations for Decathlon Company featuring **advanced OCR (Optical Character Recognition)** for automated weight detection from digital scales and measuring devices.
 
-## 🌟 Key Features
+##  Key Features
 
 ### Core Application
-- **🔐 Multi-role Authentication** - Admin, Manager, Vendor, and Store access levels with secure JWT-based authentication
-- **📊 Transaction Management** - Complete waste transaction lifecycle including creation, item addition, and status tracking
-- **🏪 Store Management** - Add, edit, and monitor waste collection stores with location and state details
-- **📈 Data Analytics** - Comprehensive reporting and insights with charts and dashboards
-- **👥 User Management** - Role-based administration for admins, managers, vendors, and stores
-- **📧 Email Notifications** - Automated email services for user registrations, password resets, and daily reports
-- **📄 PDF Generation** - Automated PDF reports for transactions and daily summaries
-- **⏰ Scheduled Tasks** - Cron-based automation for daily report generation and email distribution
+- **Multi-role Authentication** - Admin, Manager, Vendor, and Store access levels with secure JWT-based authentication
+- **Transaction Management** - Complete waste transaction lifecycle including creation, item addition, and status tracking
+- **Store Management** - Add, edit, and monitor waste collection stores with location and state details
+- **Data Analytics** - Comprehensive reporting and insights with charts and dashboards
+- **User Management** - Role-based administration for admins, managers, vendors, and stores
+- **Email Notifications** - Automated email services for user registrations, password resets, and daily reports
+- **PDF Generation** - Automated PDF reports for transactions and daily summaries
+- **Scheduled Tasks** - Cron-based automation for daily report generation and email distribution
 
-### 🆕 OCR Weight Detection System
-- **📷 Real-time Camera Capture** - Direct weight reading from digital scales using device camera
-- **🖼️ Gallery Integration** - Process existing images of weight displays from device gallery
-- **🧠 Smart AI Recognition** - Multi-layer OCR using Google Gemini API with intelligent parsing for accurate weight extraction
-- **✏️ Manual Fallback** - Seamless manual entry option when OCR fails or is unavailable
-- **💾 Secure Data Storage** - Automatic backend storage with metadata preservation
-- **📱 Cross-platform** - Optimized for iOS and Android devices with Expo framework
+###  OCR Weight Detection System
+- **Real-time Camera Capture** - Direct weight reading from digital scales using device camera
+- **Gallery Integration** - Process existing images of weight displays from device gallery
+- **Smart AI Recognition** - Multi-layer OCR using Google Gemini API with intelligent parsing for accurate weight extraction
+- **Manual Fallback** - Seamless manual entry option when OCR fails or is unavailable
+- **Secure Data Storage** - Automatic backend storage with metadata preservation
+- ** Cross-platform** - Optimized for iOS and Android devices with Expo framework
 
 ### Additional Features
-- **🌐 Offline Support** - Network connectivity detection and offline handling
-- **📍 Location Services** - GPS-based location tracking for store visits
-- **📊 Charts and Visualizations** - Interactive charts for data analysis using react-native-chart-kit
-- **🖊️ Digital Signatures** - Signature capture for transaction approvals
-- **🔄 Data Synchronization** - Secure data sync between mobile app and backend
-- **🛡️ Security** - Password hashing with bcrypt, secure API endpoints, and middleware protection
-- **📱 Responsive UI** - Mobile-first design with Tailwind CSS styling
-- **🔍 Search and Filtering** - Advanced search capabilities for transactions and users
-- **📅 Date and Time Management** - Date picker and timestamp formatting utilities
+- **Offline Support** - Network connectivity detection and offline handling
+- **Location Services** - GPS-based location tracking for store visits
+- **Charts and Visualizations** - Interactive charts for data analysis using react-native-chart-kit
+- **Digital Signatures** - Signature capture for transaction approvals
+- **Data Synchronization** - Secure data sync between mobile app and backend
+- **Security** - Password hashing with bcrypt, secure API endpoints, and middleware protection
+- **Responsive UI** - Mobile-first design with Tailwind CSS styling
+- **Search and Filtering** - Advanced search capabilities for transactions and users
+- **Date and Time Management** - Date picker and timestamp formatting utilities
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Backend
 - **Node.js** with Express.js for REST API
@@ -225,4 +225,4 @@ Make sure your `.env` values match the container setup before using Docker.
 
 ## License
 
-This project includes an MIT license. See `license.txt`.
+This project includes an MIT license. See ![license.txt](license.txt).

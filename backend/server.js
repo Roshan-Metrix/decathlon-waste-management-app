@@ -46,6 +46,10 @@ app.use('/api/v1/auth',authRouter)
 app.use('/api/v1/transaction',transactionRouter)
 app.use('/api/v1/vendor',vendorRouter)
 
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
 // Initialize Cron Scheduler for Daily Reports
 try {
   initializeCronScheduler();
@@ -53,6 +57,6 @@ try {
   console.error('Failed to initialize cron scheduler:', error);
 }
 
-app.listen(port,() => {
+app.listen(port, "0.0.0.0" , () => {
     console.log(`Server is running at ${port}`)
 })

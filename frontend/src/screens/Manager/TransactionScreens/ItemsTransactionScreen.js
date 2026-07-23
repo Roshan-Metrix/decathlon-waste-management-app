@@ -17,6 +17,7 @@ import colors from "../../../colors";
 import Alert from "../../../Components/Alert";
 import useImagePreview from "../../../lib/useImagePreview";
 import { AuthContext } from "../../../context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ItemsTransactionScreen({ navigation, route }) {
   const { transactionId } = route.params || {};
@@ -44,6 +45,19 @@ export default function ItemsTransactionScreen({ navigation, route }) {
   const [materialTypesAndRates, setMaterialTypesAndRates] = useState([]);
 
   const { region } = useContext(AuthContext);
+
+  const [token, setToken] = useState(null);
+
+  useEffect(() => {
+    const initialize = async () => {
+      const storedToken = await AsyncStorage.getItem("token");
+      setToken(storedToken);
+
+      requestCameraPermission();
+    };
+
+    initialize();
+  }, []);
 
   const showSuccessToast = () => {
     if (successToastTimerRef.current) {
@@ -139,83 +153,6 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     };
   }, []);
 
-  // Add item to backend
-  // const handleAddItem = async () => {
-  //   if (!materialType) {
-  //     setAlertMessage("Please select material type!");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-  //   if (!photo) {
-  //     setAlertMessage("Please capture an image first!");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-
-  //   // Determine weight and source
-  //   let weight = "";
-  //   let weightSource = "";
-
-  //   if (enterWeight.trim() !== "") {
-  //     weight = enterWeight.trim();
-  //     weightSource = "manually";
-  //   }
-
-  //   if (!weight) {
-  //     setAlertMessage("No weight detected or entered.");
-  //     setAlertVisible(true);
-  //     return;
-  //   }
-
-  //   try {
-  //     setLoading(true);
-
-  //     const resolvedTransactionId = resolveTransactionId();
-
-  //     if (!resolvedTransactionId) {
-  //       setLoading(false);
-  //       setAlertMessage("Please create or fetch a transaction first!");
-  //       setAlertVisible(true);
-  //       return;
-  //     }
-
-  //     const payload = {
-  //       materialType,
-  //       materialRate,
-  //       weight,
-  //       weightSource,
-  //       image: photo.base64,
-  //     };
-
-  //     const res = await api.post(
-  //       `/transaction/transaction-items/${resolvedTransactionId}`,
-  //       payload,
-  //     );
-
-  //     setLoading(false);
-
-  //     if (res.data?.success) {
-  //       setPhoto(null);
-  //       setMaterialType("");
-  //       setMaterialRate("");
-  //       setEnterWeight("");
-  //       fetchAllItems();
-  //       showSuccessToast();
-  //     } else {
-  //       console.log("Add item response:", res.data);
-  //       setAlertMessage(res.data?.message || "Item not added.");
-  //       setAlertVisible(true);
-  //     }
-  //   } catch (err) {
-  //     setLoading(false);
-  //     console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
-  //     setAlertMessage(
-  //       err?.response?.data?.message || err?.message || "Something went wrong!",
-  //     );
-  //     setAlertVisible(true);
-  //   }
-  // };
-
   const fetchAllItems = async () => {
     try {
       setItemsLoading(true);
@@ -267,11 +204,18 @@ export default function ItemsTransactionScreen({ navigation, route }) {
 
   // Add item to backend
   const handleAddItem = async () => {
+    if (!token) {
+      setAlertMessage("Please login again.");
+      setAlertVisible(true);
+      return;
+    }
+
     if (!materialType) {
       setAlertMessage("Please select material type!");
       setAlertVisible(true);
       return;
     }
+
     if (!photo) {
       setAlertMessage("Please capture an image first!");
       setAlertVisible(true);
@@ -299,19 +243,10 @@ export default function ItemsTransactionScreen({ navigation, route }) {
       const resolvedTransactionId = resolveTransactionId();
 
       if (!resolvedTransactionId) {
-        setLoading(false);
         setAlertMessage("Please create or fetch a transaction first!");
         setAlertVisible(true);
         return;
       }
-
-      // const payload = {
-      //   materialType,
-      //   materialRate,
-      //   weight,
-      //   weightSource,
-      //   image: photo.base64,
-      // };
 
       const formData = new FormData();
 
@@ -322,41 +257,43 @@ export default function ItemsTransactionScreen({ navigation, route }) {
       });
 
       formData.append("materialType", materialType);
-      formData.append("materialRate", materialRate);
-      formData.append("weight", weight);
+      formData.append("materialRate", String(materialRate));
+      formData.append("weight", String(weight));
       formData.append("weightSource", weightSource);
 
-      const res = await api.post(
-        `/transaction/transaction-items/${resolvedTransactionId}`,
-        formData,
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_BACKEND_URL}/transaction/transaction-items/${resolvedTransactionId}`,
         {
+          method: "POST",
           headers: {
-            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${token}`,
           },
+          body: formData,
         },
       );
 
-      setLoading(false);
+      const res = await response.json();
 
-      if (res.data?.success) {
+      if (response.ok && res.success) {
         setPhoto(null);
         setMaterialType("");
         setMaterialRate("");
         setEnterWeight("");
-        fetchAllItems();
+
+        await fetchAllItems();
+
         showSuccessToast();
       } else {
-        console.log("Add item response:", res.data);
-        setAlertMessage(res.data?.message || "Item not added.");
+        setAlertMessage(res.message || "Item not added.");
         setAlertVisible(true);
       }
     } catch (err) {
-      setLoading(false);
-      console.log("ADD ITEM ERROR:", err?.response?.data || err.message || err);
-      setAlertMessage(
-        err?.response?.data?.message || err?.message || "Something went wrong!",
-      );
+      console.log("ADD ITEM ERROR:", err);
+
+      setAlertMessage(err.message || "Something went wrong!");
       setAlertVisible(true);
+    } finally {
+      setLoading(false);
     }
   };
 

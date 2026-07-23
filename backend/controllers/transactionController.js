@@ -75,83 +75,7 @@ export const AddTransactionDetailController = async (req, res) => {
   }
 };
 
-// export const TransactionItemsController = async (req, res) => {
-//   try {
-//     const { transactionId } = req.params;
-//     const { materialType, image, weight, weightSource, materialRate } =
-//       req.body;
-
-//     if (!materialType) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "Material Type is required" });
-//     }
-//     if (!weight) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "weight is required" });
-//     }
-//     if (!weightSource || !["manually", "system"].includes(weightSource)) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "weightSource must be 'manually' or 'system'",
-//       });
-//     }
-
-//     const transactionMeta = await transactionModel
-//       .findOne({ transactionId })
-//       .select("calibration.error items.itemNo")
-//       .lean();
-
-//     if (!transactionMeta) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Transaction not found" });
-//     }
-
-//     const positiveWeight = Math.abs(Number(weight) || 0);
-//     const calibrationError = Number(transactionMeta.calibration?.error || 0);
-
-//     const finalWeight = parseFloat(
-//       (positiveWeight - calibrationError).toFixed(3),
-//     );
-
-//     const nextItemNo = (transactionMeta.items?.length || 0) + 1;
-
-//     const updatedTransaction = await transactionModel
-//       .findOneAndUpdate(
-//         { transactionId },
-//         {
-//           $push: {
-//             items: {
-//               itemNo: nextItemNo,
-//               materialType,
-//               materialRate: Number(materialRate) || 0,
-//               image: image || "",
-//               weight: finalWeight,
-//               weightSource,
-//             },
-//           },
-//         },
-//         { new: true, select: "items" },
-//       )
-//       .lean();
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Item added successfully",
-//       items: updatedTransaction.items,
-//     });
-//   } catch (error) {
-//     console.error("Error in TransactionItemsController:", error);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Internal Server Error" });
-//   }
-// };
-
-// Calibration GEMINI OCR Recognition
-
+// Add Transaction Items Controller --
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
@@ -290,60 +214,6 @@ export const recognizeWithGeminiController = async (req, res) => {
 };
 
 // Transaction Calibration Controller --
-// export const TransactionCalibrationController = async (req, res) => {
-//   try {
-//     const { transactionId } = req.params;
-//     const { image, fetchWeight, enterWeight } = req.body;
-
-//     if (!image || !fetchWeight || !enterWeight) {
-//       return res
-//         .status(400)
-//         .json({ success: false, message: "All fields are required" });
-//     }
-
-//     const fw = parseFloat(fetchWeight) || 0;
-//     const ew = parseFloat(enterWeight) || 0;
-//     const error = parseFloat(Math.abs(fw - ew).toFixed(3));
-
-//     if (error > 0.1) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Zero error must be less than or equal to 0.1 kg",
-//       });
-//     }
-
-//     const updatedTransaction = await transactionModel
-//       .findOneAndUpdate(
-//         { transactionId },
-//         {
-//           $set: {
-//             calibration: { image, error },
-//           },
-//         },
-//         { new: true, select: "calibration" },
-//       )
-//       .lean();
-
-//     if (!updatedTransaction) {
-//       return res
-//         .status(404)
-//         .json({ success: false, message: "Transaction not found" });
-//     }
-
-//     return res.status(200).json({
-//       success: true,
-//       message: "Calibration added successfully",
-//       calibration: updatedTransaction.calibration,
-//       error: updatedTransaction.calibration.error.toFixed(3),
-//     });
-//   } catch (error) {
-//     console.error("Error in TransactionCalibrationController:", error);
-//     return res
-//       .status(500)
-//       .json({ success: false, message: "Internal Server Error" });
-//   }
-// };
-
 export const TransactionCalibrationController = async (req, res) => {
   try {
     const { transactionId } = req.params;

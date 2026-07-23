@@ -22,7 +22,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // For App transaction routes
 
 transactionRouter.get("/", (req, res) => {
-  res.send("Transaction API Endpoint Running...");
+  res.status(200).json({status:'OK', message:'Transaction Endpoint Running...'});
 });
 
 transactionRouter.post(

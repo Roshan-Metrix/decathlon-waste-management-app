@@ -3,15 +3,15 @@ const app = require("../../server.js");
 // import supertest from 'supertest'
 // import '../../server.js'
 
-describe("POST /api/auth/login", () => {
+describe("POST /api/v1/auth/login", () => {
 
     it("should login successfully", async () => {
 
         const res = await request(app)
-            .post("/api/auth/login")
+            .post("/api/v1/auth/login")
             .send({
-                email: "test@gmail.com",
-                password: "123456"
+                email: "admin@gmail.com",
+                password: "admin"
             });
 
         expect(res.statusCode).toBe(200);

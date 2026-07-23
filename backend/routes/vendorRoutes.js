@@ -8,7 +8,7 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 const vendorRouter = express.Router();
 
 vendorRouter.get('/',(req,res) => {
-    res.send("Vendor API Endpoint Running . . .")
+    res.status(200).json({status:'OK', message:'Vendor Endpoint Running...'});
 });
 
 // ---- Vendor Portal Routes ----

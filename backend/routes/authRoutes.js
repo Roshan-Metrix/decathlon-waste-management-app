@@ -10,7 +10,7 @@ import managerMiddleware from '../middlewares/managerMiddleware.js';
 const authRouter = express.Router();
 
 authRouter.get('/', (req, res) => {
-    res.send('Auth API Endpoint Running...');
+    res.status(200).json({status:'OK', message:'Auth API Endpoint Running...'});
 });
 
 // ----- App routes -------

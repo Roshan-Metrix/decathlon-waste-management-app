@@ -225,4 +225,4 @@ Make sure your `.env` values match the container setup before using Docker.
 
 ## License
 
-This project includes an MIT license. See ![license.txt](license.txt).
+This project includes an MIT license. See [license.txt](license.txt).

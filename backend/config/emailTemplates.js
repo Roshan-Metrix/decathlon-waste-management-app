@@ -271,7 +271,7 @@ export const ADMIN_ADDED_TEMPLATE = `
                       </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
-                          Welcome to Decathlon
+                          Welcome to DecaWaste
                         </td>
                       </tr>
                       <tr>
@@ -377,7 +377,7 @@ export const MANAGER_ADDED_TEMPLATE = `
                       </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
-                          Welcome to Decathlon
+                          Welcome to DecaWaste
                         </td>
                       </tr>
                       <tr>
@@ -483,7 +483,7 @@ export const STORE_ADDED_TEMPLATE = `
                       </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
-                          Welcome to Decathlon
+                          Welcome to DecaWaste
                         </td>
                       </tr>
                       <tr>
@@ -589,7 +589,7 @@ export const VENDOR_ADDED_TEMPLATE = `
                       </tr>
                       <tr>
                         <td style="padding: 0 0 24px; font-size: 18px; line-height: 150%; font-weight: bold;">
-                          Welcome to Decathlon
+                          Welcome to DecaWaste
                         </td>
                       </tr>
                       <tr>

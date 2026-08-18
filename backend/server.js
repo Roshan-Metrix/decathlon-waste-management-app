@@ -10,6 +10,7 @@ import transactionRouter from './routes/transactionRoutes.js';
 import vendorRouter from './routes/vendorRoutes.js';
 import morgan from 'morgan';
 import { initializeCronScheduler } from './services/cronScheduler.js';
+import { apiLimiter, transactionLimiter, vendorLimiter } from './middlewares/rateLimiter.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -29,11 +30,12 @@ app.use(cors({ origin: true, credentials: true }));
 
 if (process.env.NODE_ENV === 'development') {
   app.use(
-    morgan('dev')
+    // morgan('dev')
+    morgan('combined')
   );
 } else {
   app.use(
-    morgan(':remote-addr :method :url :status :response-time ms')
+    morgan('combined')
   );
 }
 
@@ -46,9 +48,9 @@ app.get('/health', (req, res) => {
     res.status(200).json({ status: 'OK', message: 'Server is healthy' });
 });
 
-app.use('/api/v1/auth',authRouter)
-app.use('/api/v1/transaction',transactionRouter)
-app.use('/api/v1/vendor',vendorRouter)
+app.use('/api/v1/auth', apiLimiter, authRouter)
+app.use('/api/v1/transaction',transactionLimiter, transactionRouter)
+app.use('/api/v1/vendor',vendorLimiter, vendorRouter)
 
 app.use((req, res, next) => {
   res.status(404).json({ message: 'Route not found' });

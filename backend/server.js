@@ -28,9 +28,13 @@ app.use(cors({ origin: true, credentials: true }));
 // app.use(cors({ origin: allowedOrigins, credentials: true }));
 
 if (process.env.NODE_ENV === 'development') {
-    app.use(morgan('dev'));
+  app.use(
+    morgan('dev')
+  );
 } else {
-    app.use(morgan('combined'));
+  app.use(
+    morgan(':remote-addr :method :url :status :response-time ms')
+  );
 }
 
 // API Endpoints

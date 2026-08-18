@@ -5,7 +5,7 @@ const REPORT_RECIPIENTS_BY_STATE = {
     email3: "dawood@earthrecycler.com",
     email4: " vivek.nair@earthrecycler.com",
     email5: "abdul@earthrecycler.com",
-    email6: "kiran@wisebin.in"
+    email6: "rasia@earthrecycler.com"
   },
   Karnataka: {
     email1: "ranjan@wisebin.in",
@@ -16,7 +16,7 @@ const REPORT_RECIPIENTS_BY_STATE = {
     email6: "operations@wisebin.in",
     email7: "finance.wisebin@wisebin.in",
     email8: "dileep@wisebin.in",
-    email9: "rasia@earthrecycler.com"
+    email9: "kiran@wisebin.in"
   },
 };
 

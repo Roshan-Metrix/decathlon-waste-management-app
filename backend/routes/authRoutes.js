@@ -6,6 +6,7 @@ import { deleteManager, getAllManagers, getManagerProfile, getParticularStoreMan
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, editStoreDetails, getAllStores, getStoreProfile} from '../controllers/storeController.js';
 import managerMiddleware from '../middlewares/managerMiddleware.js';
+import { authLimiter } from '../middlewares/rateLimiter.js';
 
 const authRouter = express.Router();
 
@@ -15,12 +16,12 @@ authRouter.get('/', (req, res) => {
 
 // ----- App routes -------
 //common routes
-authRouter.post('/login', loginUser);
-authRouter.post('/logout', logoutUser);
-authRouter.post('/send-reset-otp', sendPasswordResetOtp);
-authRouter.post('/reset-password',resetPassword);
+authRouter.post('/login', authLimiter,loginUser);
+authRouter.post('/logout', authLimiter, logoutUser);
+authRouter.post('/send-reset-otp', authLimiter, sendPasswordResetOtp);
+authRouter.post('/reset-password',authLimiter, resetPassword);
 authRouter.get('/profile',authMiddleware,getLoggedInUserDetails);
-authRouter.put('/change-password',authMiddleware,changePassword);
+authRouter.put('/change-password', authLimiter, authMiddleware,changePassword);
 
 //admin
 authRouter.post('/admin/registerAdmin',adminMiddleware,registerAdmin);

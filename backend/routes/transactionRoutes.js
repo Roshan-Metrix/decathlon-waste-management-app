@@ -13,6 +13,7 @@ import {
 import multer from "multer";
 import adminMiddleware from "../middlewares/adminMiddleware.js";
 import { getStoreTotalWeightsByDates, getStoreWithTotalTransactionsDetails } from "../controllers/storeController.js";
+import { uploadLimiter } from "../middlewares/rateLimiter.js";
 
 const transactionRouter = express.Router();
 
@@ -42,15 +43,17 @@ transactionRouter.post(
 // OCR recognition with Gemini
 transactionRouter.post(
   "/transaction-calibration/ocr",
-  upload.single("image"),
   authMiddleware,
+  uploadLimiter,
+  upload.single("image"),
   recognizeWithGeminiController,
 );
 
 transactionRouter.post(
   "/transaction-calibration/:transactionId",
-  upload.single("image"),
   authMiddleware,
+  uploadLimiter,
+  upload.single("image"),
   TransactionCalibrationController,
 );
 

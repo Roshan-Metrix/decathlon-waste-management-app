@@ -14,7 +14,7 @@ import { ActivityIndicator } from "react-native";
 
 export default function AddRegionScreen({ navigation }) {
   const [stateName, setStateName] = useState("");
-  const [materials, setMaterials] = useState([{ materialType: "", rate: "" }]);
+  const [materials, setMaterials] = useState([{ materialTypeVendor: "",materialTypeAdmin: "", rate: "" }]);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -23,7 +23,7 @@ export default function AddRegionScreen({ navigation }) {
 
   // Add new material row
   const addMaterialField = () => {
-    setMaterials([...materials, { materialType: "", rate: "" }]);
+    setMaterials([...materials, { materialTypeVendor: "",materialTypeAdmin: "", rate: "" }]);
   };
 
   // Handle material change
@@ -47,9 +47,10 @@ export default function AddRegionScreen({ navigation }) {
     }
 
     const formattedMaterials = materials
-      .filter((m) => m.materialType && m.rate)
+      .filter((m) => m.materialTypeVendor && m.materialTypeAdmin && m.rate)
       .map((m) => ({
-        materialType: m.materialType.trim(),
+        materialTypeVendor: m.materialTypeVendor.trim(),
+        materialTypeAdmin: m.materialTypeAdmin.trim(),
         rate: Number(m.rate),
       }));
 
@@ -75,7 +76,7 @@ export default function AddRegionScreen({ navigation }) {
 
         // Reset form
         setStateName("");
-        setMaterials([{ materialType: "", rate: "" }]);
+        setMaterials([{ materialTypeVendor: "",materialTypeAdmin: "",rate: "" }]);
       } else {
         setAlertMessage(response.data.message || "Something went wrong");
         setAlertVisible(true);
@@ -131,11 +132,24 @@ export default function AddRegionScreen({ navigation }) {
               <MaterialIcons name="category" size={22} color="#2563eb" />
               <TextInput
                 style={styles.input}
-                placeholder="Material Type"
+                placeholder="Material Type - Vendor"
                 placeholderTextColor="#7e7c7c"
-                value={item.materialType}
+                value={item.materialTypeVendor}
                 onChangeText={(text) =>
-                  handleMaterialChange(index, "materialType", text)
+                  handleMaterialChange(index, "materialTypeVendor", text)
+                }
+              />
+            </View>
+
+            <View style={styles.inputBox}>
+              <MaterialIcons name="category" size={22} color="#2563eb" />
+              <TextInput
+                style={styles.input}
+                placeholder="Material Type - Decathlon"
+                placeholderTextColor="#7e7c7c"
+                value={item.materialTypeAdmin}
+                onChangeText={(text) =>
+                  handleMaterialChange(index, "materialTypeAdmin", text)
                 }
               />
             </View>

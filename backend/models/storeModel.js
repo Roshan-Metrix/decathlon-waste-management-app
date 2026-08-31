@@ -18,7 +18,7 @@ const storeSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    state:{
+    state: {
       type: String,
       required: true,
       trim: true,
@@ -35,12 +35,17 @@ const storeSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
     },
-   password: {
+    password: {
       type: String,
       required: true,
-      trim:true,
+      trim: true,
     },
-    isApproved:{
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "vendor",
+      required: true,
+    },
+    isApproved: {
       type: Boolean,
       default: false,
     },
@@ -48,20 +53,20 @@ const storeSchema = new mongoose.Schema(
       type: String,
       default: "store",
     },
-    resetOtp:{
-        type:String,
-        default:''
+    resetOtp: {
+      type: String,
+      default: "",
     },
-    resetOtpExpireAt:{
-        type:Number,
-        default:0
+    resetOtpExpireAt: {
+      type: Number,
+      default: 0,
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "admin",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Indexes to optimize queries

@@ -20,7 +20,7 @@ vendorRouter.get('/profile',vendorMiddleware,getVendorLoggedInDetails);
 // Get total transaction of all store related to particular vendor
 vendorRouter.get('/get-all-related-transactions',vendorMiddleware, AllTransactionsVendorController);
 vendorRouter.get('/get-related-stores',vendorMiddleware,getAllRelatedStores);
-vendorRouter.get('/get-all-vendors',getAllVendors);
+vendorRouter.get('/get-all-vendors',authMiddleware ,getAllVendors);
 vendorRouter.get('/particular-transactions/:transactionId', authMiddleware,ParticularTransactionController);
 vendorRouter.get('/transactions-particular-store/:storeId', vendorMiddleware,getAllRelatedStoresTransactions);
 // Get total transactions according to material type of a particular store

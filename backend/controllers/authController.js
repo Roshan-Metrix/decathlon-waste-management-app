@@ -110,6 +110,7 @@ export const registerStore = async (req, res) => {
     contactNumber,
     email,
     password,
+    vendorName,
   } = req.body;
   const createdBy = req.user?.id;
 
@@ -120,7 +121,8 @@ export const registerStore = async (req, res) => {
     !state ||
     !contactNumber ||
     !email ||
-    !password
+    !password ||
+    !vendorName
   ) {
     return res.status(400).json({ success: false, message: "Missing details" });
   }
@@ -134,16 +136,26 @@ export const registerStore = async (req, res) => {
         .json({ success: false, message: "Store already exists" });
     }
 
+    const vendor = await vendorModel.findOne({ name: vendorName.trim()});
+    
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found"
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const store = new storeModel({
       storeId,
       name,
       storeLocation,
-      state,
+      state: state.trim(),
       contactNumber,
       email,
       password: hashedPassword,
+      vendor: vendor._id,
       isApproved: true,
       createdBy,
     });

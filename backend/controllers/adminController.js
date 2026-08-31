@@ -87,14 +87,11 @@ export const addMaterialTypeAndRate = async (req, res) => {
       };
     });
 
-    // Run the bulk match operations matrix
     const bulkResult = await materialRateModel.bulkWrite(bulkOperations);
 
     const newMaterialsToPush = [];
     
-    // bulkWrite tracks unmatched arrays dynamically. If an item was modified, it means it already existed.
     materials.forEach((item, index) => {
-      // If a bulk match failed to find a pre-existing materialType field, we register it for an array push insertion
       if (bulkResult.matchedCount < materials.length) {
         newMaterialsToPush.push(item);
       }

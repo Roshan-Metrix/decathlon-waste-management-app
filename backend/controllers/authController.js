@@ -136,7 +136,7 @@ export const registerStore = async (req, res) => {
         .json({ success: false, message: "Store already exists" });
     }
 
-    const vendor = await vendorModel.findOne({ name: vendorName.trim()});
+    const vendor = await vendorModel.findOne({ name: vendorName });
     
     if (!vendor) {
       return res.status(404).json({
@@ -151,7 +151,7 @@ export const registerStore = async (req, res) => {
       storeId,
       name,
       storeLocation,
-      state: state.trim(),
+      state: state,
       contactNumber,
       email,
       password: hashedPassword,
@@ -161,16 +161,6 @@ export const registerStore = async (req, res) => {
     });
 
     await store.save();
-
-    const token = jwt.sign(
-      {
-        id: store._id,
-        role: store.role,
-        isApproved: store.isApproved,
-      },
-      process.env.JWT_SECRET,
-      { expiresIn: "15d" }
-    );
 
     const mailOption = {
       from: process.env.SENDER_EMAIL,
@@ -192,19 +182,7 @@ export const registerStore = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      token,
-      user: {
-        id: store._id,
-        storeId: store.storeId,
-        name: store.name,
-        email: store.email,
-        state: store.state,
-        contactNumber: store.contactNumber,
-        role: store.role,
-        isApproved: store.isApproved,
-        storeLocation: store.storeLocation,
-      },
-      message: "Store Registration successful",
+      message: "Store Registration successful.",
     });
 
   } catch (error) {

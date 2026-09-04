@@ -1,149 +1,154 @@
-import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Pressable,
-} from "react-native";
+import React, { useState } from "react";
+import { View, Text, TouchableOpacity, Pressable } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { MaterialIcons } from "@expo/vector-icons";
-import colors from "../../../colors";
+import Alert from "../../../Components/Alert";
+const PRIMARY_COLOR = '#1e40af';
 
 export default function AddProceedTransactionScreen({ navigation }) {
-  const handleSubmit = async () => {
+  const [alertVisible, setAlertVisible] = useState(false);
+  const [alertMessage, setAlertMessage] = useState("");
+
+  const handleSubmit = () => {
     navigation.navigate("AddTransactionScreen");
   };
 
   const handleProceed = async () => {
     const stored = await AsyncStorage.getItem("todayTransaction");
+
+    if (!stored) {
+      setAlertMessage("No recent transaction available.");
+      setAlertVisible(true);
+      return;
+    }
+
     const parsed = JSON.parse(stored);
     const transactionId = parsed?.transactionId;
-    navigation.navigate("ProcessTransactionScreen", { transactionId });
+
+    navigation.navigate("ProcessTransactionScreen", {
+      transactionId,
+    });
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#f9fafb" }}>
+    <View className="flex-1 bg-gray-50">
       {/* HEADER */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.navigate("UserScreen")}>
-          <MaterialIcons name="arrow-back" size={32} color={colors.primary} />
+      <View
+        className="
+          flex-row
+          items-center
+          justify-between
+          bg-white
+          px-5
+          pb-[15px]
+          pt-[60px]
+          shadow
+          shadow-black/10
+          elevation-3
+        "
+      >
+        {/* Back Button */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate("UserScreen")}
+          className="w-8"
+        >
+          <MaterialIcons name="arrow-back" size={32} color={PRIMARY_COLOR} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add / Proceed Transaction</Text>
-        <View style={{ width: 32 }} />
+
+        {/* Header Title */}
+        <Text className="ml-[15px] text-[22px] font-bold text-primary">
+          Add / Proceed Transaction
+        </Text>
+
+        {/* Right Spacer */}
+        <View className="w-8" />
       </View>
 
       {/* CENTERED CONTENT */}
-      <View style={styles.centerWrapper}>
-        {/* Top Icon */}
-        <View style={styles.topIconCircle}>
-          <MaterialIcons name="playlist-add" size={60} color={colors.primary} />
+      <View className="flex-1 items-center justify-center px-[30px]">
+        {/* Top Icon Circle */}
+        <View
+          className="
+            mb-[10px]
+            h-[120px]
+            w-[120px]
+            items-center
+            justify-center
+            rounded-full
+            bg-blue-100
+            shadow-lg
+            shadow-black/25
+            elevation-6
+          "
+        >
+          <MaterialIcons
+            name="playlist-add"
+            size={60}
+            color={PRIMARY_COLOR}
+          />
         </View>
-        <Text style={styles.topTitle}>Add / Proceed </Text>
-        <Text style={styles.topSubtitle}>
+
+        {/* Title */}
+        <Text className="mt-[2px] text-[22px] font-bold text-primary">
+          Add / Proceed
+        </Text>
+
+        {/* Subtitle */}
+        <Text className="mb-5 mt-[6px] text-center text-[15px] text-slate-500">
           Adding can erase previous save transactionId.
         </Text>
 
-        {/* Buttons */}
+        {/* Add New Transaction */}
         <Pressable
           onPress={handleSubmit}
-          style={({ pressed }) => [
-            styles.finalButton,
-            {
-              backgroundColor: colors.primary,
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-            },
-          ]}
+          className="
+            mt-2
+            w-full
+            items-center
+            rounded-[14px]
+            bg-primary
+            py-4
+            shadow-md
+            shadow-black/15
+            elevation-3
+          "
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
         >
-          <Text style={styles.finalButtonText}> Add New Transaction</Text>
+          <Text className="text-[18px] font-bold text-white">
+            Add New Transaction
+          </Text>
         </Pressable>
 
+        {/* Proceed Recent Transaction */}
         <Pressable
           onPress={handleProceed}
-          style={({ pressed }) => [
-            styles.finalButton,
-            {
-              backgroundColor: "#2d4287ff",
-              transform: [{ scale: pressed ? 0.97 : 1 }],
-            },
-          ]}
+          className="
+            mt-2
+            w-full
+            items-center
+            rounded-[14px]
+            bg-blue-700
+            py-4
+            shadow-md
+            shadow-black/15
+            elevation-3
+          "
+          style={({ pressed }) => ({
+            transform: [{ scale: pressed ? 0.97 : 1 }],
+          })}
         >
-          <Text style={styles.finalButtonText}>
-            {" "}
+          <Text className="text-[18px] font-bold text-white">
             Proceed Recent Transaction
           </Text>
         </Pressable>
       </View>
+      <Alert
+        visible={alertVisible}
+        message={alertMessage}
+        onClose={() => setAlertVisible(false)}
+      />
     </View>
   );
 }
-
-// ----------------- STYLES -----------------
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 60,
-    paddingBottom: 15,
-    backgroundColor: "#fff",
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.primary,
-    marginLeft: 15,
-  },
-  centerWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 30,
-  },
-  topIconCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: "#dbeafe",
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 10,
-    elevation: 6,
-    shadowColor: colors.primary,
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-  },
-  topTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#1e40af",
-    marginTop: 2,
-  },
-  topSubtitle: {
-    fontSize: 15,
-    color: "#64748b",
-    marginTop: 6,
-    marginBottom: 20,
-    textAlign: "center",
-  },
-
-  finalButton: {
-    width: "100%",
-    paddingVertical: 16,
-    borderRadius: 14,
-    alignItems: "center",
-    marginTop: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-  },
-  finalButtonText: { fontSize: 18, fontWeight: "700", color: "#fff" },
-});

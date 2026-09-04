@@ -1,5 +1,6 @@
 import managerModel from "../models/managerModel.js";
 import storeModel from "../models/storeModel.js";
+import vendorModel from "../models/vendorModel.js";
 
 // Get All Managers --> For Admin --
 export const getAllManagers = async (req, res) => {
@@ -68,7 +69,19 @@ export const getManagerProfile = async (req, res) => {
     const manager = req.manager;
     const store = req.store;
 
-    return res.json({ success: true, manager, store });
+    const managerData = await managerModel.findById(manager._id).select("-password -__v").lean();
+
+    if (!managerData) {
+      return res.status(404).json({ success: false, message: "Manager not found." });
+    }
+
+     const vendorName = await vendorModel.findOne({ _id: managerData.vendor}).select("name").lean();
+
+    if(!vendorName){
+      return res.status(404).json({ success: false, message: "Vendor not found." });
+    }
+
+    return res.json({ success: true, manager, store, vendorName: vendorName.name });
   } catch (error) {
     console.log("Error in getManagerProfile Controller:", error);
     return res.json({ success: false, message: "Internal Server Error" });

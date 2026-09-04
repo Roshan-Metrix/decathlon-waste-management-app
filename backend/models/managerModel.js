@@ -17,7 +17,7 @@ const managerSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
-      trim:true,
+      trim: true,
     },
     storeId: {
       type: String,
@@ -28,6 +28,11 @@ const managerSchema = new mongoose.Schema(
     role: {
       type: String,
       default: "manager",
+    },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "vendor",
+      required: true,
     },
     isApproved: {
       type: Boolean,
@@ -42,15 +47,14 @@ const managerSchema = new mongoose.Schema(
       default: 0,
     },
     createdBy: {
-       type: mongoose.Schema.Types.ObjectId,
-       ref: "admin" || "store",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "admin" || "store",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
 
 const managerModel =
   mongoose.models.manager || mongoose.model("manager", managerSchema);
-  
+
 export default managerModel;

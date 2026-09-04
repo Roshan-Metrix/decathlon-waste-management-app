@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import { KeyboardAvoidingView, Platform } from "react-native";
+import './global.css'
 
 import { AuthProvider } from "./src/context/AuthContext";
 import {

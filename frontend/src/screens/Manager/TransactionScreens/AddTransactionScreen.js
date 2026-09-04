@@ -67,22 +67,23 @@ export default function AddTransactionScreen({ navigation }) {
     try {
       if (user?.role === "manager") {
         const res = await api.get("/auth/manager/profile");
+         console.log(res.data)
         if (res.data.success) {
           setStoreId(res.data.store.storeId);
           setStoreName(res.data.store.name);
           setStoreLocation(res.data.store.storeLocation);
-          setStoreState(res.data.store.state)
+          setStoreState(res.data.store.state);
+          setVendorName(res.data.vendorName || null);
           setManagerName(res.data.manager.name || "Manager");
         }
-      }
-
-      if (user?.role === "store") {
+      } else if (user?.role === "store") {
         const res = await api.get("/auth/store/profile");
         if (res.data.success) {
           setStoreId(res.data.store.storeId);
           setStoreName(res.data.store.name);
           setStoreLocation(res.data.store.storeLocation);
           setStoreState(res.data.store.state);
+          setVendorName(res.data.vendorName || null);
           setManagerName("Store");
         }
       }

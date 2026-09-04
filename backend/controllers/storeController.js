@@ -1,6 +1,7 @@
 import storeModel from "../models/storeModel.js";
 import dotenv from "dotenv";
 import transactionModel from "../models/transactionModel.js";
+import vendorModel from "../models/vendorModel.js";
 dotenv.config();
 
 // Get store profile
@@ -24,7 +25,13 @@ export const getStoreProfile = async (req, res) => {
         .json({ success: false, message: "Store not found." });
     }
 
-    return res.json({ success: true, store });
+    const vendorName = await vendorModel.findOne({ _id: store.vendor}).select("name").lean();
+
+    if(!vendorName){
+      return res.status(404).json({ success: false, message: "Vendor not found." });
+    }
+
+    return res.json({ success: true, store, vendorName: vendorName.name });
 
   } catch (error) {
     console.log("Error in getStoreProfile:", error);

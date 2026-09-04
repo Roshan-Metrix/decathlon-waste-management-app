@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Modal,
   ActivityIndicator,
   ScrollView,
   KeyboardAvoidingView,
@@ -27,10 +26,6 @@ export default function AddStoreScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [adminEmail, setAdminEmail] = useState("");
-  const [adminPassword, setAdminPassword] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
@@ -40,6 +35,11 @@ export default function AddStoreScreen({ navigation }) {
   const [state, setState] = useState(null);
   const [regionItems, setRegionItems] = useState([]);
   const [regionsLoading, setRegionsLoading] = useState(false);
+
+  const [vendorOpen, setVendorOpen] = useState(false);
+  const [vendor, setVendor] = useState(null);
+  const [vendorsName, setVendorsName] = useState([]);
+  const [vendorLoading, setVendorLoading] = useState(false);
 
   useEffect(() => {
     setPassword(generatePassword());
@@ -69,7 +69,7 @@ export default function AddStoreScreen({ navigation }) {
     ]).start();
   };
 
-  const handleAddStore = () => {
+  const handleSumbit = async () => {
     if (
       !storeId ||
       !name ||
@@ -77,16 +77,13 @@ export default function AddStoreScreen({ navigation }) {
       !state ||
       !contactNumber ||
       !email ||
-      !password
+      !password ||
+      !vendor
     ) {
-      setAlertMessage("Please fill all field");
+      setAlertMessage("Please fill all field.");
       setAlertVisible(true);
       return;
     }
-    setModalVisible(true);
-  };
-
-  const handleVendorSubmit = async () => {
     try {
       setLoading(true);
 
@@ -98,16 +95,14 @@ export default function AddStoreScreen({ navigation }) {
         contactNumber,
         email,
         password,
-        adminEmail,
-        adminPassword,
+        vendorName: vendor,
       };
 
       const { data } = await api.post("/auth/admin/registerStore", payload);
 
       if (data.success) {
-        setAlertMessage("Store created successfully .");
+        setAlertMessage(data.message || "Store created successfully.");
         setAlertVisible(true);
-        setModalVisible(false);
 
         setStoreId("");
         setName("");
@@ -115,14 +110,13 @@ export default function AddStoreScreen({ navigation }) {
         setState("");
         setContactNumber("");
         setEmail("");
-        setPassword("");
-        setAdminEmail("");
-        setAdminPassword("");
+        setVendorsName([]);
       } else {
         setAlertMessage(data.message || "Something went wrong");
         setAlertVisible(true);
       }
     } catch (err) {
+      console.log("Error in AddStoreScreen: ", err);
       setAlertMessage("Something went wrong");
       setAlertVisible(true);
     } finally {
@@ -150,8 +144,29 @@ export default function AddStoreScreen({ navigation }) {
     }
   };
 
+  const fetchVendors = async () => {
+    try {
+      setVendorLoading(true);
+      const res = await api.get("/vendor/get-all-vendors");
+
+      if (res.data?.success && Array.isArray(res.data.vendors)) {
+        const vendors = res.data.vendors.map((v) => ({
+          label: v.name,
+          value: v.name,
+        }));
+
+        setVendorsName(vendors);
+      }
+    } catch (error) {
+      console.log("Fetch Vendor Error:", error.message);
+    } finally {
+      setVendorLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchRegions();
+    fetchVendors();
   }, []);
 
   return (
@@ -178,8 +193,6 @@ export default function AddStoreScreen({ navigation }) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.content}>
-            <Text style={styles.subTitle}>Store Details</Text>
-
             <View style={styles.form}>
               <View style={styles.inputRow}>
                 <MaterialIcons name="badge" size={22} color="#2563eb" />
@@ -214,7 +227,7 @@ export default function AddStoreScreen({ navigation }) {
                 />
               </View>
 
-              <View style={[styles.inputRow]}>
+              <View style={[styles.inputRow, styles.regionRow]}>
                 <MaterialIcons name="location-city" size={22} color="#2563eb" />
                 <DropDownPicker
                   open={open}
@@ -231,6 +244,34 @@ export default function AddStoreScreen({ navigation }) {
                   style={styles.dropdown}
                   dropDownContainerStyle={styles.dropdownContainer}
                   textStyle={styles.dropdownText}
+                  animationType="slide"
+                  arrowIconContainerStyle={styles.arrowIconContainer}
+                />
+              </View>
+
+              <View style={[styles.inputRow, styles.vendorRow]}>
+                <MaterialIcons
+                  name="manage-accounts"
+                  size={22}
+                  color="#2563eb"
+                />
+                <DropDownPicker
+                  open={vendorOpen}
+                  value={vendor}
+                  items={vendorsName}
+                  setOpen={setVendorOpen}
+                  setValue={setVendor}
+                  setItems={setVendorsName}
+                  placeholder={
+                    vendorLoading ? "Loading vendors..." : "Select Vendor"
+                  }
+                  loading={vendorLoading}
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdown}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                  animationType="slide"
+                  arrowIconContainerStyle={styles.arrowIconContainer}
                 />
               </View>
 
@@ -277,66 +318,27 @@ export default function AddStoreScreen({ navigation }) {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.addButton} onPress={handleAddStore}>
-              <MaterialIcons name="add-business" size={20} color="#fff" />
-              <Text style={styles.addText}>Add Store</Text>
+            <TouchableOpacity
+              style={[styles.addButton, loading && { opacity: 0.7 }]}
+              onPress={handleSumbit}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.addText}>Adding Store...</Text>
+                </>
+              ) : (
+                <>
+                  <MaterialIcons name="add-business" size={20} color="#fff" />
+                  <Text style={styles.addText}>Add Store</Text>
+                </>
+              )}
             </TouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {/* POPUP */}
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalBox}>
-            <Text style={styles.modalTitle}>Admin Verification</Text>
-
-            <View style={[styles.inputRow, { marginBottom: 10 }]}>
-              <MaterialIcons
-                name="admin-panel-settings"
-                size={22}
-                color="#2563eb"
-              />
-              <TextInput
-                placeholder="Admin Email"
-                value={adminEmail}
-                onChangeText={setAdminEmail}
-                style={styles.input}
-              />
-            </View>
-
-            <View style={[styles.inputRow, { marginBottom: 20 }]}>
-              <MaterialIcons name="lock" size={22} color="#2563eb" />
-              <TextInput
-                placeholder="Admin Password"
-                secureTextEntry
-                value={adminPassword}
-                onChangeText={setAdminPassword}
-                style={styles.input}
-              />
-            </View>
-
-            <TouchableOpacity
-              style={[styles.submitButton, { opacity: loading ? 0.5 : 1 }]}
-              disabled={loading}
-              onPress={handleVendorSubmit}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.submitText}>Verify & Create</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
       <Alert
         visible={alertVisible}
         message={alertMessage}
@@ -348,12 +350,17 @@ export default function AddStoreScreen({ navigation }) {
 
 /*  STYLES  */
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f9fafb" },
+  container: {
+    flex: 1,
+    backgroundColor: "#f9fafb",
+  },
+
   passwordText: {
     fontSize: 18,
     fontWeight: "600",
     color: "#2563eb",
   },
+
   passwordBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -364,6 +371,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
     gap: 10,
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -375,8 +383,15 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
 
-  backButton: { padding: 4 },
-  headerTitle: { fontSize: 20, fontWeight: "700", color: "#2563eb" },
+  backButton: {
+    padding: 4,
+  },
+
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2563eb",
+  },
 
   scroll: {
     paddingHorizontal: 20,
@@ -385,7 +400,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  content: { width: "100%", alignItems: "center" },
+  content: {
+    width: "100%",
+    alignItems: "center",
+  },
 
   iconCircle: {
     backgroundColor: "#e0e7ff",
@@ -394,15 +412,12 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
-  subTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    marginBottom: 20,
-    color: "#858282",
+  form: {
+    width: "100%",
+    gap: 12,
   },
 
-  form: { width: "100%", gap: 12 },
-
+  // All normal input rows
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -412,9 +427,47 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderRadius: 10,
+    position: "relative",
+    width: "100%",
   },
 
-  input: { flex: 1, fontSize: 15, marginLeft: 8, color: "#333" },
+  regionRow: { zIndex: 2000 },
+  vendorRow: { zIndex: 1000 },
+
+  dropdown: {
+    flex: 1,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    minHeight: 40,
+  },
+
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    width: "96%",
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+  },
+
+  dropdownText: {
+    fontSize: 15,
+    color: "#333",
+  },
+
+  arrowIconContainer: {
+    marginRight: 10,
+  },
+
+  input: {
+    flex: 1,
+    fontSize: 15,
+    marginLeft: 10,
+    color: "#333",
+  },
 
   addButton: {
     flexDirection: "row",
@@ -426,60 +479,11 @@ const styles = StyleSheet.create({
     width: "100%",
     marginTop: 18,
   },
-  addText: { color: "#fff", fontSize: 16, fontWeight: "600", marginLeft: 6 },
 
-  modalOverlay: {
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.4)",
-    padding: 20,
-  },
-
-  modalBox: {
-    backgroundColor: "#fff",
-    padding: 22,
-    borderRadius: 16,
-    elevation: 5,
-  },
-
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 15,
-  },
-
-  submitButton: {
-    backgroundColor: "#2563eb",
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
-
-  submitText: {
+  addText: {
     color: "#fff",
-    textAlign: "center",
+    fontSize: 16,
     fontWeight: "600",
-    fontSize: 15,
-  },
-
-  cancelButton: { paddingVertical: 8 },
-  cancelText: { textAlign: "center", fontSize: 14, color: "#777" },
-
-  dropdown: {
-    borderWidth: 0,
-    width: "95%",
-  },
-
-  dropdownContainer: {
-    borderRadius: 12,
-    borderColor: "#d1d5db",
-    elevation: 5,
-    width: "85%",
-  },
-
-  dropdownText: {
-    fontSize: 15,
-    color: "#111",
+    marginLeft: 6,
   },
 });

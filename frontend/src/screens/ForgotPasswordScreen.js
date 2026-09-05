@@ -23,6 +23,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     try {
       const { data } = await api.post("/auth/send-reset-otp", { email });
       setMessage(data.message);
+      console.log(data);
       if (data.success) {
         setTimeout(() => {
           navigation.navigate("ResetPassword", { email });
@@ -30,6 +31,7 @@ export default function ForgotPasswordScreen({ navigation }) {
       }
     } catch (err) {
       setMessage("Failed to send OTP");
+      console.error("Error while requesting OTP:",err);
     } finally {
       setLoading(false);
     }

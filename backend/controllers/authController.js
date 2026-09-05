@@ -559,7 +559,7 @@ export const sendPasswordResetOtp = async (req, res) => {
 
     return res.status(200).json({ 
       success: true, 
-      message: "Reset OTP sent successfully" 
+      message: "Reset OTP sent successfully." 
     });
 
   } catch (error) {

@@ -45,7 +45,12 @@ authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 // materialType and Rate add
 authRouter.post('/admin/add-materials',authMiddleware,adminMiddleware,addMaterialTypeAndRate);
 authRouter.get('/get-regions',authMiddleware,getAllRegions);
-authRouter.get('/get-regional-materials/:region',authMiddleware,getAllMaterialsWithRate);
+authRouter.get('/get-regional-materials/:region/:vendor',authMiddleware,getAllMaterialsWithRate);
 authRouter.delete('/admin/delete-region/:region',authMiddleware,adminMiddleware,deleteRegion);
+
+// materialMapping routes
+authRouter.post('/add-material-mapping/:region/:vendor',authMiddleware,adminMiddleware, addMaterialMapping);
+authRouter.get('/get-material-mapping/:region/:vendor',authMiddleware, getMaterialMapping);
+authRouter.delete('/delete-material-mapping/:region/:vendor',authMiddleware,adminMiddleware, deleteMaterialMapping);
 
 export default authRouter;

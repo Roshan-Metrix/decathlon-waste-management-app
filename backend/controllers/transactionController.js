@@ -5,6 +5,8 @@ import { generateTransactionId } from "../utils/generateTransactionId.js";
 import { getImageUrl } from "../utils/s3.js";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import s3 from "../config/s3.js";
+import materialRateModel from "../models/materialRateModel.js";
+import vendorModel from "../models/vendorModel.js";
 
 // Add Transaction Detail Controller --
 export const AddTransactionDetailController = async (req, res) => {
@@ -35,6 +37,10 @@ export const AddTransactionDetailController = async (req, res) => {
 
     const transactionId = await generateTransactionId(storeId);
 
+    const vendorId = await vendorModel.findOne({name: vendorName}).select("_id").lean();
+
+    const materialId = await materialRateModel.findOne({ vendor: vendorId }).select("_id").lean();
+
     const newTransaction = await transactionModel.create({
       transactionId,
       store: {
@@ -43,6 +49,7 @@ export const AddTransactionDetailController = async (req, res) => {
         storeLocation,
         storeState,
       },
+      materialRateId: materialId,
       managerName,
       vendorName,
       calibration: {
@@ -79,7 +86,7 @@ export const AddTransactionDetailController = async (req, res) => {
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { materialType, weight, weightSource, materialRate } = req.body;
+    const { materialType, weight, weightSource, materialRate, materialRateId } = req.body;
 
     const imageFile = req.file;
 
@@ -159,6 +166,7 @@ export const TransactionItemsController = async (req, res) => {
         { transactionId },
         {
           $push: {
+            materialRateId: materialRateId,
             items: {
               itemNo: nextItemNo,
               materialType,

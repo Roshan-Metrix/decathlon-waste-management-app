@@ -15,10 +15,10 @@ import s3 from "../config/s3.js";
 
 // Vendor Registration by Admin only --
 export const vendorRegister = async (req, res) => {
-  const { name, email, password, vendorLocation, contactNumber } = req.body;
+  const { name, email, password, state, vendorLocation, contactNumber } = req.body;
   const createdBy = req.user.id;
 
-  if (!name || !email || !password || !vendorLocation || !contactNumber) {
+  if (!name || !email || !password || !state || !vendorLocation || !contactNumber) {
     return res.status(400).json({
       success: false,
       message: "All fields are required.",
@@ -38,13 +38,13 @@ export const vendorRegister = async (req, res) => {
       });
     }
 
-    // Hashing the password securely
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newVendor = await vendorModel.create({
       name,
       email,
       password: hashedPassword,
+      state,
       vendorLocation,
       contactNumber,
       role: "vendor",
@@ -52,14 +52,12 @@ export const vendorRegister = async (req, res) => {
       createdBy,
     });
 
-    // Generate token for instant session confirmation
     const token = jwt.sign(
       { id: newVendor._id, role: newVendor.role },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
-    // Set cookie state
     res.cookie("vendorToken", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

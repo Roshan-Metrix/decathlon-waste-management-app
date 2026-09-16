@@ -124,7 +124,7 @@ export const registerStore = async (req, res) => {
     !password ||
     !vendorName
   ) {
-    return res.status(400).json({ success: false, message: "Missing details" });
+    return res.status(400).json({ success: false, message: "Missing details." });
   }
 
   try {
@@ -133,7 +133,7 @@ export const registerStore = async (req, res) => {
     if (existingStore) {
       return res
         .status(400)
-        .json({ success: false, message: "Store already exists" });
+        .json({ success: false, message: "Store already exists." });
     }
 
     const vendor = await vendorModel.findOne({ name: vendorName });
@@ -141,7 +141,7 @@ export const registerStore = async (req, res) => {
     if (!vendor) {
       return res.status(404).json({
         success: false,
-        message: "Vendor not found"
+        message: "Vendor not found."
       });
     }
 
@@ -212,19 +212,19 @@ export const registerManager = async (req, res) => {
   try {
     const [existingManager, existingStore] = await Promise.all([
       managerModel.findOne({ email }).select("_id").lean(),
-      storeModel.findOne({ storeId }).select("_id").lean()
+      storeModel.findOne({ storeId }).select("_id vendor").lean()
     ]);
 
     if (existingManager) {
       return res
         .status(400)
-        .json({ success: false, message: "Manager already exists" });
+        .json({ success: false, message: "Manager already exists." });
     }
 
     if (!existingStore) {
       return res.status(404).json({
         success: false,
-        message: "Store not exists , First Add store",
+        message: "Store not exists.",
       });
     }
 
@@ -234,6 +234,7 @@ export const registerManager = async (req, res) => {
       storeId,
       name,
       email,
+      vendor: existingStore.vendor,
       password: hashedPassword,
       isApproved: true,
       createdBy,

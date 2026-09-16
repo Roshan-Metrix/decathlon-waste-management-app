@@ -19,6 +19,11 @@ const vendorSchema = new mongoose.Schema({
         required: true,
         trim:true,
     },
+    state:{
+        type: String,
+        required: true,
+        trim: true,
+    },
     vendorLocation: {
       type: String,
       required: true,

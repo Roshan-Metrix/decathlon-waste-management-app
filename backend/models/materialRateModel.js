@@ -5,13 +5,21 @@ const materialRateSchema = new mongoose.Schema(
     state: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
+    },
+    vendor: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "vendor",
+      required: true,
     },
     materials: [
       {
         _id: false,
-        materialType: { type: String, required: true },
+        materialType: {
+          type: String,
+          required: true,
+          trim: true,
+        },
         rate: { type: Number, required: true },
       },
     ],
@@ -23,7 +31,13 @@ const materialRateSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+materialRateSchema.index(
+  {state:1, vendor:1},
+  {unique: true}
+)
+
 const materialRateModel =
-  mongoose.models.materialRate || mongoose.model("materialRate", materialRateSchema);
-  
+  mongoose.models.materialRate ||
+  mongoose.model("materialRate", materialRateSchema);
+
 export default materialRateModel;

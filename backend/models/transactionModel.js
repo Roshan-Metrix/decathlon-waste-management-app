@@ -36,7 +36,7 @@ const itemSchema = new mongoose.Schema(
   {
     timestamps: true,
     _id: false,
-  }
+  },
 );
 
 const transactionSchema = new mongoose.Schema(
@@ -44,7 +44,7 @@ const transactionSchema = new mongoose.Schema(
     transactionId: {
       type: String,
       required: true,
-      unique: true, // Automatically creates a unique index
+      unique: true,
     },
     managerName: {
       type: String,
@@ -58,7 +58,7 @@ const transactionSchema = new mongoose.Schema(
       image: {
         type: String,
       },
-      error:{
+      error: {
         type: Number,
       },
     },
@@ -78,7 +78,12 @@ const transactionSchema = new mongoose.Schema(
       storeState: {
         type: String,
         required: true,
-      }
+      },
+    },
+    materialRateId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: "materialRate",
     },
     items: [itemSchema],
     createdBy: {
@@ -92,9 +97,8 @@ const transactionSchema = new mongoose.Schema(
       enum: ["store", "manager"],
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
-
 
 // Indexes to optimize queries
 // Optimizes 'getAllRelatedStoresTransactions' and 'ParticularTransactionController'

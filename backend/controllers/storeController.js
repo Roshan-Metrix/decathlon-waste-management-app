@@ -15,9 +15,13 @@ export const getStoreProfile = async (req, res) => {
         .json({ success: false, message: "Forbidden Access" });
     }
 
+    // const store = await storeModel
+    //   .findOne({ _id: id })
+    //   .select("-password -__v");
+
     const store = await storeModel
       .findOne({ _id: id })
-      .select("-password -__v");
+      .select("_id storeId name storeLocation state contactNumber email isApproved role vendor").lean();
 
     if (!store) {
       return res

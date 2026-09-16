@@ -36,7 +36,7 @@ const managerMiddleware = async (req, res, next) => {
 
     const manager = await managerModel
       .findById(decoded.id)
-      .select("name email storeId role isApproved")
+      .select("name email storeId role isApproved vendor")
       .lean();
 
     if (!manager) {

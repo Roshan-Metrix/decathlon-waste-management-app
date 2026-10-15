@@ -16,60 +16,60 @@ export const AuthProvider = ({ children }) => {
   const [region, setRegion] = useState(null);
 
   // AUTO LOGIN ON APP START
-useEffect(() => {
-  if (!checked) return;
+  useEffect(() => {
+    if (!checked) return;
 
-  const loadUserFromToken = async () => {
-    if (!isConnected) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
+    const loadUserFromToken = async () => {
+      if (!isConnected) {
         setLoading(false);
         return;
       }
 
-      let res;
-
-      const endpoints = [
-        "/auth/manager/profile",
-        "/auth/admin/profile",
-        "/auth/store/profile",
-      ];
-
-      for (const endpoint of endpoints) {
-        try {
-          const response = await api.get(endpoint);
-          if (response?.data?.success) {
-            res = response;
-            break;
-          }
-        } catch (error) {
-          // silently try next endpoint
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (!token) {
+          setLoading(false);
+          return;
         }
-      }
 
-      if (res?.data?.success) {
-        setUser(res.data.manager || res.data.admin || res.data.store);
-        setRegion(res.data.store.state);
-      } else {
+        let res;
+
+        const endpoints = [
+          "/auth/manager/profile",
+          "/auth/admin/profile",
+          "/auth/store/profile",
+        ];
+
+        for (const endpoint of endpoints) {
+          try {
+            const response = await api.get(endpoint);
+            if (response?.data?.success) {
+              res = response;
+              break;
+            }
+          } catch (error) {
+            // silently try next endpoint
+          }
+        }
+
+        if (res?.data?.success) {
+          setUser(res.data.manager || res.data.admin || res.data.store);
+          setRegion(res.data.store.state);
+        } else {
+          await AsyncStorage.removeItem("token");
+          setUser(null);
+        }
+      } catch (err) {
+        console.log("Auto-login error:", err.message);
         await AsyncStorage.removeItem("token");
         setUser(null);
       }
-    } catch (err) {
-      console.log("Auto-login error:", err.message);
-      await AsyncStorage.removeItem("token");
-      setUser(null);
-    }
 
-    setLoading(false);
-  };
+      setLoading(false);
+    };
 
-  loadUserFromToken();
-}, [isConnected, checked]);
+    loadUserFromToken();
+  }, [isConnected, checked]);
 
   // LOGIN
   const login = async (email, password) => {
@@ -98,8 +98,14 @@ useEffect(() => {
       setError("");
       return { success: true };
     } catch (err) {
-      setError(err.message);
-      return { success: false, message: err.message };
+      console.log("BACKEND ERROR:", err.response?.data);
+      const message =
+        err.response?.data?.message || err.message || "Something went wrong";
+      setError(message);
+      return {
+        success: false,
+        message,
+      };
     }
   };
 

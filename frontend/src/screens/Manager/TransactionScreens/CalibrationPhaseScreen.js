@@ -163,7 +163,6 @@ const handleCalibrate = async () => {
     }
   } catch (err) {
     console.log("Calibration Error:", err);
-
     setAlertMessage(err.message || "Calibration failed!");
     setAlertVisible(true);
   } finally {

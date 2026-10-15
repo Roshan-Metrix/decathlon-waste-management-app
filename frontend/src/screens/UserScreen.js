@@ -23,37 +23,37 @@ export default function UserScreen({ navigation }) {
   }, [user]);
 
 
-useEffect(() => {
-  const addStoreId = async () => {
-    if (user?.role === "manager") {
-      try {
-        const res = await api.get("/auth/manager/profile");
-        if (res.data.success) {
-          await AsyncStorage.setItem("storeId", res.data.store.storeId);
+  useEffect(() => {
+    const addStoreId = async () => {
+      if (user?.role === "manager") {
+        try {
+          const res = await api.get("/auth/manager/profile");
+          if (res.data.success) {
+            await AsyncStorage.setItem("storeId", res.data.store.storeId);
+          }
+        } catch (error) {
+          console.log("Manager Profile Fetch Error:", error.message);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log("Manager Profile Fetch Error:", error.message);
-      } finally {
-        setLoading(false);
       }
-    }
-    if (user?.role === "store") {
-      try {
-        const res = await api.get("/auth/store/profile");
-        if (res.data.success) {
-          await AsyncStorage.setItem("storeId", res.data.store.storeId);
+      if (user?.role === "store") {
+        try {
+          const res = await api.get("/auth/store/profile");
+          if (res.data.success) {
+            await AsyncStorage.setItem("storeId", res.data.store.storeId);
+          }
+        } catch (error) {
+          console.log("Store Profile Fetch Error:", error.message);
+        } finally {
+          setLoading(false);
         }
-      } catch (error) {
-        console.log("Store Profile Fetch Error:", error.message);
-      } finally {
-        setLoading(false);
       }
-    }
 
-  };
+    };
 
-  addStoreId();
-}, [user]);
+    addStoreId();
+  }, [user]);
 
   const roleBoxes = {
     admin: [
@@ -110,11 +110,11 @@ useEffect(() => {
         icon: "supervisor-account",
         screen: "ManageOwnStoreManagersScreen",
       },
-      { 
-        title: "View Tasks", 
-        icon: "assignment", 
-        screen: "ViewTasksScreen" 
-      },
+      // { 
+      //   title: "View Tasks", 
+      //   icon: "assignment", 
+      //   screen: "ViewTasksScreen" 
+      // },
     ],
     store: [
       {
@@ -132,7 +132,7 @@ useEffect(() => {
         icon: "supervisor-account",
         screen: "ManageOwnStoreManagersScreen",
       },
-      { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
+      // { title: "View Tasks", icon: "assignment", screen: "ViewTasksScreen" },
     ],
   };
 
@@ -153,7 +153,8 @@ useEffect(() => {
         <View style={styles.userContainer}>
           {/* <MaterialIcons name="account-circle" size={45} color="#fff" /> */}
           <Text style={styles.welcomeText}>
-            Welcome, {user?.name || "User"}
+            Hey, Welcome!
+            {/* Welcome, {user?.name || "User"} */}
           </Text>
         </View>
       </LinearGradient>

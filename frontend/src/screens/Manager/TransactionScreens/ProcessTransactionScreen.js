@@ -42,6 +42,7 @@ export default function ProcessTransactionScreen({ navigation }) {
         const cred = await AsyncStorage.getItem("credentialStatus");
 
         setCalibrationStatus(calib || "Pending");
+        // setCalibrationStatus("Completed");
         setCredentialStatus(cred || "Pending");
       };
 

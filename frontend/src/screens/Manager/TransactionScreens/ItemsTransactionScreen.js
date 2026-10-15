@@ -39,12 +39,23 @@ export default function ItemsTransactionScreen({ navigation, route }) {
   const [loading, setLoading] = useState(false);
   const [enterWeight, setEnterWeight] = useState("");
 
+  const [materialRateId, setMaterialRateId] = useState("");
+
   const [itemsList, setItemsList] = useState([]);
   const [itemsLoading, setItemsLoading] = useState(true);
 
   const [materialTypesAndRates, setMaterialTypesAndRates] = useState([]);
 
   const { region } = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+
+  const vendorId = user?.vendor || "";
+
+  // if(user?.role === "manager"){
+  //   setVendor(user?.vendor);
+  // }else if(user?.role === "store"){
+  // setVendor(user?.vendor);
+  // }
 
   const [token, setToken] = useState(null);
 
@@ -117,7 +128,6 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     }
   };
 
-  // Ask camera permission on mount
   useEffect(() => {
     (async () => {
       try {
@@ -132,9 +142,10 @@ export default function ItemsTransactionScreen({ navigation, route }) {
 
   const fetchMaterialTypesAndRates = async () => {
     try {
-      const res = await api.get(`/auth/get-regional-materials/${region}`);
+      const res = await api.get(`/auth/get-regional-materials/${region}/${vendorId}`);
       if (res.data?.success) {
         setMaterialTypesAndRates(res.data.materials);
+        setMaterialRateId(res.data.materialRateId);
       }
     } catch (e) {
       console.log("Fetch material types error:", e);
@@ -202,7 +213,6 @@ export default function ItemsTransactionScreen({ navigation, route }) {
     }
   };
 
-  // Add item to backend
   const handleAddItem = async () => {
     if (!token) {
       setAlertMessage("Please login again.");
@@ -222,7 +232,6 @@ export default function ItemsTransactionScreen({ navigation, route }) {
       return;
     }
 
-    // Determine weight and source
     let weight = "";
     let weightSource = "";
 

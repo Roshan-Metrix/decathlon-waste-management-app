@@ -11,19 +11,26 @@ import { MaterialIcons } from "@expo/vector-icons";
 import Alert from "../../../Components/Alert";
 import api from "../../../api/api";
 import { ActivityIndicator } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
+import { useEffect } from "react";
 
 export default function AddRegionScreen({ navigation }) {
   const [stateName, setStateName] = useState("");
-  const [materials, setMaterials] = useState([{ materialTypeVendor: "",materialTypeAdmin: "", rate: "" }]);
+  const [materials, setMaterials] = useState([{ materialType: "", rate: "" }]);
 
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
   const [loading, setLoading] = useState(false);
 
+  const [vendorOpen, setVendorOpen] = useState(false);
+  const [vendor, setVendor] = useState(null);
+  const [vendorsName, setVendorsName] = useState([]);
+  const [vendorLoading, setVendorLoading] = useState(false);
+
   // Add new material row
   const addMaterialField = () => {
-    setMaterials([...materials, { materialTypeVendor: "",materialTypeAdmin: "", rate: "" }]);
+    setMaterials([...materials, { materialType: "", rate: "" }]);
   };
 
   // Handle material change
@@ -47,10 +54,9 @@ export default function AddRegionScreen({ navigation }) {
     }
 
     const formattedMaterials = materials
-      .filter((m) => m.materialTypeVendor && m.materialTypeAdmin && m.rate)
+      .filter((m) => m.materialType && m.rate)
       .map((m) => ({
-        materialTypeVendor: m.materialTypeVendor.trim(),
-        materialTypeAdmin: m.materialTypeAdmin.trim(),
+        materialType: m.materialType.trim(),
         rate: Number(m.rate),
       }));
 
@@ -65,6 +71,7 @@ export default function AddRegionScreen({ navigation }) {
 
       const payload = {
         state: stateName.trim(),
+        vendorName: vendor,
         materials: formattedMaterials,
       };
 
@@ -76,7 +83,7 @@ export default function AddRegionScreen({ navigation }) {
 
         // Reset form
         setStateName("");
-        setMaterials([{ materialTypeVendor: "",materialTypeAdmin: "",rate: "" }]);
+        setMaterials([{ materialType: "", rate: "" }]);
       } else {
         setAlertMessage(response.data.message || "Something went wrong");
         setAlertVisible(true);
@@ -91,6 +98,30 @@ export default function AddRegionScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  const fetchVendors = async () => {
+    try {
+      setVendorLoading(true);
+      const res = await api.get("/vendor/get-all-vendors");
+
+      if (res.data?.success && Array.isArray(res.data.vendors)) {
+        const vendors = res.data.vendors.map((v) => ({
+          label: v.name,
+          value: v.name,
+        }));
+
+        setVendorsName(vendors);
+      }
+    } catch (error) {
+      console.log("Fetch Vendor Error:", error.message);
+    } finally {
+      setVendorLoading(false);
+    }
+  };
+
+    useEffect(() => {
+      fetchVendors();
+    }, []);
 
   return (
     <View style={styles.container}>
@@ -123,6 +154,26 @@ export default function AddRegionScreen({ navigation }) {
           />
         </View>
 
+        <View style={[styles.inputRow, styles.vendorRow]}>
+          <MaterialIcons name="manage-accounts" size={22} color="#2563eb" />
+          <DropDownPicker
+            open={vendorOpen}
+            value={vendor}
+            items={vendorsName}
+            setOpen={setVendorOpen}
+            setValue={setVendor}
+            setItems={setVendorsName}
+            placeholder={vendorLoading ? "Loading vendors..." : "Select Vendor"}
+            loading={vendorLoading}
+            listMode="SCROLLVIEW"
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdownContainer}
+            textStyle={styles.dropdownText}
+            animationType="slide"
+            arrowIconContainerStyle={styles.arrowIconContainer}
+          />
+        </View>
+
         {/* Materials Section */}
         <Text style={styles.sectionTitle}>Materials</Text>
 
@@ -132,24 +183,11 @@ export default function AddRegionScreen({ navigation }) {
               <MaterialIcons name="category" size={22} color="#2563eb" />
               <TextInput
                 style={styles.input}
-                placeholder="Material Type - Vendor"
+                placeholder="Material Type"
                 placeholderTextColor="#7e7c7c"
-                value={item.materialTypeVendor}
+                value={item.materialType}
                 onChangeText={(text) =>
-                  handleMaterialChange(index, "materialTypeVendor", text)
-                }
-              />
-            </View>
-
-            <View style={styles.inputBox}>
-              <MaterialIcons name="category" size={22} color="#2563eb" />
-              <TextInput
-                style={styles.input}
-                placeholder="Material Type - Decathlon"
-                placeholderTextColor="#7e7c7c"
-                value={item.materialTypeAdmin}
-                onChangeText={(text) =>
-                  handleMaterialChange(index, "materialTypeAdmin", text)
+                  handleMaterialChange(index, "materialType", text)
                 }
               />
             </View>
@@ -266,6 +304,49 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#1e40af",
     marginBottom: 10,
+  },
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderWidth: 1,
+    borderColor: "#ddd",
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    borderRadius: 10,
+    position: "relative",
+    width: "100%",
+  },
+
+  regionRow: { zIndex: 2000 },
+  vendorRow: { zIndex: 1000 },
+
+  dropdown: {
+    flex: 1,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    minHeight: 40,
+  },
+
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    width: "96%",
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+  },
+
+  dropdownText: {
+    fontSize: 15,
+    color: "#333",
+  },
+
+  arrowIconContainer: {
+    marginRight: 10,
   },
   materialCard: {
     backgroundColor: "#eaf0ff",

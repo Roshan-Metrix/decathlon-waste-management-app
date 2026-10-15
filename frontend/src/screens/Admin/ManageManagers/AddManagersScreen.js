@@ -118,6 +118,7 @@ export default function AddManagersScreen({ navigation }) {
       setEmail("");
       setPassword(generatePassword());
       setAdminEmail("");
+      setStoreId("");
       setAdminPassword("");
       setShowPopup(false);
     } catch (err) {

@@ -66,7 +66,6 @@ export default function ShowAllTransaction({ route, navigation }) {
   }, []);
 
   useEffect(() => {
-    // dropdown open/close
     Animated.timing(animHeight, {
       toValue: sortOpen ? 1 : 0,
       duration: 240,

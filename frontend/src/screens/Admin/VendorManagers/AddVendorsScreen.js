@@ -17,6 +17,7 @@ import * as Clipboard from "expo-clipboard";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 import { generatePassword } from "../../../lib/generatePassword";
+import DropDownPicker from "react-native-dropdown-picker";
 
 export default function AddVendorsScreen({ navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
@@ -30,15 +31,21 @@ export default function AddVendorsScreen({ navigation }) {
 
   const [showPopup, setShowPopup] = useState(false);
 
+  // Dropdown
+  const [open, setOpen] = useState(false);
+  const [state, setState] = useState(null);
+  const [regionItems, setRegionItems] = useState([]);
+  const [regionsLoading, setRegionsLoading] = useState(false);
+
   // Verifier admin fields
   const [adminEmail, setAdminEmail] = useState("");
   const [adminPassword, setAdminPassword] = useState("");
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
-  // Auto-generate password on screen open
   useEffect(() => {
     setPassword(generatePassword());
+    fetchRegions();
   }, []);
 
   // Blink animation
@@ -64,9 +71,28 @@ export default function AddVendorsScreen({ navigation }) {
     setAlertVisible(true);
   };
 
-  // Press Create -> show popup
+  const fetchRegions = async () => {
+    try {
+      setRegionsLoading(true);
+      const { data } = await api.get("/auth/get-regions");
+
+      if (data.success) {
+        const formatted = data.regions.map((r) => ({
+          label: r,
+          value: r,
+        }));
+
+        setRegionItems(formatted);
+      }
+    } catch (error) {
+      console.log("Fetch Regions Error:", error.message);
+    } finally {
+      setRegionsLoading(false);
+    }
+  };
+
   const handleCreate = () => {
-    if (!name || !email) {
+    if (!name || !email || !state || !vendorLocation || !contactNumber) {
       setAlertMessage("Please fill all fields");
       setAlertVisible(true);
       return;
@@ -102,9 +128,10 @@ export default function AddVendorsScreen({ navigation }) {
       const registerRes = await api.post("/vendor/register", {
         name,
         email,
+        password,
+        state,
         vendorLocation,
         contactNumber,
-        password,
       });
 
       if (!registerRes.data.success) {
@@ -112,7 +139,7 @@ export default function AddVendorsScreen({ navigation }) {
         setAlertMessage(registerRes.data.message);
         setAlertVisible(true);
         return;
-      }else {
+      } else {
         setAlertMessage("Vendor created successfully!");
         setAlertVisible(true);
       }
@@ -121,6 +148,9 @@ export default function AddVendorsScreen({ navigation }) {
       setName("");
       setEmail("");
       setPassword(generatePassword());
+      setContactNumber("");
+      setState("");
+      setVendorLocation("");
       setAdminEmail("");
       setAdminPassword("");
       setShowPopup(false);
@@ -158,7 +188,7 @@ export default function AddVendorsScreen({ navigation }) {
         >
           {/* Icon */}
           <View style={styles.iconCircle}>
-            <MaterialIcons name="person-add" size={53} color="#2563eb" />
+            <MaterialIcons name="person-add" size={50} color="#2563eb" />
           </View>
 
           <Text style={styles.title}>Create New Vendor</Text>
@@ -198,6 +228,28 @@ export default function AddVendorsScreen({ navigation }) {
                 placeholderTextColor="#7e7c7c"
                 value={vendorLocation}
                 onChangeText={setVendorLocation}
+              />
+            </View>
+
+            <View style={styles.inputWrapper}>
+              <MaterialIcons name="location-city" size={22} color="#2563eb" />
+              <DropDownPicker
+                open={open}
+                value={state}
+                items={regionItems}
+                setOpen={setOpen}
+                setValue={setState}
+                setItems={setRegionItems}
+                placeholder={
+                  regionsLoading ? "Loading regions..." : "Select Region"
+                }
+                loading={regionsLoading}
+                listMode="SCROLLVIEW"
+                style={styles.dropdown}
+                dropDownContainerStyle={styles.dropdownContainer}
+                textStyle={styles.dropdownText}
+                animationType="slide"
+                arrowIconContainerStyle={styles.arrowIconContainer}
               />
             </View>
 
@@ -324,14 +376,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e7ff",
     padding: 20,
     borderRadius: 100,
-    marginBottom: 10,
+    marginBottom: 5,
   },
 
   title: {
     fontSize: 18,
     fontWeight: "600",
     color: "#111",
-    marginBottom: 25,
+    marginBottom: 13,
   },
 
   form: { width: "100%", gap: 16 },
@@ -369,6 +421,34 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#2563eb",
+  },
+
+  dropdown: {
+    flex: 1,
+    borderWidth: 0,
+    backgroundColor: "transparent",
+    minHeight: 40,
+  },
+
+  dropdownContainer: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 10,
+    backgroundColor: "#fff",
+    width: "94%",
+    elevation: 0,
+    shadowColor: "transparent",
+    shadowOpacity: 0,
+    shadowRadius: 0,
+  },
+
+  dropdownText: {
+    fontSize: 15,
+    color: "#333",
+  },
+
+  arrowIconContainer: {
+    marginRight: 16,
   },
 
   createBtn: {

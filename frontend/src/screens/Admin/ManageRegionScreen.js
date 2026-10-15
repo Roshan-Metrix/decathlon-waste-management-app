@@ -56,7 +56,7 @@ export default function ManageRegionScreen({ navigation }) {
             title="Add New Region"
             description="Create a new region and assign initial material type and rates."
             iconName="add-location"
-            iconColor="#22c55e" 
+            iconColor="#22c55e"
             onPress={() => navigation.navigate("AddRegionScreen")}
           />
 
@@ -131,8 +131,8 @@ const styles = StyleSheet.create({
   // --- Hero Section ---
   heroSection: {
     alignItems: "center",
-    paddingVertical: 20,
-    marginBottom: 10,
+    paddingVertical: 5,
+    marginBottom: 5,
   },
   iconCircle: {
     backgroundColor: "#dbeafe",
@@ -161,14 +161,14 @@ const styles = StyleSheet.create({
   // --- Action Cards Container ---
   actionsContainer: {
     width: "100%",
-    paddingTop: 10,
+    paddingTop: 5,
     gap: 12,
   },
   actionSectionTitle: {
     fontSize: 16,
     fontWeight: "700",
     color: "#4b5563",
-    marginBottom: 8,
+    marginBottom: 5,
     marginLeft: 5,
   },
   // --- New Callout Box Style ---
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#e0e7ff",
     padding: 16,
     borderRadius: 12,
-    marginTop: 40,
+    marginTop: 20,
     borderLeftWidth: 4,
     borderLeftColor: "#1e40af",
     width: "100%",

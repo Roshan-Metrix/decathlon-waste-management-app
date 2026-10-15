@@ -45,7 +45,7 @@ app.get('/',(req,res) => {
 })
 
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Server is healthy' });
+    res.status(200).json({ status: 'ok', message: 'Server is healthy' });
 });
 
 app.use('/api/v1/auth', apiLimiter, authRouter)

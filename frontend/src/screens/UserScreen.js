@@ -65,7 +65,6 @@ useEffect(() => {
       {
         title: "Data Analysis",
         icon: "query-stats",
-        // screen: "ViewAllStoresScreen",
         screen: "DataAnalysisScreen",
       },
       {
@@ -88,11 +87,11 @@ useEffect(() => {
         icon: "location-city",
         screen: "ManageRegionScreen",
       },
-      // {
-      //   title: "Notify Stores",
-      //   icon: "notifications",
-      //   screen: "NotifyStoresScreen",
-      // },
+      {
+        title: "Materials Mapping",
+        icon: "route",
+        screen: "MaterialMappingScreen",
+      },
     ],
 
     manager: [

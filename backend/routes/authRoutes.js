@@ -1,7 +1,7 @@
 import express from 'express';
 import {loginUser,logoutUser, getLoggedInUserDetails, sendPasswordResetOtp, resetPassword, registerAdmin, registerStore, registerManager, changePassword, restrictAnyAdminAccess } from '../controllers/authController.js';
 import authMiddleware from '../middlewares/authMiddleware.js';
-import { addMaterialTypeAndRate, deleteRegion, getAllAdmins, getAllMaterialsWithRate, getAllRegions } from '../controllers/adminController.js';
+import { addMaterialMapping, addMaterialTypeAndRate, deleteMaterialMapping, deleteRegion, getAllAdmins, getAllMaterialsWithRate, getAllRegions, getMaterialMapping } from '../controllers/adminController.js';
 import { deleteManager, getAllManagers, getManagerProfile, getParticularStoreManagers } from '../controllers/managerController.js';
 import adminMiddleware from '../middlewares/adminMiddleware.js';
 import { deleteStore, editStoreDetails, getAllStores, getStoreProfile} from '../controllers/storeController.js';

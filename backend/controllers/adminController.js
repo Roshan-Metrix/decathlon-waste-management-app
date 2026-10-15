@@ -282,7 +282,7 @@ export const addMaterialMapping = async (req, res) => {
     }
 
     const vendorExists = await vendorModel
-      .findOne({ name: vendor.trim() })
+      .findById(vendor.trim())
       .select("_id")
       .lean();
 
@@ -317,7 +317,7 @@ export const addMaterialMapping = async (req, res) => {
 
     const mapping = await materialMappingModel.findOneAndUpdate(
       {
-        materialRateID: materialRate._id,
+        materialRateId: materialRate._id,
       },
       {
         $set: {
@@ -325,7 +325,7 @@ export const addMaterialMapping = async (req, res) => {
           createdBy: adminId,
         },
         $setOnInsert: {
-          materialRateID: materialRate._id,
+          materialRateId: materialRate._id,
         },
       },
       {
@@ -354,8 +354,10 @@ export const addMaterialMapping = async (req, res) => {
 export const getMaterialMapping = async (req, res) => {
   const { region, vendor } = req.params;
 
+  const vendorId = vendor;
+
   try {
-    if (!region || !vendor) {
+    if (!region || !vendorId) {
       return res.status(400).json({
         success: false,
         message: "Region and vendor are required.",
@@ -363,11 +365,7 @@ export const getMaterialMapping = async (req, res) => {
     }
 
     const vendorExists = await vendorModel
-      .findOne({
-        name: vendor.trim(),
-      })
-      .select("_id name")
-      .lean();
+      .findById(vendorId).select("_id name").lean();
 
     if (!vendorExists) {
       return res.status(404).json({
@@ -393,12 +391,15 @@ export const getMaterialMapping = async (req, res) => {
       });
     }
 
+    console.log(materialRate._id);
+
     const materialMapping = await materialMappingModel
       .findOne({
-        materialRateID: materialRate._id,
+        materialRateId: materialRate._id,
       })
       .select("materialRateID materials createdBy createdAt updatedAt")
       .lean();
+
 
     // No mapping has been created yet
     if (!materialMapping) {
@@ -438,8 +439,10 @@ export const getMaterialMapping = async (req, res) => {
 export const deleteMaterialMapping = async (req, res) => {
   const { region, vendor } = req.params;
 
+  const vendorId = vendor;
+
   try {
-    if (!region || !vendor) {
+    if (!region || !vendorId) {
       return res.status(400).json({
         success: false,
         message: "Region and vendor are required.",
@@ -447,10 +450,7 @@ export const deleteMaterialMapping = async (req, res) => {
     }
 
     const vendorExists = await vendorModel
-      .findOne({
-        name: vendor.trim(),
-      })
-      .select("_id")
+      .findById(vendorId).select("_id")
       .lean();
 
     if (!vendorExists) {
@@ -468,6 +468,8 @@ export const deleteMaterialMapping = async (req, res) => {
       .select("_id")
       .lean();
 
+      console.log(materialRate)
+
     if (!materialRate) {
       return res.status(404).json({
         success: false,
@@ -478,7 +480,7 @@ export const deleteMaterialMapping = async (req, res) => {
 
     // Delete the complete mapping document
     const deletedMapping = await materialMappingModel.findOneAndDelete({
-      materialRateID: materialRate._id,
+      materialRateId: materialRate._id,
     });
 
     if (!deletedMapping) {

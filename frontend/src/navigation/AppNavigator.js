@@ -14,7 +14,6 @@ import ChangePasswordScreen from "../screens/ChangePasswordScreen";
 
 // Admin Screens
 import ManageStoresScreen from "../screens/Admin/ManageStoresScreen";
-// import NotifyStoresScreen from "../screens/Admin/NotifyStoresScreen";
 import ManageManagerScreen from "../screens/Admin/ManageManagerScreen";
 import ManageAdminScreen from "../screens/Admin/ManageAdminScreen";
 import ViewOtherAdminsScreen from "../screens/Admin/ManageAdmins/ViewOtherAdminsScreen";
@@ -36,6 +35,10 @@ import RemoveRegionScreen from "../screens/Admin/ManageRegions/RemoveRegionScree
 import ViewRegionScreen from "../screens/Admin/ManageRegions/ViewRegionScreen";
 import EditMaterialsRateScreen from "../screens/Admin/ManageRegions/EditMaterialsRateScreen";
 import DataAnalysisScreen from "../screens/Admin/DataAnalysis/DataAnalysisScreen";
+import MaterialMappingScreen from "../screens/Admin/MaterialMappingScreen";
+import AddMaterialMappingScreen from "../screens/Admin/ManageMappings/AddMaterialMappingScreen";
+import ViewMaterialMappingScreen from "../screens/Admin/ManageMappings/ViewMaterialMappingScreen";
+import RemoveMaterialMappingScreen from "../screens/Admin/ManageMappings/RemoveMaterialMappingScreen";
 
 // Manager Screens
 import ExportDataScreen from "../screens/Manager/ExportDataScreen";
@@ -89,28 +92,39 @@ if (loading) return <LoadingScreen />;
             <Stack.Screen name="ChangePasswordScreen" component={ChangePasswordScreen} />
 
             {/* Admin Screens */}
+            <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
+            <Stack.Screen name="ManageAdminScreen" component={ManageAdminScreen} />
+            <Stack.Screen name="ViewOtherAdminsScreen" component={ViewOtherAdminsScreen} />
+            <Stack.Screen name="RestrictAdminAccessScreen" component={RestrictAdminAccessScreen} />
+
             <Stack.Screen name="AddStoreScreen" component={AddStoreScreen} />
             <Stack.Screen name="ManageStoresScreen" component={ManageStoresScreen} />
+            <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
+            <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />
+
             <Stack.Screen name="ManageManagerScreen" component={ManageManagerScreen} />
-            <Stack.Screen name="ManageAdminScreen" component={ManageAdminScreen} />
-            {/* <Stack.Screen name="NotifyStoresScreen" component={NotifyStoresScreen} /> */}
-            <Stack.Screen name="ViewOtherAdminsScreen" component={ViewOtherAdminsScreen} />
-            <Stack.Screen name="AddAdminsScreen" component={AddAdminsScreen} />
             <Stack.Screen name="AddManagersScreen" component={AddManagersScreen} />
             <Stack.Screen name="ViewManagersScreen" component={ViewManagersScreen} />
             <Stack.Screen name="RemoveManagersScreen" component={RemoveManagersScreen} />
-            <Stack.Screen name="RemoveStoresScreen" component={RemoveStoresScreen} />
-            <Stack.Screen name="ViewAllStoresScreen" component={ViewAllStoresScreen} />
+
             <Stack.Screen name="ManageVendorScreen" component={ManageVendorScreen} />
-            <Stack.Screen name="AddVendorsScreen" component={AddVendorsScreen} />
             <Stack.Screen name="ViewVendorsScreen" component={ViewVendorsScreen} />
+            <Stack.Screen name="AddVendorsScreen" component={AddVendorsScreen} />
             <Stack.Screen name="RemoveVendorsScreen" component={RemoveVendorsScreen} />
-            <Stack.Screen name="RestrictAdminAccessScreen" component={RestrictAdminAccessScreen} />
+
             <Stack.Screen name="ManageRegionScreen" component={ManageRegionScreen} />
             <Stack.Screen name="AddRegionScreen" component={AddRegionScreen} />
             <Stack.Screen name="ViewRegionScreen" component={ViewRegionScreen} />
             <Stack.Screen name="RemoveRegionScreen" component={RemoveRegionScreen} />
+
             <Stack.Screen name="EditMaterialsRateScreen" component={EditMaterialsRateScreen} />
+
+            <Stack.Screen name="MaterialMappingScreen" component={MaterialMappingScreen} />
+            <Stack.Screen name="AddMaterialMappingScreen" component={AddMaterialMappingScreen} />
+            <Stack.Screen name="ViewMaterialMappingScreen" component={ViewMaterialMappingScreen} />
+            <Stack.Screen name="RemoveMaterialMappingScreen" component={RemoveMaterialMappingScreen} />
+
+
             <Stack.Screen name="DataAnalysisScreen" component={DataAnalysisScreen} />
 
             {/* Manager & Store Screens */}

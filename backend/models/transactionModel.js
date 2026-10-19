@@ -86,6 +86,31 @@ const transactionSchema = new mongoose.Schema(
       ref: "materialRate",
     },
     items: [itemSchema],
+
+    total: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    receivable: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    payable: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
+    net: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,

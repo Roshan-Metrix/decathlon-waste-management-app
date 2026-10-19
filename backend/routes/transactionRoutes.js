@@ -8,7 +8,9 @@ import {
   SelectedTransactionItemsController,
   StoreTotalTransactionController,
   TransactionCalibrationController,
+  TransactionInvoiceController,
   TransactionItemsController,
+  TransactionSummaryController,
 } from "../controllers/transactionController.js";
 import multer from "multer";
 import adminMiddleware from "../middlewares/adminMiddleware.js";
@@ -23,7 +25,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 // For App transaction routes
 
 transactionRouter.get("/", (req, res) => {
-  res.status(200).json({status:'OK', message:'Transaction Endpoint Running...'});
+  res.status(200).json({ status: 'OK', message: 'Transaction Endpoint Running...' });
 });
 
 transactionRouter.post(
@@ -95,5 +97,16 @@ transactionRouter.get(
   getStoreTotalWeightsByDates,
 );
 
+transactionRouter.get(
+  "/transaction-summary",
+  adminMiddleware,
+  TransactionSummaryController
+)
+
+transactionRouter.get(
+  "/transaction-invoice",
+  adminMiddleware,
+  TransactionInvoiceController
+)
 
 export default transactionRouter;

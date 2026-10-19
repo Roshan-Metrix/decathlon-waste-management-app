@@ -37,7 +37,7 @@ export const AddTransactionDetailController = async (req, res) => {
 
     const transactionId = await generateTransactionId(storeId);
 
-    const vendorId = await vendorModel.findOne({name: vendorName}).select("_id").lean();
+    const vendorId = await vendorModel.findOne({ name: vendorName }).select("_id").lean();
 
     const materialId = await materialRateModel.findOne({ vendor: vendorId }).select("_id").lean();
 
@@ -82,11 +82,136 @@ export const AddTransactionDetailController = async (req, res) => {
   }
 };
 
+// export const TransactionItemsController = async (req, res) => {
+//   try {
+//     const { transactionId } = req.params;
+//     const { materialType, weight, weightSource, materialRate, materialRateId } = req.body;
+
+//     const imageFile = req.file;
+
+//     if (!materialType) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Material Type is required",
+//       });
+//     }
+
+//     if (!imageFile) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Item image is required",
+//       });
+//     }
+
+//     if (!weight) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Weight is required",
+//       });
+//     }
+
+//     if (!weightSource || !["manually", "system"].includes(weightSource)) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "weightSource must be 'manually' or 'system'",
+//       });
+//     }
+
+//     // Get transaction details
+//     const transactionMeta = await transactionModel
+//       .findOne({ transactionId })
+//       .select("calibration.error items.itemNo")
+//       .lean();
+
+//     if (!transactionMeta) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Transaction not found",
+//       });
+//     }
+
+//     // Calculate corrected weight
+//     const positiveWeight = Math.abs(Number(weight) || 0);
+//     const calibrationError = Number(transactionMeta.calibration?.error || 0);
+
+//     const finalWeight = parseFloat(
+//       (positiveWeight - calibrationError).toFixed(3)
+//     );
+
+//     const nextItemNo = (transactionMeta.items?.length || 0) + 1;
+
+//     // Upload image to S3
+
+//     const extension =
+//       imageFile.originalname.split(".").pop() ||
+//       imageFile.mimetype.split("/")[1] ||
+//       "jpg";
+
+//     const imageKey = `transactions/${transactionId}/items/item-${nextItemNo}-${crypto.randomUUID()}.${extension}`;
+
+//     await s3.send(
+//       new PutObjectCommand({
+//         Bucket: process.env.AWS_BUCKET,
+//         Key: imageKey,
+//         Body: imageFile.buffer,
+//         ContentType: imageFile.mimetype,
+//       })
+//     );
+
+//     // Saving in MongoDB
+
+//     const updatedTransaction = await transactionModel
+//       .findOneAndUpdate(
+//         { transactionId },
+//         {
+//           $push: {
+//             materialRateId: materialRateId,
+//             items: {
+//               itemNo: nextItemNo,
+//               materialType,
+//               materialRate: Number(materialRate) || 0,
+//               image: imageKey, // Save S3 key
+//               weight: finalWeight,
+//               weightSource,
+//             },
+//           },
+//         },
+//         {
+//           new: true,
+//           select: "items",
+//         }
+//       )
+//       .lean();
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "Item added successfully",
+//       items: updatedTransaction.items,
+//     });
+
+//   } catch (error) {
+//     console.error("Error in TransactionItemsController:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Internal Server Error",
+//     });
+//   }
+// };
+
+
 // Add Transaction Items Controller --
 export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
-    const { materialType, weight, weightSource, materialRate, materialRateId } = req.body;
+
+    const {
+      materialType,
+      weight,
+      weightSource,
+      materialRate,
+      materialRateId,
+    } = req.body;
 
     const imageFile = req.file;
 
@@ -104,21 +229,41 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
-    if (!weight) {
+    if (
+      weight === undefined ||
+      weight === null ||
+      weight === "" ||
+      !Number.isFinite(Number(weight)) ||
+      Number(weight) <= 0
+    ) {
       return res.status(400).json({
         success: false,
-        message: "Weight is required",
+        message: "A valid positive weight is required",
       });
     }
 
-    if (!weightSource || !["manually", "system"].includes(weightSource)) {
+    if (
+      materialRate === undefined ||
+      materialRate === null ||
+      materialRate === "" ||
+      !Number.isFinite(Number(materialRate))
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "A valid material rate is required",
+      });
+    }
+
+    if (
+      !weightSource ||
+      !["manually", "system"].includes(weightSource)
+    ) {
       return res.status(400).json({
         success: false,
         message: "weightSource must be 'manually' or 'system'",
       });
     }
 
-    // Get transaction details
     const transactionMeta = await transactionModel
       .findOne({ transactionId })
       .select("calibration.error items.itemNo")
@@ -131,24 +276,40 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
-    // Calculate corrected weight
-    const positiveWeight = Math.abs(Number(weight) || 0);
-    const calibrationError = Number(transactionMeta.calibration?.error || 0);
+    const positiveWeight = Math.abs(Number(weight));
 
-    const finalWeight = parseFloat(
+    const calibrationError = Number(
+      transactionMeta.calibration?.error || 0
+    );
+
+    const finalWeight = Number(
       (positiveWeight - calibrationError).toFixed(3)
     );
 
-    const nextItemNo = (transactionMeta.items?.length || 0) + 1;
+    if (!Number.isFinite(finalWeight) || finalWeight <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Corrected weight must be greater than zero",
+      });
+    }
 
-    // Upload image to S3
+    const nextItemNo =
+      (transactionMeta.items?.length || 0) + 1;
+
+    const rate = Number(materialRate);
+
+    const itemAmount = Number(
+      (rate * finalWeight).toFixed(2)
+    );
 
     const extension =
       imageFile.originalname.split(".").pop() ||
       imageFile.mimetype.split("/")[1] ||
       "jpg";
 
-    const imageKey = `transactions/${transactionId}/items/item-${nextItemNo}-${crypto.randomUUID()}.${extension}`;
+    const imageKey =
+      `transactions/${transactionId}/items/` +
+      `item-${nextItemNo}-${crypto.randomUUID()}.${extension}`;
 
     await s3.send(
       new PutObjectCommand({
@@ -159,39 +320,87 @@ export const TransactionItemsController = async (req, res) => {
       })
     );
 
-    // Saving in MongoDB
+    const updateFields = {};
 
-    const updatedTransaction = await transactionModel
-      .findOneAndUpdate(
-        { transactionId },
-        {
-          $push: {
-            materialRateId: materialRateId,
-            items: {
-              itemNo: nextItemNo,
-              materialType,
-              materialRate: Number(materialRate) || 0,
-              image: imageKey, // Save S3 key
-              weight: finalWeight,
-              weightSource,
-            },
+    if (materialRateId) {
+      updateFields.materialRateId = materialRateId;
+    }
+
+    const updatedTransaction = await transactionModel.findOneAndUpdate(
+      { transactionId },
+      {
+        $push: {
+          items: {
+            itemNo: nextItemNo,
+            materialType,
+            materialRate: rate,
+            image: imageKey,
+            weight: finalWeight,
+            weightSource,
           },
         },
-        {
-          new: true,
-          select: "items",
-        }
-      )
-      .lean();
+        ...(Object.keys(updateFields).length > 0
+          ? { $set: updateFields }
+          : {}),
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedTransaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    let total = 0;
+    let receivable = 0;
+    let payable = 0;
+
+    for (const item of updatedTransaction.items) {
+      const amount = Number(
+        (Number(item.materialRate) * Number(item.weight)).toFixed(2)
+      );
+
+      total += amount;
+
+      if (amount > 0) {
+        receivable += amount;
+      } else if (amount < 0) {
+        payable += Math.abs(amount);
+      }
+    }
+
+    total = Number(total.toFixed(2));
+    receivable = Number(receivable.toFixed(2));
+    payable = Number(payable.toFixed(2));
+
+    const net = Number(
+      (receivable - payable).toFixed(2)
+    );
+
+    updatedTransaction.total = total;
+    updatedTransaction.receivable = receivable;
+    updatedTransaction.payable = payable;
+    updatedTransaction.net = net;
+
+    await updatedTransaction.save();
 
     return res.status(200).json({
       success: true,
       message: "Item added successfully",
-      items: updatedTransaction.items,
+      itemAmount,
+      items: updatedTransaction.items
     });
 
   } catch (error) {
-    console.error("Error in TransactionItemsController:", error);
+    console.error(
+      "Error in TransactionItemsController:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -199,6 +408,7 @@ export const TransactionItemsController = async (req, res) => {
     });
   }
 };
+
 
 export const recognizeWithGeminiController = async (req, res) => {
   try {
@@ -414,16 +624,16 @@ export const ParticularTransactionController = async (req, res) => {
 
       items: Array.isArray(txn.items)
         ? txn.items.map((item) => ({
-            itemNo: item.itemNo,
-            materialType: item.materialType,
-            materialRate: item.materialRate,
-            image: getImageUrl(item.image) || null,
-            weight: item.weight,
-            weightSource: item.weightSource,
-            aiWeight: item.aiWeight,
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt,
-          }))
+          itemNo: item.itemNo,
+          materialType: item.materialType,
+          materialRate: item.materialRate,
+          image: getImageUrl(item.image) || null,
+          weight: item.weight,
+          weightSource: item.weightSource,
+          aiWeight: item.aiWeight,
+          createdAt: item.createdAt,
+          updatedAt: item.updatedAt,
+        }))
         : [],
       createdAt: txn.createdAt,
       updatedAt: txn.updatedAt,
@@ -478,7 +688,7 @@ export const AllTransactionsController = async (req, res) => {
     }
 
 
-    const totalCount = await transactionModel.estimatedDocumentCount(); 
+    const totalCount = await transactionModel.estimatedDocumentCount();
 
     const formattedTransactions = transactions.map((txn) => ({
       transactionId: txn.transactionId,
@@ -555,6 +765,275 @@ export const SelectedTransactionItemsController = async (req, res) => {
 
   } catch (error) {
     console.error("Error in SelectedTransactionItemsController:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// Transaction Summary Controller
+export const TransactionSummaryController = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+
+    const matchStage = {};
+
+    if ((from && !to) || (!from && to)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both 'from' and 'to' dates.",
+      });
+    }
+
+    if (from && to) {
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!datePattern.test(from) || !datePattern.test(to)) {
+        return res.status(400).json({
+          success: false,
+          message: "Dates must use YYYY-MM-DD format.",
+        });
+      }
+
+      const startDate = new Date(`${from}T00:00:00.000Z`);
+      const endDate = new Date(`${to}T00:00:00.000Z`);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(endDate.getTime()) ||
+        startDate.toISOString().slice(0, 10) !== from ||
+        endDate.toISOString().slice(0, 10) !== to
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid date. Please provide valid calendar dates.",
+        });
+      }
+
+      if (startDate > endDate) {
+        return res.status(400).json({
+          success: false,
+          message: "'from' date cannot be later than 'to' date.",
+        });
+      }
+
+      const endExclusive = new Date(endDate);
+      endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+      matchStage.createdAt = {
+        $gte: startDate,
+        $lt: endExclusive,
+      };
+    }
+
+    const [summary] = await transactionModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $group: {
+          _id: null,
+          transactionCount: { $sum: 1 },
+          total: { $sum: { $ifNull: ["$total", 0] } },
+          receivable: { $sum: { $ifNull: ["$receivable", 0] } },
+          payable: { $sum: { $ifNull: ["$payable", 0] } },
+          net: { $sum: { $ifNull: ["$net", 0] } },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          transactionCount: 1,
+          total: { $round: ["$total", 2] },
+          receivable: { $round: ["$receivable", 2] },
+          payable: { $round: ["$payable", 2] },
+          net: { $round: ["$net", 2] },
+        },
+      },
+    ]);
+
+    const result = summary || {
+      transactionCount: 0,
+      total: 0,
+      receivable: 0,
+      payable: 0,
+      net: 0,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: from && to
+        ? "Transaction summary fetched for the selected date range."
+        : "Transaction summary fetched successfully.",
+      dateRange: from && to ? { from, to } : null,
+      summary: result,
+    });
+  } catch (error) {
+    console.error("Error in TransactionSummaryController:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};
+
+// Invoice Transaction Controller 
+export const TransactionInvoiceController = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+
+    const matchStage = {};
+
+    // Both dates must be provided together.
+    if ((from && !to) || (!from && to)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both 'from' and 'to' dates.",
+      });
+    }
+
+    if (from && to) {
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!datePattern.test(from) || !datePattern.test(to)) {
+        return res.status(400).json({
+          success: false,
+          message: "Dates must use YYYY-MM-DD format.",
+        });
+      }
+
+      const startDate = new Date(`${from}T00:00:00.000Z`);
+      const endDate = new Date(`${to}T00:00:00.000Z`);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(endDate.getTime()) ||
+        startDate.toISOString().slice(0, 10) !== from ||
+        endDate.toISOString().slice(0, 10) !== to
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid calendar dates.",
+        });
+      }
+
+      if (startDate > endDate) {
+        return res.status(400).json({
+          success: false,
+          message: "'from' date cannot be later than 'to' date.",
+        });
+      }
+
+      const endExclusive = new Date(endDate);
+      endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+      matchStage.createdAt = {
+        $gte: startDate,
+        $lt: endExclusive,
+      };
+    }
+
+    const groupedItems = await transactionModel.aggregate([
+      // Filter transactions before processing their items.
+      { $match: matchStage },
+
+      // One transaction may contain multiple items.
+      { $unwind: "$items" },
+
+      // Combine the same material across transactions
+      // belonging to the same store.
+      {
+        $group: {
+          _id: {
+            storeId: "$store.storeId",
+            materialType: "$items.materialType",
+          },
+          quantity: {
+            $sum: { $ifNull: ["$items.weight", 0] },
+          },
+        },
+      },
+
+      {
+        $sort: {
+          "_id.storeId": 1,
+          "_id.materialType": 1,
+        },
+      },
+    ]);
+
+    // Return the exact column names expected by the Excel template.
+    // Fields without a defined source are currently left blank.
+    const rows = groupedItems.map((item) => ({
+      "Cost Center": "",
+      "Store Code": item._id.storeId ?? "",
+      "gstin_of_consignee": "",
+      "legal_name_of_consignee": "",
+      "address1_of_consignee": "",
+      "address2_of_consignee": "",
+      "place_of_consignee": "",
+      "pincode_of_consignee": "",
+      "state_of_supply": "",
+      "document_number": "",
+      "document_date": "",
+      "ref_document_number": "",
+      "note_type": "",
+      "reason": "",
+      "original_document_number": "",
+      "original_document_date": "",
+      "po_number": "",
+      "order_dt": "",
+      "p_due_date": "",
+      "s_dt": "",
+      "item_code": "",
+      "payment_type": "",
+      "hsn_code": "",
+      "product_name_item": item._id.materialType ?? "",
+      "product_description_item": item._id.materialType ?? "",
+      "unit_of_product_item": "Kgs",
+      "quantity_item": Number(item.quantity.toFixed(3)),
+      "taxable_amount_item": "",
+      "discount": "",
+      "gst_rate_item": "",
+      "cess_amount_item": "",
+      "freight_amount": "",
+      "ins_amount": "",
+      "pack_for_amount": "",
+      "supply_type": "",
+      "sub_supply_type": "",
+      "document_type": "",
+      "transporter_id": "",
+      "transporter_name": "",
+      "approximate_distance": "",
+      "transportation_mode": "",
+      "vehicle_number": "",
+      "vehicle_type": "",
+      "transporter_doc_no": "",
+      "transporter_doc_date": "",
+      "order_id": "",
+      "ref_order_id": "",
+      "original_order_id": "",
+      "is_amended": "",
+      "return_period": "",
+      "delivery_challan": "",
+      "dispatch_date": "",
+      "actual_to_state": "",
+      "tcs_rate": "",
+      "Including Tax": "",
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Transaction export data fetched successfully.",
+      dateRange: from && to ? { from, to } : null,
+      count: rows.length,
+      data: rows,
+    });
+  } catch (error) {
+    console.error("Error in TransactionExportController:", error);
 
     return res.status(500).json({
       success: false,

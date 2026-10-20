@@ -10,6 +10,7 @@ import {
   TransactionCalibrationController,
   TransactionInvoiceController,
   TransactionItemsController,
+  TransactionStoreSummaryController,
   TransactionSummaryController,
 } from "../controllers/transactionController.js";
 import multer from "multer";
@@ -103,10 +104,18 @@ transactionRouter.get(
   TransactionSummaryController
 )
 
+// Transaction Invoice Controller
 transactionRouter.get(
   "/transaction-invoice",
   adminMiddleware,
   TransactionInvoiceController
+)
+
+// Transaction Summary Controller by StoreId
+transactionRouter.get(
+  "/transaction-store-summary",
+  adminMiddleware,
+  TransactionStoreSummaryController
 )
 
 export default transactionRouter;

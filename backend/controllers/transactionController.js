@@ -1041,3 +1041,114 @@ export const TransactionInvoiceController = async (req, res) => {
     });
   }
 };
+
+// Transaction Summary Controller by StoreId
+export const TransactionStoreSummaryController = async (req, res) => {
+  try {
+    const { storeId, from, to } = req.query;
+
+    if (!storeId) {
+      return res.status(400).json({
+        success: false,
+        message: "storeId is required.",
+      });
+    }
+
+    if ((from && !to) || (!from && to)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide both 'from' and 'to' dates.",
+      });
+    }
+
+    const matchStage = {
+      "store.storeId": storeId,
+    };
+
+    if (from && to) {
+      const datePattern = /^\d{4}-\d{2}-\d{2}$/;
+
+      if (!datePattern.test(from) || !datePattern.test(to)) {
+        return res.status(400).json({
+          success: false,
+          message: "Dates must use YYYY-MM-DD format.",
+        });
+      }
+
+      const startDate = new Date(`${from}T00:00:00.000Z`);
+      const endDate = new Date(`${to}T00:00:00.000Z`);
+
+      if (
+        Number.isNaN(startDate.getTime()) ||
+        Number.isNaN(endDate.getTime()) ||
+        startDate.toISOString().slice(0, 10) !== from ||
+        endDate.toISOString().slice(0, 10) !== to
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide valid calendar dates.",
+        });
+      }
+
+      if (startDate > endDate) {
+        return res.status(400).json({
+          success: false,
+          message: "'from' date cannot be later than 'to' date.",
+        });
+      }
+
+      const endExclusive = new Date(endDate);
+      endExclusive.setUTCDate(endExclusive.getUTCDate() + 1);
+
+      matchStage.createdAt = {
+        $gte: startDate,
+        $lt: endExclusive,
+      };
+    }
+
+    const [summary] = await transactionModel.aggregate([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: null,
+          transactionCount: { $sum: 1 },
+          total: { $sum: { $ifNull: ["$total", 0] } },
+          receivable: { $sum: { $ifNull: ["$receivable", 0] } },
+          payable: { $sum: { $ifNull: ["$payable", 0] } },
+          net: { $sum: { $ifNull: ["$net", 0] } },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          transactionCount: 1,
+          total: { $round: ["$total", 2] },
+          receivable: { $round: ["$receivable", 2] },
+          payable: { $round: ["$payable", 2] },
+          net: { $round: ["$net", 2] },
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Store transaction summary fetched successfully.",
+      storeId,
+      dateRange: from && to ? { from, to } : null,
+      summary: summary || {
+        transactionCount: 0,
+        total: 0,
+        receivable: 0,
+        payable: 0,
+        net: 0,
+      },
+    });
+  } catch (error) {
+    console.error("Error in TransactionStoreSummaryController:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
+  }
+};

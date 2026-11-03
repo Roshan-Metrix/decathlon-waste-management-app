@@ -2,6 +2,7 @@ import storeModel from "../models/storeModel.js";
 import dotenv from "dotenv";
 import transactionModel from "../models/transactionModel.js";
 import vendorModel from "../models/vendorModel.js";
+import materialMappingModel from "../models/materialMappingModel.js";
 dotenv.config();
 
 // Get store profile
@@ -166,12 +167,98 @@ export const getStoreWithTotalTransactionsDetails = async (req, res) => {
 };
 
 // Get total weights according to material type from date filter (from - to) of individual store --
+// export const getStoreTotalWeightsByDates = async (req, res) => {
+//   try {
+//     const { storeId, from, to } = req.params;
+
+//     if (!storeId || !from || !to) {
+//       return res.json({
+//         success: false,
+//         message: "storeId, from and to dates are required.",
+//       });
+//     }
+
+//     const fromDate = new Date(`${from}T00:00:00.000Z`);
+//     const toDate = new Date(`${to}T23:59:59.999Z`);
+
+//     const stats = await transactionModel.aggregate([
+//       { 
+//         // Matching parent document using the compound index (Store + Date Range)
+//         $match: { 
+//           "store.storeId": storeId,
+//           createdAt: { $gte: fromDate, $lte: toDate }
+//         } 
+//       },
+//       {
+//         $unwind: "$items"
+//       },
+//       {
+//         $match: {
+//           "items.createdAt": { $gte: fromDate, $lte: toDate }
+//         }
+//       },
+//       {
+//         $group: {
+//           _id: "$items.materialType",
+//           totalItems: { $sum: 1 },
+//           weight: { $sum: { $convert: { input: "$items.weight", to: "double", onError: 0 } } },
+//           totalAmount: { 
+//             $sum: { 
+//               $multiply: [
+//                 { $convert: { input: "$items.weight", to: "double", onError: 0 } },
+//                 { $convert: { input: "$items.materialRate", to: "double", onError: 0 } }
+//               ] 
+//             } 
+//           },
+//           vendorName: { $first: "$vendorName" },
+//           storeName: { $first: "$store.storeName" },
+//           storeLocation: { $first: "$store.storeLocation" },
+//           rate: { $first: { $convert: { input: "$items.materialRate", to: "double", onError: 0 } } }
+//         }
+//       }
+//     ]);
+
+//     if (stats.length === 0) {
+//       return res.json({
+//         success: true,
+//         message: "No data found for the given criteria.",
+//         vendorName: null,
+//         storeName: null,
+//         storeLocation: null,
+//         items: []
+//       });
+//     }
+
+//     const formattedItems = stats.map((entry) => ({
+//       materialType: entry._id,
+//       totalItems: entry.totalItems,
+//       rate: parseFloat(entry.rate.toFixed(2)),
+//       totalAmount: parseFloat(entry.totalAmount.toFixed(2)),
+//       weight: parseFloat(entry.weight.toFixed(2)),
+//     }));
+
+//     const meta = stats[0];
+
+//     return res.json({
+//       success: true,
+//       message: "Fetched successfully!",
+//       vendorName: meta.vendorName,
+//       storeName: meta.storeName,
+//       storeLocation: meta.storeLocation,
+//       items: formattedItems,
+//     });
+//   } catch (error) {
+//     console.error("Error in getTotalWeightsByDates Controller:", error);
+//     return res.json({ success: false, message: "Internal Server Error" });
+//   }
+// };
+
 export const getStoreTotalWeightsByDates = async (req, res) => {
   try {
     const { storeId, from, to } = req.params;
 
     if (!storeId || !from || !to) {
-      return res.json({
+      return res.status(400).json({
         success: false,
         message: "storeId, from and to dates are required.",
       });
@@ -180,41 +267,90 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
     const fromDate = new Date(`${from}T00:00:00.000Z`);
     const toDate = new Date(`${to}T23:59:59.999Z`);
 
+    if (
+      isNaN(fromDate.getTime()) ||
+      isNaN(toDate.getTime()) ||
+      fromDate > toDate
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid date range.",
+      });
+    }
+
     const stats = await transactionModel.aggregate([
-      { 
-        // Matching parent document using the compound index (Store + Date Range)
-        $match: { 
+      {
+        $match: {
           "store.storeId": storeId,
-          createdAt: { $gte: fromDate, $lte: toDate }
-        } 
+          createdAt: { $gte: fromDate, $lte: toDate },
+        },
       },
       {
-        $unwind: "$items"
+        $unwind: "$items",
       },
       {
         $match: {
-          "items.createdAt": { $gte: fromDate, $lte: toDate }
-        }
+          "items.createdAt": { $gte: fromDate, $lte: toDate },
+        },
       },
       {
         $group: {
           _id: "$items.materialType",
+
+          materialRateId: { $first: "$materialRateId" },
+
           totalItems: { $sum: 1 },
-          weight: { $sum: { $convert: { input: "$items.weight", to: "double", onError: 0 } } },
-          totalAmount: { 
-            $sum: { 
-              $multiply: [
-                { $convert: { input: "$items.weight", to: "double", onError: 0 } },
-                { $convert: { input: "$items.materialRate", to: "double", onError: 0 } }
-              ] 
-            } 
+
+          weight: {
+            $sum: {
+              $convert: {
+                input: "$items.weight",
+                to: "double",
+                onError: 0,
+                onNull: 0,
+              },
+            },
           },
+
+          totalAmount: {
+            $sum: {
+              $multiply: [
+                {
+                  $convert: {
+                    input: "$items.weight",
+                    to: "double",
+                    onError: 0,
+                    onNull: 0,
+                  },
+                },
+                {
+                  $convert: {
+                    input: "$items.materialRate",
+                    to: "double",
+                    onError: 0,
+                    onNull: 0,
+                  },
+                },
+              ],
+            },
+          },
+
           vendorName: { $first: "$vendorName" },
           storeName: { $first: "$store.storeName" },
           storeLocation: { $first: "$store.storeLocation" },
-          rate: { $first: { $convert: { input: "$items.materialRate", to: "double", onError: 0 } } }
-        }
-      }
+
+          rate: {
+            $first: {
+              $convert: {
+                input: "$items.materialRate",
+                to: "double",
+                onError: 0,
+                onNull: 0,
+              },
+            },
+          },
+        },
+      },
     ]);
 
     if (stats.length === 0) {
@@ -224,17 +360,40 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
         vendorName: null,
         storeName: null,
         storeLocation: null,
-        items: []
+        items: [],
       });
     }
 
-    const formattedItems = stats.map((entry) => ({
-      materialType: entry._id,
-      totalItems: entry.totalItems,
-      rate: parseFloat(entry.rate.toFixed(2)),
-      totalAmount: parseFloat(entry.totalAmount.toFixed(2)),
-      weight: parseFloat(entry.weight.toFixed(2)),
-    }));
+    const materialRateId = stats[0].materialRateId;
+
+    const mapping = materialRateId
+      ? await materialMappingModel.findOne({ materialRateId }).lean()
+      : null;
+
+    // lookup map
+    const materialLookup = new Map(
+      (mapping?.materials || []).map((item) => [
+        item.materialType.trim().toLowerCase(),
+        item.officialMaterialType,
+      ])
+    );
+
+    // Format response with both materialType and decathlonType
+    const formattedItems = stats.map((entry) => {
+      const materialType = entry._id;
+
+      const decathlonType =
+        materialLookup.get(materialType.trim().toLowerCase()) || materialType;
+
+      return {
+        materialType,
+        decathlonType,
+        totalItems: entry.totalItems,
+        rate: Number(entry.rate.toFixed(2)),
+        totalAmount: Number(entry.totalAmount.toFixed(2)),
+        weight: Number(entry.weight.toFixed(2)),
+      };
+    });
 
     const meta = stats[0];
 
@@ -247,8 +406,12 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       items: formattedItems,
     });
   } catch (error) {
-    console.error("Error in getTotalWeightsByDates Controller:", error);
-    return res.json({ success: false, message: "Internal Server Error" });
+    console.error("Error in getStoreTotalWeightsByDates Controller:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };
 

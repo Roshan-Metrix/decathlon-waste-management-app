@@ -1,9 +1,10 @@
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+import blackListTokenModel from "../models/blackListTokenModel.js";
 dotenv.config();
 
 // Admin Middleware to verify Admin role --
-const adminMiddleware = (req, res, next) => {
+const adminMiddleware = async (req, res, next) => {
   try {
     let token = null;
 
@@ -19,42 +20,50 @@ const adminMiddleware = (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Unauthorized: Access token missing" 
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Access token missing",
       });
+    }
+
+    const isBlacklisted = await blackListTokenModel.findOne({ token });
+
+    if (isBlacklisted) {
+      return res
+        .status(401)
+        .json({
+          success: false,
+          message: "Token has been blacklisted. Please login again.",
+        });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (decoded.role === 'admin') {
-      req.user = decoded; 
-      return next(); 
+    if (decoded.role === "admin") {
+      req.user = decoded;
+      return next();
     }
 
-    return res.status(403).json({ 
-      success: false, 
-      message: "Access denied: Admins only" 
+    return res.status(403).json({
+      success: false,
+      message: "Access denied: Admins only",
     });
-
   } catch (error) {
     console.error("Authentication error in adminMiddleware:", error.message);
     if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Session expired, please login again" 
+      return res.status(401).json({
+        success: false,
+        message: "Session expired, please login again",
       });
     }
-    return res.status(401).json({ 
-      success: false, 
-      message: "Invalid or expired token" 
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
     });
   }
 };
 
 export default adminMiddleware;
-
-
 
 // import jwt from 'jsonwebtoken';
 // import dotenv from 'dotenv';
@@ -66,33 +75,32 @@ export default adminMiddleware;
 //     const authHeader = req.headers.authorization;
 
 //     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-//       return res.status(401).json({ 
-//         success: false, 
-//         message: "Unauthorized: Token missing" 
+//       return res.status(401).json({
+//         success: false,
+//         message: "Unauthorized: Token missing"
 //       });
 //     }
 
 //     const token = authHeader.split(" ")[1];
-    
+
 //     // Decode the token validation payload
 //     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
- 
 //     if (decoded.role === 'admin') {
-//       req.user = decoded; 
+//       req.user = decoded;
 //       return next();
 //     }
 
-//     return res.status(403).json({ 
-//       success: false, 
-//       message: "Access denied: Admins only" 
+//     return res.status(403).json({
+//       success: false,
+//       message: "Access denied: Admins only"
 //     });
 
 //   } catch (error) {
 //     console.error("Authentication error in adminMiddleware:", error.message);
-//     return res.status(401).json({ 
-//       success: false, 
-//       message: "Invalid or expired token" 
+//     return res.status(401).json({
+//       success: false,
+//       message: "Invalid or expired token"
 //     });
 //   }
 // };

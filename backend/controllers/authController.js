@@ -12,6 +12,7 @@ import adminModel from "../models/adminModel.js";
 import storeModel from "../models/storeModel.js";
 import managerModel from "../models/managerModel.js";
 import vendorModel from "../models/vendorModel.js";
+import blackListTokenModel from "../models/blackListTokenModel.js";
 
 // Admin Registration --
 export const registerAdmin = async (req, res) => {
@@ -385,6 +386,12 @@ export const loginUser = async (req, res) => {
 // Logout --
 export const logoutUser = async (req, res) => {
   try {
+    const token = req.cookies?.token || req.headers?.authorization?.split(" ")[1] || req.cookies?.adminToken || req.cookies?.vendorToken;
+
+    await blackListTokenModel.create({ token });
+
+    res.clearCookie('token');
+
     return res.status(200).json({
       success: true,
       message: "Logged out successfully",

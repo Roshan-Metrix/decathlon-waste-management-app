@@ -11,7 +11,6 @@ import {
   Platform,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 
@@ -31,148 +30,53 @@ const OFFICIAL_MATERIAL_SUGGESTIONS = [
   "E-Waste / Electrical",
 ];
 
-export default function AddMaterialMappingScreen({ route, navigation }) {
-  // Dropdown states
-  const [regionOpen, setRegionOpen] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState(
-    route?.params?.region || null
-  );
-  const [regionItems, setRegionItems] = useState([]);
-  const [regionsLoading, setRegionsLoading] = useState(false);
-
-  const [vendorOpen, setVendorOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState(
-    route?.params?.vendorId || null
-  );
-  const [vendorItems, setVendorItems] = useState([]);
-  const [vendorsLoading, setVendorsLoading] = useState(false);
-
+export default function AddMaterialMappingScreen({ navigation }) {
   // Mappings state
   const [mappings, setMappings] = useState([
     { materialType: "", officialMaterialType: "" },
   ]);
   const [isExistingMapping, setIsExistingMapping] = useState(false);
-  const [checkingExisting, setCheckingExisting] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(true);
 
   // Submission & alert states
   const [submitting, setSubmitting] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Fetch Regions on mount
-  const fetchRegions = async () => {
+  // Fetch Existing Global Material Mapping on Mount
+  const fetchExistingMapping = async () => {
     try {
-      setRegionsLoading(true);
-      const { data } = await api.get("/auth/get-regions");
-      if (data?.success && Array.isArray(data.regions)) {
-        const formatted = data.regions.map((r) => ({
-          label: r,
-          value: r,
-        }));
-        setRegionItems(formatted);
-      }
-    } catch (error) {
-      console.log("Fetch Regions Error:", error?.message);
-    } finally {
-      setRegionsLoading(false);
-    }
-  };
-
-  // Fetch Vendors on mount
-  const fetchVendors = async () => {
-    try {
-      setVendorsLoading(true);
-      const { data } = await api.get("/vendor/get-all-vendors?limit=100");
-      if (data?.success && Array.isArray(data.vendors)) {
-        const formatted = data.vendors.map((v) => ({
-          label: v.name + (v.state ? ` (${v.state})` : ""),
-          value: v._id,
-        }));
-        setVendorItems(formatted);
-      }
-    } catch (error) {
-      console.log("Fetch Vendors Error:", error?.message);
-    } finally {
-      setVendorsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRegions();
-    fetchVendors();
-  }, []);
-
-  // When Region and Vendor are both selected, check for existing mappings or regional materials
-  useEffect(() => {
-    if (selectedRegion && selectedVendor) {
-      fetchExistingMappingOrRates(selectedRegion, selectedVendor);
-    } else {
-      setIsExistingMapping(false);
-    }
-  }, [selectedRegion, selectedVendor]);
-
-  const fetchExistingMappingOrRates = async (region, vendorId) => {
-    setCheckingExisting(true);
-    try {
-      // 1. Check if mapping already exists
-      const mappingRes = await api.get(
-        `/auth/get-material-mapping/${region}/${vendorId}`
-      );
+      setLoadingExisting(true);
+      const res = await api.get("/auth/get-material-mapping");
 
       if (
-        mappingRes.data?.success &&
-        Array.isArray(mappingRes.data.data?.materials) &&
-        mappingRes.data.data.materials.length > 0
+        res.data?.success &&
+        Array.isArray(res.data.data?.materials) &&
+        res.data.data.materials.length > 0
       ) {
         setMappings(
-          mappingRes.data.data.materials.map((m) => ({
+          res.data.data.materials.map((m) => ({
             materialType: m.materialType || "",
             officialMaterialType: m.officialMaterialType || "",
           }))
         );
         setIsExistingMapping(true);
-        setCheckingExisting(false);
-        return;
+      } else {
+        setMappings([{ materialType: "", officialMaterialType: "" }]);
+        setIsExistingMapping(false);
       }
-
-      setIsExistingMapping(false);
-
-      // 2. If no mapping exists yet, check regional materials for pre-filling store material names
-      try {
-        const regionalRes = await api.get(
-          `/auth/get-regional-materials/${region}/${vendorId}`
-        );
-        if (
-          regionalRes.data?.success &&
-          Array.isArray(regionalRes.data?.materials) &&
-          regionalRes.data.materials.length > 0
-        ) {
-          const autoFilled = regionalRes.data.materials.map((item) => {
-            const matName = item.includes(":")
-              ? item.split(":")[0].trim()
-              : item.trim();
-            return {
-              materialType: matName,
-              officialMaterialType: "",
-            };
-          });
-          setMappings(autoFilled);
-          setCheckingExisting(false);
-          return;
-        }
-      } catch {
-        // No regional rates or 404, fall back to empty row
-      }
-
-      setMappings([{ materialType: "", officialMaterialType: "" }]);
     } catch (err) {
-      console.log("Check Existing Mapping Error:", err?.message);
+      console.log("Fetch Global Mapping Error:", err?.message);
       setMappings([{ materialType: "", officialMaterialType: "" }]);
       setIsExistingMapping(false);
     } finally {
-      setCheckingExisting(false);
+      setLoadingExisting(false);
     }
   };
+
+  useEffect(() => {
+    fetchExistingMapping();
+  }, []);
 
   // Add a new row
   const handleAddRow = () => {
@@ -203,18 +107,6 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
 
   // Save / Submit mappings to backend
   const handleSubmit = async () => {
-    if (!selectedRegion) {
-      setAlertMessage("Please select a Region.");
-      setAlertVisible(true);
-      return;
-    }
-
-    if (!selectedVendor) {
-      setAlertMessage("Please select a Vendor.");
-      setAlertVisible(true);
-      return;
-    }
-
     const filteredMaterials = mappings
       .map((m) => ({
         materialType: m.materialType.trim(),
@@ -258,10 +150,7 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
         materials: filteredMaterials,
       };
 
-      const res = await api.post(
-        `/auth/add-material-mapping/${selectedRegion.trim()}/${selectedVendor}`,
-        payload
-      );
+      const res = await api.post("/auth/add-material-mapping", payload);
 
       if (res.data?.success) {
         setAlertMessage(
@@ -277,7 +166,7 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
       console.log("Save Mapping Error:", err);
       const serverMessage =
         err?.response?.data?.message ||
-        "Failed to save material mappings. Please check if material rates are configured for this Region and Vendor.";
+        "Failed to save material mappings. Please check your network connection.";
       setAlertMessage(serverMessage);
       setAlertVisible(true);
     } finally {
@@ -316,147 +205,46 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
             <View style={styles.iconCircle}>
               <MaterialIcons name="alt-route" size={38} color="#2563eb" />
             </View>
-            <Text style={styles.heroTitle}>Material Mapping Hub</Text>
+            <Text style={styles.heroTitle}>Global Material Mapping</Text>
             <Text style={styles.heroSubtitle}>
               Map localized store waste names to Decathlon&apos;s standard
-              material catalog for uniform reporting and tracking.
+              material catalog for uniform reporting across all stores and vendors.
             </Text>
           </View>
 
-          {/* SELECTORS SECTION */}
-          <View
-            style={[
-              styles.sectionCard,
-              {
-                zIndex: regionOpen ? 5000 : vendorOpen ? 4000 : 1,
-                elevation: regionOpen ? 5000 : vendorOpen ? 4000 : 2,
-              },
-            ]}
-          >
-            <Text style={styles.sectionLabel}>Configuration Scope</Text>
-
-            {/* Region Dropdown */}
-            <Text style={styles.inputLabel}>Select Region</Text>
-            <View
-              style={[
-                styles.dropdownWrapper,
-                {
-                  zIndex: regionOpen ? 5000 : 1,
-                  elevation: regionOpen ? 5000 : 1,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name="location-on"
-                size={22}
-                color="#2563eb"
-                style={styles.dropdownLeadingIcon}
-              />
-              <DropDownPicker
-                open={regionOpen}
-                value={selectedRegion}
-                items={regionItems}
-                setOpen={(val) => {
-                  setRegionOpen(val);
-                  if (val) setVendorOpen(false);
-                }}
-                onOpen={() => setVendorOpen(false)}
-                setValue={setSelectedRegion}
-                setItems={setRegionItems}
-                placeholder={
-                  regionsLoading ? "Loading regions..." : "Choose a Region"
-                }
-                loading={regionsLoading}
-                listMode="SCROLLVIEW"
-                scrollViewProps={{ nestedScrollEnabled: true }}
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                arrowIconContainerStyle={styles.arrowIconContainer}
-                zIndex={5000}
-                zIndexInverse={1000}
-                dropDownDirection="BOTTOM"
-                maxHeight={200}
-              />
+          {/* STATUS / SCOPE CARD */}
+          <View style={styles.scopeCard}>
+            <View style={styles.scopeHeader}>
+              <MaterialIcons name="public" size={22} color="#2563eb" />
+              <Text style={styles.scopeTitle}>Global Scope Configuration</Text>
             </View>
 
-            {/* Vendor Dropdown */}
-            <Text style={[styles.inputLabel, { marginTop: 14 }]}>
-              Select Vendor
-            </Text>
-            <View
-              style={[
-                styles.dropdownWrapper,
-                {
-                  zIndex: vendorOpen ? 4000 : 1,
-                  elevation: vendorOpen ? 4000 : 1,
-                },
-              ]}
-            >
-              <MaterialIcons
-                name="business"
-                size={22}
-                color="#2563eb"
-                style={styles.dropdownLeadingIcon}
-              />
-              <DropDownPicker
-                open={vendorOpen}
-                value={selectedVendor}
-                items={vendorItems}
-                setOpen={(val) => {
-                  setVendorOpen(val);
-                  if (val) setRegionOpen(false);
-                }}
-                onOpen={() => setRegionOpen(false)}
-                setValue={setSelectedVendor}
-                setItems={setVendorItems}
-                placeholder={
-                  vendorsLoading ? "Loading vendors..." : "Choose a Vendor"
-                }
-                loading={vendorsLoading}
-                listMode="SCROLLVIEW"
-                scrollViewProps={{ nestedScrollEnabled: true }}
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                arrowIconContainerStyle={styles.arrowIconContainer}
-                zIndex={4000}
-                zIndexInverse={2000}
-                dropDownDirection="BOTTOM"
-                maxHeight={200}
-              />
-            </View>
-
-            {/* Status indicator badge */}
-            {checkingExisting && (
-              <View style={[styles.infoBadge, { zIndex: 1, elevation: 1 }]}>
+            {loadingExisting ? (
+              <View style={styles.infoBadge}>
                 <ActivityIndicator size="small" color="#2563eb" />
                 <Text style={styles.infoBadgeText}>
-                  Checking existing configurations...
+                  Loading existing global material mappings...
                 </Text>
               </View>
-            )}
-
-            {!checkingExisting && isExistingMapping && (
-              <View
-                style={[
-                  styles.infoBadge,
-                  styles.existingBadge,
-                  { zIndex: 1, elevation: 1 },
-                ]}
-              >
-                <MaterialIcons name="edit-note" size={20} color="#059669" />
+            ) : isExistingMapping ? (
+              <View style={[styles.infoBadge, styles.existingBadge]}>
+                <MaterialIcons name="verified" size={20} color="#059669" />
                 <Text style={[styles.infoBadgeText, { color: "#065f46" }]}>
-                  Existing mapping detected. Updates will overwrite.
+                  Active global mapping loaded ({mappings.length} pairs). Saving will update the global catalog.
+                </Text>
+              </View>
+            ) : (
+              <View style={[styles.infoBadge, styles.newBadge]}>
+                <MaterialIcons name="info-outline" size={20} color="#2563eb" />
+                <Text style={[styles.infoBadgeText, { color: "#1e40af" }]}>
+                  No global mapping saved yet. Define your mapping pairs below to establish the global catalog.
                 </Text>
               </View>
             )}
           </View>
 
           {/* MAPPING ROWS SECTION */}
-          <View style={[styles.mappingsCard, { zIndex: 1, elevation: 1 }]}>
+          <View style={styles.mappingsCard}>
             <View style={styles.mappingSectionHeader}>
               <View>
                 <Text style={styles.sectionLabel}>Material Pairs</Text>
@@ -492,10 +280,10 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
                   )}
                 </View>
 
-                {/* Field 1: Store/Regional Material Type */}
+                {/* Field 1: Store Material Type */}
                 <View style={styles.fieldBox}>
                   <Text style={styles.fieldLabel}>
-                    Store / Regional Material Name
+                    Store / Local Material Name
                   </Text>
                   <View style={styles.inputContainer}>
                     <MaterialIcons
@@ -540,7 +328,7 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
                     />
                     <TextInput
                       style={styles.textInput}
-                      placeholder="e.g. Carton, Film LDPE"
+                      placeholder="e.g. Carton / Cardboard, Film LDPE"
                       placeholderTextColor="#9ca3af"
                       value={row.officialMaterialType}
                       onChangeText={(val) =>
@@ -613,7 +401,7 @@ export default function AddMaterialMappingScreen({ route, navigation }) {
               <>
                 <MaterialIcons name="save" size={22} color="#ffffff" />
                 <Text style={styles.submitButtonText}>
-                  {isExistingMapping ? "Update Material Mappings" : "Save Material Mappings"}
+                  {isExistingMapping ? "Update Global Mappings" : "Save Global Mappings"}
                 </Text>
               </>
             )}
@@ -694,7 +482,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     maxWidth: 320,
   },
-  sectionCard: {
+  scopeCard: {
     backgroundColor: "#ffffff",
     borderRadius: 16,
     padding: 16,
@@ -704,88 +492,43 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    overflow: "visible",
   },
-  sectionLabel: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e3a8a",
-    marginBottom: 12,
-  },
-  sectionSublabel: {
-    fontSize: 12,
-    color: "#6b7280",
-    marginTop: 1,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 6,
-  },
-  dropdownWrapper: {
+  scopeHeader: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    paddingLeft: 10,
-    position: "relative",
-    overflow: "visible",
+    gap: 8,
+    marginBottom: 10,
   },
-  dropdownLeadingIcon: {
-    marginRight: 6,
-  },
-  dropdown: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: "transparent",
-    minHeight: 46,
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    backgroundColor: "#ffffff",
-    elevation: 5000,
-    zIndex: 5000,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-  },
-  dropdownText: {
-    fontSize: 14,
-    color: "#1f2937",
-    fontWeight: "500",
-  },
-  dropdownPlaceholder: {
-    fontSize: 14,
-    color: "#9ca3af",
-  },
-  arrowIconContainer: {
-    marginRight: 8,
+  scopeTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#1e3a8a",
   },
   infoBadge: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#eff6ff",
-    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 10,
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    borderRadius: 8,
-    marginTop: 14,
     gap: 8,
   },
   existingBadge: {
     backgroundColor: "#ecfdf5",
-    borderWidth: 1,
     borderColor: "#a7f3d0",
   },
+  newBadge: {
+    backgroundColor: "#eff6ff",
+    borderColor: "#bfdbfe",
+  },
   infoBadgeText: {
+    flex: 1,
     fontSize: 13,
-    color: "#1d4ed8",
+    color: "#1e40af",
     fontWeight: "500",
+    lineHeight: 18,
   },
   mappingsCard: {
     backgroundColor: "#ffffff",
@@ -802,28 +545,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 14,
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f3f4f6",
+  },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  sectionSublabel: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginTop: 2,
   },
   addPairBtn: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#eff6ff",
-    borderWidth: 1,
-    borderColor: "#bfdbfe",
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 12,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
     gap: 4,
   },
   addPairText: {
+    color: "#2563eb",
     fontSize: 13,
     fontWeight: "700",
-    color: "#2563eb",
   },
   pairCard: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#f9fafb",
     borderWidth: 1,
-    borderColor: "#e2e8f0",
+    borderColor: "#e5e7eb",
     borderRadius: 12,
     padding: 14,
     marginBottom: 14,
@@ -835,27 +591,27 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   pairBadge: {
-    backgroundColor: "#dbeafe",
-    paddingHorizontal: 10,
+    backgroundColor: "#2563eb",
+    paddingHorizontal: 9,
     paddingVertical: 3,
-    borderRadius: 12,
+    borderRadius: 6,
   },
   pairBadgeText: {
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "700",
-    color: "#1e40af",
   },
   removeRowBtn: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
     paddingVertical: 2,
     paddingHorizontal: 6,
-    gap: 2,
   },
   removeRowText: {
+    color: "#ef4444",
     fontSize: 12,
     fontWeight: "600",
-    color: "#ef4444",
   },
   fieldBox: {
     marginBottom: 8,
@@ -863,8 +619,8 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#4b5563",
-    marginBottom: 5,
+    color: "#374151",
+    marginBottom: 6,
   },
   inputContainer: {
     flexDirection: "row",
@@ -872,18 +628,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#ffffff",
     borderWidth: 1,
     borderColor: "#d1d5db",
-    borderRadius: 9,
+    borderRadius: 10,
     paddingHorizontal: 10,
-    height: 44,
   },
   fieldIcon: {
     marginRight: 8,
   },
   textInput: {
     flex: 1,
+    height: 44,
     fontSize: 14,
     color: "#111827",
-    paddingVertical: 0,
   },
   connectorRow: {
     flexDirection: "row",
@@ -894,88 +649,93 @@ const styles = StyleSheet.create({
   connectorLine: {
     flex: 1,
     height: 1,
-    backgroundColor: "#e2e8f0",
+    backgroundColor: "#e5e7eb",
   },
   connectorPill: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#e0e7ff",
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 3,
-    borderRadius: 12,
     gap: 4,
     marginHorizontal: 8,
   },
   connectorText: {
-    fontSize: 11,
-    fontWeight: "600",
-    color: "#3730a3",
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#2563eb",
+    textTransform: "uppercase",
   },
   suggestionsContainer: {
     marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#e5e7eb",
   },
   suggestionsTitle: {
     fontSize: 11,
     fontWeight: "600",
     color: "#6b7280",
-    marginBottom: 4,
+    marginBottom: 6,
   },
   chipsScroll: {
     gap: 6,
-    paddingVertical: 2,
   },
   chip: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    paddingHorizontal: 9,
-    paddingVertical: 4,
-    borderRadius: 8,
+    borderColor: "#d1d5db",
+    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   chipSelected: {
-    backgroundColor: "#dcfce7",
-    borderColor: "#86efac",
+    backgroundColor: "#d1fae5",
+    borderColor: "#10b981",
   },
   chipText: {
     fontSize: 11,
+    color: "#4b5563",
     fontWeight: "500",
-    color: "#475569",
   },
   chipTextSelected: {
-    color: "#15803d",
+    color: "#065f46",
     fontWeight: "700",
   },
   bottomAddBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    borderWidth: 1.5,
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
     borderStyle: "dashed",
-    borderColor: "#93c5fd",
-    backgroundColor: "#eff6ff",
-    paddingVertical: 11,
     borderRadius: 10,
+    backgroundColor: "#eff6ff",
+    paddingVertical: 12,
     gap: 6,
     marginTop: 4,
   },
   bottomAddBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
     color: "#2563eb",
+    fontSize: 14,
+    fontWeight: "700",
   },
   submitButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#2563eb",
-    paddingVertical: 14,
     borderRadius: 12,
-    elevation: 3,
-    shadowColor: "#1e40af",
-    shadowOpacity: 0.25,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
+    paddingVertical: 15,
     gap: 8,
+    elevation: 3,
+    shadowColor: "#2563eb",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
   },
   submitButtonText: {
     color: "#ffffff",

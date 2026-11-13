@@ -10,30 +10,13 @@ import {
   RefreshControl,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import DropDownPicker from "react-native-dropdown-picker";
 import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 
-export default function ViewMaterialMappingScreen({ route, navigation }) {
-  // Dropdown states
-  const [regionOpen, setRegionOpen] = useState(false);
-  const [selectedRegion, setSelectedRegion] = useState(
-    route?.params?.region || null
-  );
-  const [regionItems, setRegionItems] = useState([]);
-  const [regionsLoading, setRegionsLoading] = useState(false);
-
-  const [vendorOpen, setVendorOpen] = useState(false);
-  const [selectedVendor, setSelectedVendor] = useState(
-    route?.params?.vendorId || null
-  );
-  const [vendorItems, setVendorItems] = useState([]);
-  const [vendorsLoading, setVendorsLoading] = useState(false);
-
+export default function ViewMaterialMappingScreen({ navigation }) {
   // Mapping data states
-  const [mappingData, setMappingData] = useState(null);
   const [materials, setMaterials] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasQueried, setHasQueried] = useState(false);
 
@@ -44,60 +27,8 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
   const [alertVisible, setAlertVisible] = useState(false);
   const [alertMessage, setAlertMessage] = useState("");
 
-  // Fetch Regions
-  const fetchRegions = async () => {
-    try {
-      setRegionsLoading(true);
-      const { data } = await api.get("/auth/get-regions");
-      if (data?.success && Array.isArray(data.regions)) {
-        setRegionItems(
-          data.regions.map((r) => ({
-            label: r,
-            value: r,
-          }))
-        );
-      }
-    } catch (err) {
-      console.log("Fetch Regions Error:", err?.message);
-    } finally {
-      setRegionsLoading(false);
-    }
-  };
-
-  // Fetch Vendors
-  const fetchVendors = async () => {
-    try {
-      setVendorsLoading(true);
-      const { data } = await api.get("/vendor/get-all-vendors?limit=100");
-      if (data?.success && Array.isArray(data.vendors)) {
-        setVendorItems(
-          data.vendors.map((v) => ({
-            label: v.name + (v.state ? ` (${v.state})` : ""),
-            value: v._id,
-          }))
-        );
-      }
-    } catch (err) {
-      console.log("Fetch Vendors Error:", err?.message);
-    } finally {
-      setVendorsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRegions();
-    fetchVendors();
-  }, []);
-
-  // Fetch Material Mapping when Region and Vendor are both selected
+  // Fetch Global Material Mapping
   const fetchMapping = async (isRefresh = false) => {
-    if (!selectedRegion || !selectedVendor) {
-      setMappingData(null);
-      setMaterials([]);
-      setHasQueried(false);
-      return;
-    }
-
     if (isRefresh) {
       setRefreshing(true);
     } else {
@@ -105,26 +36,23 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
     }
 
     try {
-      const { data } = await api.get(
-        `/auth/get-material-mapping/${selectedRegion.trim()}/${selectedVendor}`
-      );
+      const { data } = await api.get("/auth/get-material-mapping");
 
       setHasQueried(true);
 
       if (data?.success && data?.data) {
-        setMappingData(data.data);
-        setMaterials(Array.isArray(data.data.materials) ? data.data.materials : []);
+        setMaterials(
+          Array.isArray(data.data.materials) ? data.data.materials : []
+        );
       } else {
-        setMappingData(null);
         setMaterials([]);
       }
     } catch (err) {
       console.log("Fetch Mapping Error:", err);
       setHasQueried(true);
-      setMappingData(null);
       setMaterials([]);
       const errMsg =
-        err?.response?.data?.message || "Failed to fetch material mappings";
+        err?.response?.data?.message || "Failed to fetch material mappings.";
       setAlertMessage(errMsg);
       setAlertVisible(true);
     } finally {
@@ -134,14 +62,8 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (selectedRegion && selectedVendor) {
-      fetchMapping();
-    } else {
-      setMappingData(null);
-      setMaterials([]);
-      setHasQueried(false);
-    }
-  }, [selectedRegion, selectedVendor]);
+    fetchMapping();
+  }, []);
 
   // Client-side search filtering
   const filteredMaterials = useMemo(() => {
@@ -149,10 +71,11 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
     const q = search.toLowerCase();
     return materials.filter(
       (m) =>
-        m.materialType?.toLowerCase().includes(q) ||
-        m.officialMaterialType?.toLowerCase().includes(q)
+        (m.materialType && m.materialType.toLowerCase().includes(q)) ||
+        (m.officialMaterialType &&
+          m.officialMaterialType.toLowerCase().includes(q))
     );
-  }, [search, materials]);
+  }, [materials, search]);
 
   return (
     <View style={styles.container}>
@@ -171,8 +94,6 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}
-        removeClippedSubviews={false}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -181,307 +102,171 @@ export default function ViewMaterialMappingScreen({ route, navigation }) {
           />
         }
       >
-        {/* SELECTORS CARD */}
-        <View
-          style={[
-            styles.selectorsCard,
-            {
-              zIndex: regionOpen ? 5000 : vendorOpen ? 4000 : 1,
-              elevation: regionOpen ? 5000 : vendorOpen ? 4000 : 2,
-            },
-          ]}
-        >
-          <Text style={styles.selectorSectionTitle}>Select Region & Vendor</Text>
-
-          {/* Region Dropdown */}
-          <Text style={styles.label}>Region (State)</Text>
-          <View
-            style={[
-              styles.dropdownWrapper,
-              {
-                zIndex: regionOpen ? 5000 : 1,
-                elevation: regionOpen ? 5000 : 1,
-              },
-            ]}
-          >
-            <MaterialIcons
-              name="location-on"
-              size={22}
-              color="#2563eb"
-              style={styles.leadingIcon}
-            />
-            <DropDownPicker
-              open={regionOpen}
-              value={selectedRegion}
-              items={regionItems}
-              setOpen={(val) => {
-                setRegionOpen(val);
-                if (val) setVendorOpen(false);
-              }}
-              onOpen={() => setVendorOpen(false)}
-              setValue={setSelectedRegion}
-              setItems={setRegionItems}
-              placeholder={
-                regionsLoading ? "Loading regions..." : "Choose a Region"
-              }
-              loading={regionsLoading}
-              listMode="SCROLLVIEW"
-              scrollViewProps={{ nestedScrollEnabled: true }}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-              textStyle={styles.dropdownText}
-              placeholderStyle={styles.dropdownPlaceholder}
-              arrowIconContainerStyle={styles.arrowIconContainer}
-              zIndex={5000}
-              zIndexInverse={1000}
-              dropDownDirection="BOTTOM"
-              maxHeight={200}
-            />
+        {/* HERO BANNER */}
+        <View style={styles.heroSection}>
+          <View style={styles.iconCircle}>
+            <MaterialIcons name="visibility" size={32} color="#2563eb" />
           </View>
-
-          {/* Vendor Dropdown */}
-          <Text style={[styles.label, { marginTop: 12 }]}>Vendor</Text>
-          <View
-            style={[
-              styles.dropdownWrapper,
-              {
-                zIndex: vendorOpen ? 4000 : 1,
-                elevation: vendorOpen ? 4000 : 1,
-              },
-            ]}
-          >
-            <MaterialIcons
-              name="business"
-              size={22}
-              color="#2563eb"
-              style={styles.leadingIcon}
-            />
-            <DropDownPicker
-              open={vendorOpen}
-              value={selectedVendor}
-              items={vendorItems}
-              setOpen={(val) => {
-                setVendorOpen(val);
-                if (val) setRegionOpen(false);
-              }}
-              onOpen={() => setRegionOpen(false)}
-              setValue={setSelectedVendor}
-              setItems={setVendorItems}
-              placeholder={
-                vendorsLoading ? "Loading vendors..." : "Choose a Vendor"
-              }
-              loading={vendorsLoading}
-              listMode="SCROLLVIEW"
-              scrollViewProps={{ nestedScrollEnabled: true }}
-              style={styles.dropdown}
-              dropDownContainerStyle={styles.dropdownContainer}
-              textStyle={styles.dropdownText}
-              placeholderStyle={styles.dropdownPlaceholder}
-              arrowIconContainerStyle={styles.arrowIconContainer}
-              zIndex={4000}
-              zIndexInverse={2000}
-              dropDownDirection="BOTTOM"
-              maxHeight={200}
-            />
-          </View>
+          <Text style={styles.heroTitle}>Global Material Catalog</Text>
+          <Text style={styles.heroSubtitle}>
+            Unified mapping rules applied across all regions, stores, and vendor reports.
+          </Text>
         </View>
 
-        {/* LOADING INDICATOR */}
-        {loading && (
+        {/* LOADING STATE */}
+        {loading && !refreshing && (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#2563eb" />
-            <Text style={styles.loadingText}>Loading material mapping...</Text>
-          </View>
-        )}
-
-        {/* NOT SELECTED PROMPT */}
-        {!loading && (!selectedRegion || !selectedVendor) && (
-          <View style={[styles.emptyStateBox, { zIndex: 1, elevation: 1 }]}>
-            <View style={styles.emptyIconCircle}>
-              <MaterialIcons name="alt-route" size={48} color="#2563eb" />
-            </View>
-            <Text style={styles.emptyStateTitle}>Select Region & Vendor</Text>
-            <Text style={styles.emptyStateDesc}>
-              Choose both a region and vendor above to inspect their configured
-              material mapping definitions.
-            </Text>
+            <Text style={styles.loadingText}>Loading global material mappings...</Text>
           </View>
         )}
 
         {/* NO MAPPING FOUND STATE */}
-        {!loading &&
-          selectedRegion &&
-          selectedVendor &&
-          hasQueried &&
-          materials.length === 0 && (
-            <View style={[styles.emptyStateBox, { zIndex: 1, elevation: 1 }]}>
-              <View style={[styles.emptyIconCircle, { backgroundColor: "#fee2e2" }]}>
-                <MaterialIcons name="assignment-late" size={48} color="#ef4444" />
-              </View>
-              <Text style={styles.emptyStateTitle}>No Mapping Configured</Text>
-              <Text style={styles.emptyStateDesc}>
-                There are no material mappings saved for{" "}
-                <Text style={{ fontWeight: "700", color: "#1f2937" }}>
-                  {selectedRegion}
-                </Text>{" "}
-                with this vendor yet.
-              </Text>
-              <TouchableOpacity
-                style={styles.createNowBtn}
-                onPress={() =>
-                  navigation.navigate("AddMaterialMappingScreen", {
-                    region: selectedRegion,
-                    vendorId: selectedVendor,
-                  })
-                }
-              >
-                <MaterialIcons name="add-circle" size={20} color="#ffffff" />
-                <Text style={styles.createNowBtnText}>Create Mapping Now</Text>
-              </TouchableOpacity>
+        {!loading && hasQueried && materials.length === 0 && (
+          <View style={styles.emptyStateBox}>
+            <View style={[styles.emptyIconCircle, { backgroundColor: "#fee2e2" }]}>
+              <MaterialIcons name="assignment-late" size={48} color="#ef4444" />
             </View>
-          )}
+            <Text style={styles.emptyStateTitle}>No Mapping Configured</Text>
+            <Text style={styles.emptyStateDesc}>
+              There are currently no global material mappings configured in the database.
+            </Text>
+            <TouchableOpacity
+              style={styles.createNowBtn}
+              onPress={() => navigation.navigate("AddMaterialMappingScreen")}
+            >
+              <MaterialIcons name="add-circle" size={20} color="#ffffff" />
+              <Text style={styles.createNowBtnText}>Create Mapping Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* ACTIVE MAPPING CONTENT */}
-        {!loading &&
-          selectedRegion &&
-          selectedVendor &&
-          materials.length > 0 && (
-            <View style={{ marginTop: 4, zIndex: 1, elevation: 1 }}>
-              {/* SUMMARY COUNT CARD */}
-              <View style={[styles.summaryCard, { zIndex: 1, elevation: 1 }]}>
-                <View style={styles.summaryTopRow}>
-                  <View style={styles.summaryIconBox}>
-                    <MaterialIcons name="sync-alt" size={28} color="#2563eb" />
-                  </View>
-                  <View style={{ flex: 1, marginLeft: 12 }}>
-                    <Text style={styles.summaryRegionText}>
-                      {mappingData?.region || selectedRegion}
-                    </Text>
-                    <Text style={styles.summaryVendorText} numberOfLines={1}>
-                      Vendor: {mappingData?.vendor || "Selected Vendor"}
-                    </Text>
-                  </View>
-                  <View style={styles.countBadge}>
-                    <Text style={styles.countNumber}>{materials.length}</Text>
-                    <Text style={styles.countLabel}>Mapped</Text>
-                  </View>
+        {!loading && materials.length > 0 && (
+          <View style={{ marginTop: 4 }}>
+            {/* SUMMARY COUNT CARD */}
+            <View style={styles.summaryCard}>
+              <View style={styles.summaryTopRow}>
+                <View style={styles.summaryIconBox}>
+                  <MaterialIcons name="sync-alt" size={28} color="#2563eb" />
                 </View>
-
-                {/* Quick Action Buttons */}
-                <View style={styles.actionRow}>
-                  <TouchableOpacity
-                    style={styles.actionEditBtn}
-                    onPress={() =>
-                      navigation.navigate("AddMaterialMappingScreen", {
-                        region: selectedRegion,
-                        vendorId: selectedVendor,
-                      })
-                    }
-                  >
-                    <MaterialIcons name="edit" size={17} color="#2563eb" />
-                    <Text style={styles.actionEditText}>Edit Mapping</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.actionDeleteBtn}
-                    onPress={() =>
-                      navigation.navigate("RemoveMaterialMappingScreen", {
-                        region: selectedRegion,
-                        vendorId: selectedVendor,
-                      })
-                    }
-                  >
-                    <MaterialIcons name="delete-forever" size={17} color="#ef4444" />
-                    <Text style={styles.actionDeleteText}>Remove</Text>
-                  </TouchableOpacity>
+                <View style={{ flex: 1, marginLeft: 12 }}>
+                  <Text style={styles.summaryRegionText}>Global Catalog</Text>
+                  <Text style={styles.summaryVendorText} numberOfLines={1}>
+                    All Stores &amp; Vendors
+                  </Text>
+                </View>
+                <View style={styles.countBadge}>
+                  <Text style={styles.countNumber}>{materials.length}</Text>
+                  <Text style={styles.countLabel}>Mapped</Text>
                 </View>
               </View>
 
-              {/* SEARCH BOX */}
-              <View style={styles.searchBox}>
-                <MaterialIcons name="search" size={22} color="#2563eb" />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search store or official material..."
-                  placeholderTextColor="#7e7c7c"
-                  value={search}
-                  onChangeText={setSearch}
-                />
-                {search.length > 0 && (
-                  <TouchableOpacity onPress={() => setSearch("")}>
-                    <MaterialIcons name="close" size={20} color="#6b7280" />
-                  </TouchableOpacity>
-                )}
-              </View>
+              {/* Quick Action Buttons */}
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={styles.actionEditBtn}
+                  onPress={() => navigation.navigate("AddMaterialMappingScreen")}
+                >
+                  <MaterialIcons name="edit" size={17} color="#2563eb" />
+                  <Text style={styles.actionEditText}>Edit Mapping</Text>
+                </TouchableOpacity>
 
-              {/* MAPPINGS LIST */}
-              <View style={styles.listSection}>
-                <Text style={styles.listSectionTitle}>
-                  Mapping Pairs ({filteredMaterials.length})
-                </Text>
-
-                {filteredMaterials.map((item, index) => (
-                  <View key={index} style={styles.card}>
-                    {/* Card Top Banner */}
-                    <View style={styles.cardHeader}>
-                      <View style={styles.indexPill}>
-                        <Text style={styles.indexPillText}>#{index + 1}</Text>
-                      </View>
-                      <View style={styles.activeTag}>
-                        <MaterialIcons name="check-circle" size={14} color="#10b981" />
-                        <Text style={styles.activeTagText}>Active</Text>
-                      </View>
-                    </View>
-
-                    {/* Mapping Comparison Flow */}
-                    <View style={styles.mappingFlow}>
-                      {/* Left: Store Material */}
-                      <View style={styles.materialBlock}>
-                        <View style={styles.materialTypeLabelRow}>
-                          <MaterialIcons name="storefront" size={16} color="#2563eb" />
-                          <Text style={styles.blockTitle}>Store / Vendor Name</Text>
-                        </View>
-                        <View style={styles.namePillStore}>
-                          <Text style={styles.storeNameText} numberOfLines={2}>
-                            {item.materialType}
-                          </Text>
-                        </View>
-                      </View>
-
-                      {/* Middle: Arrow */}
-                      <View style={styles.arrowBlock}>
-                        <MaterialIcons name="arrow-forward" size={22} color="#2563eb" />
-                      </View>
-
-                      {/* Right: Decathlon Official Name */}
-                      <View style={styles.materialBlock}>
-                        <View style={styles.materialTypeLabelRow}>
-                          <MaterialIcons name="verified" size={16} color="#10b981" />
-                          <Text style={[styles.blockTitle, { color: "#065f46" }]}>
-                            Official Decathlon
-                          </Text>
-                        </View>
-                        <View style={styles.namePillOfficial}>
-                          <Text style={styles.officialNameText} numberOfLines={2}>
-                            {item.officialMaterialType}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-                  </View>
-                ))}
-
-                {filteredMaterials.length === 0 && (
-                  <View style={styles.noSearchMatchBox}>
-                    <MaterialIcons name="search-off" size={40} color="#9ca3af" />
-                    <Text style={styles.noSearchMatchText}>
-                      No materials match &quot;{search}&quot;
-                    </Text>
-                  </View>
-                )}
+                <TouchableOpacity
+                  style={styles.actionDeleteBtn}
+                  onPress={() => navigation.navigate("RemoveMaterialMappingScreen")}
+                >
+                  <MaterialIcons name="delete-forever" size={17} color="#ef4444" />
+                  <Text style={styles.actionDeleteText}>Remove</Text>
+                </TouchableOpacity>
               </View>
             </View>
-          )}
+
+            {/* SEARCH BOX */}
+            <View style={styles.searchBox}>
+              <MaterialIcons name="search" size={22} color="#2563eb" />
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search store or official material..."
+                placeholderTextColor="#7e7c7c"
+                value={search}
+                onChangeText={setSearch}
+              />
+              {search.length > 0 && (
+                <TouchableOpacity onPress={() => setSearch("")}>
+                  <MaterialIcons name="close" size={20} color="#6b7280" />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* MAPPINGS LIST */}
+            <View style={styles.listSection}>
+              <Text style={styles.listSectionTitle}>
+                Mapping Pairs ({filteredMaterials.length})
+              </Text>
+
+              {filteredMaterials.map((item, index) => (
+                <View key={index} style={styles.card}>
+                  {/* Card Top Banner */}
+                  <View style={styles.cardHeader}>
+                    <View style={styles.indexPill}>
+                      <Text style={styles.indexPillText}>#{index + 1}</Text>
+                    </View>
+                    <View style={styles.activeTag}>
+                      <MaterialIcons name="check-circle" size={14} color="#10b981" />
+                      <Text style={styles.activeTagText}>Active</Text>
+                    </View>
+                  </View>
+
+                  {/* Mapping Comparison Flow */}
+                  <View style={styles.mappingFlow}>
+                    {/* Left: Store Material */}
+                    <View style={styles.materialBlock}>
+                      <View style={styles.materialTypeLabelRow}>
+                        <MaterialIcons name="storefront" size={16} color="#2563eb" />
+                        <Text style={styles.blockTitle}>Store / Local Name</Text>
+                      </View>
+                      <View style={styles.namePillStore}>
+                        <Text style={styles.storeNameText} numberOfLines={2}>
+                          {item.materialType}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Middle: Arrow */}
+                    <View style={styles.arrowBlock}>
+                      <MaterialIcons name="arrow-forward" size={22} color="#2563eb" />
+                    </View>
+
+                    {/* Right: Decathlon Official Name */}
+                    <View style={styles.materialBlock}>
+                      <View style={styles.materialTypeLabelRow}>
+                        <MaterialIcons name="verified" size={16} color="#10b981" />
+                        <Text style={[styles.blockTitle, { color: "#065f46" }]}>
+                          Official Decathlon
+                        </Text>
+                      </View>
+                      <View style={styles.namePillOfficial}>
+                        <Text style={styles.officialNameText} numberOfLines={2}>
+                          {item.officialMaterialType}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ))}
+
+              {filteredMaterials.length === 0 && (
+                <View style={styles.noSearchMatchBox}>
+                  <MaterialIcons name="search-off" size={40} color="#9ca3af" />
+                  <Text style={styles.noSearchMatchText}>
+                    No materials match &quot;{search}&quot;
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       <Alert
@@ -525,73 +310,37 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 40,
   },
-  selectorsCard: {
+  heroSection: {
+    alignItems: "center",
     backgroundColor: "#ffffff",
     borderRadius: 16,
-    padding: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
     marginBottom: 16,
     elevation: 2,
     shadowColor: "#000",
     shadowOpacity: 0.05,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
-    overflow: "visible",
   },
-  selectorSectionTitle: {
-    fontSize: 16,
+  iconCircle: {
+    backgroundColor: "#dbeafe",
+    padding: 14,
+    borderRadius: 40,
+    marginBottom: 10,
+  },
+  heroTitle: {
+    fontSize: 18,
     fontWeight: "700",
-    color: "#1e3a8a",
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#374151",
-    marginBottom: 6,
-  },
-  dropdownWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    borderWidth: 1,
-    borderColor: "#e5e7eb",
-    borderRadius: 10,
-    paddingLeft: 10,
-    position: "relative",
-    overflow: "visible",
-  },
-  leadingIcon: {
-    marginRight: 6,
-  },
-  dropdown: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: "transparent",
-    minHeight: 46,
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: "#d1d5db",
-    borderRadius: 10,
-    backgroundColor: "#ffffff",
-    elevation: 5000,
-    zIndex: 5000,
-    shadowColor: "#000",
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-  },
-  dropdownText: {
-    fontSize: 14,
     color: "#1f2937",
-    fontWeight: "500",
+    marginBottom: 4,
   },
-  dropdownPlaceholder: {
-    fontSize: 14,
-    color: "#9ca3af",
-  },
-  arrowIconContainer: {
-    marginRight: 8,
+  heroSubtitle: {
+    fontSize: 13,
+    color: "#6b7280",
+    textAlign: "center",
+    lineHeight: 18,
+    maxWidth: 320,
   },
   loadingContainer: {
     alignItems: "center",
@@ -751,29 +500,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ffffff",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginBottom: 14,
-    elevation: 2,
     borderWidth: 1,
     borderColor: "#e5e7eb",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
   searchInput: {
     flex: 1,
+    height: 46,
     fontSize: 14,
     color: "#1f2937",
-    marginLeft: 8,
+    paddingLeft: 8,
   },
   listSection: {
-    width: "100%",
+    marginBottom: 20,
   },
   listSectionTitle: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#4b5563",
+    color: "#374151",
     marginBottom: 10,
-    marginLeft: 4,
+    marginLeft: 2,
   },
   card: {
     backgroundColor: "#ffffff",
@@ -781,38 +534,42 @@ const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 12,
     elevation: 2,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#f1f5f9",
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 12,
   },
   indexPill: {
-    backgroundColor: "#eff6ff",
+    backgroundColor: "#f3f4f6",
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   indexPillText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "700",
-    color: "#2563eb",
+    color: "#4b5563",
   },
   activeTag: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 4,
     backgroundColor: "#ecfdf5",
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 8,
-    gap: 4,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   activeTagText: {
     fontSize: 11,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#059669",
   },
   mappingFlow: {
@@ -827,50 +584,58 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    marginBottom: 4,
+    marginBottom: 5,
   },
   blockTitle: {
     fontSize: 11,
     fontWeight: "600",
-    color: "#4b5563",
+    color: "#2563eb",
+    textTransform: "uppercase",
   },
   namePillStore: {
-    backgroundColor: "#f8fafc",
+    backgroundColor: "#eff6ff",
     borderWidth: 1,
-    borderColor: "#cbd5e1",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    borderColor: "#bfdbfe",
     borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   storeNameText: {
     fontSize: 13,
-    fontWeight: "700",
+    fontWeight: "600",
     color: "#1e3a8a",
   },
   arrowBlock: {
     paddingHorizontal: 8,
-    alignItems: "center",
     justifyContent: "center",
+    alignItems: "center",
   },
   namePillOfficial: {
-    backgroundColor: "#f0fdf4",
+    backgroundColor: "#ecfdf5",
     borderWidth: 1,
-    borderColor: "#bbf7d0",
-    paddingVertical: 8,
-    paddingHorizontal: 10,
+    borderColor: "#a7f3d0",
     borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    minHeight: 44,
+    justifyContent: "center",
   },
   officialNameText: {
     fontSize: 13,
-    fontWeight: "700",
-    color: "#15803d",
+    fontWeight: "600",
+    color: "#065f46",
   },
   noSearchMatchBox: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 30,
     backgroundColor: "#ffffff",
     borderRadius: 14,
+    paddingVertical: 36,
+    paddingHorizontal: 20,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
   },
   noSearchMatchText: {
     marginTop: 8,

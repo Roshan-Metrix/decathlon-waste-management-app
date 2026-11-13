@@ -47,7 +47,7 @@ export default function MaterialMappingScreen({ navigation }) {
 
           <FeatureCard
             title="Add Material Mapping"
-            description="Map a complete material rate to Decathlon material name."
+            description="Map store waste materials to Decathlon standard catalog."
             iconName="add-business"
             iconColor="#22c55e" 
             onPress={() => navigation.navigate("AddMaterialMappingScreen")}

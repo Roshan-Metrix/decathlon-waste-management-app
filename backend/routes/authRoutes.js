@@ -49,8 +49,11 @@ authRouter.get('/get-regional-materials/:region/:vendor',authMiddleware,getAllMa
 authRouter.delete('/admin/delete-region/:region',authMiddleware,adminMiddleware,deleteRegion);
 
 // materialMapping routes
-authRouter.post('/add-material-mapping/:region/:vendor',authMiddleware,adminMiddleware, addMaterialMapping);
-authRouter.get('/get-material-mapping/:region/:vendor',authMiddleware, getMaterialMapping);
-authRouter.delete('/delete-material-mapping/:region/:vendor',authMiddleware,adminMiddleware, deleteMaterialMapping);
+authRouter.post('/add-material-mapping', authMiddleware, adminMiddleware, addMaterialMapping);
+authRouter.post('/add-material-mapping/:region/:vendor', authMiddleware, adminMiddleware, addMaterialMapping);
+authRouter.get('/get-material-mapping', authMiddleware, getMaterialMapping);
+authRouter.get('/get-material-mapping/:region/:vendor', authMiddleware, getMaterialMapping);
+authRouter.delete('/delete-material-mapping', authMiddleware, adminMiddleware, deleteMaterialMapping);
+authRouter.delete('/delete-material-mapping/:region/:vendor', authMiddleware, adminMiddleware, deleteMaterialMapping);
 
 export default authRouter;

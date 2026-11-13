@@ -227,20 +227,14 @@ export const deleteRegion = async (req, res) => {
 
 // Add Material Mapping
 export const addMaterialMapping = async (req, res) => {
-  const { region, vendor } = req.params;
   const { materials } = req.body;
   const adminId = req.user?.id;
 
   try {
-    if (
-      !region ||
-      !vendor ||
-      !Array.isArray(materials) ||
-      materials.length === 0
-    ) {
+    if (!Array.isArray(materials) || materials.length === 0) {
       return res.status(400).json({
         success: false,
-        message: "Missing Fields.",
+        message: "Materials list is required and cannot be empty.",
       });
     }
 
@@ -257,19 +251,21 @@ export const addMaterialMapping = async (req, res) => {
         !material.materialType ||
         !material.officialMaterialType ||
         typeof material.materialType !== "string" ||
-        typeof material.officialMaterialType !== "string"
+        typeof material.officialMaterialType !== "string" ||
+        !material.materialType.trim() ||
+        !material.officialMaterialType.trim()
       ) {
         return res.status(400).json({
           success: false,
           message:
-            "Each material must contain materialType and officialMaterialType.",
+            "Each material must contain non-empty materialType and officialMaterialType.",
         });
       }
     }
 
     // Prevent duplicate internal material types
     const materialTypes = materials.map((material) =>
-      material.materialType.trim()
+      material.materialType.trim().toLowerCase()
     );
 
     const uniqueMaterialTypes = new Set(materialTypes);
@@ -281,51 +277,17 @@ export const addMaterialMapping = async (req, res) => {
       });
     }
 
-    const vendorExists = await vendorModel
-      .findById(vendor.trim())
-      .select("_id")
-      .lean();
-
-    if (!vendorExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found.",
-      });
-    }
-
-    // State + Vendor material-rate configuration
-    const materialRate = await materialRateModel
-      .findOne({
-        state: region.trim(),
-        vendor: vendorExists._id,
-      })
-      .select("_id")
-      .lean();
-
-    if (!materialRate) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Material rate not found for the specified region and vendor.",
-      });
-    }
-
     const formattedMaterials = materials.map((material) => ({
       materialType: material.materialType.trim(),
       officialMaterialType: material.officialMaterialType.trim(),
     }));
 
     const mapping = await materialMappingModel.findOneAndUpdate(
-      {
-        materialRateId: materialRate._id,
-      },
+      {},
       {
         $set: {
           materials: formattedMaterials,
           createdBy: adminId,
-        },
-        $setOnInsert: {
-          materialRateId: materialRate._id,
         },
       },
       {
@@ -354,52 +316,11 @@ export const addMaterialMapping = async (req, res) => {
 export const getMaterialMapping = async (req, res) => {
   const { region, vendor } = req.params;
 
-  const vendorId = vendor;
-
   try {
-    if (!region || !vendorId) {
-      return res.status(400).json({
-        success: false,
-        message: "Region and vendor are required.",
-      });
-    }
-
-    const vendorExists = await vendorModel
-      .findById(vendorId).select("_id name").lean();
-
-    if (!vendorExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found.",
-      });
-    }
-
-    //MaterialRate configuration for this region and vendor
-    const materialRate = await materialRateModel
-      .findOne({
-        state: region.trim(),
-        vendor: vendorExists._id,
-      })
-      .select("_id state vendor materials")
-      .lean();
-
-    if (!materialRate) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Material rate not found for the specified region and vendor.",
-      });
-    }
-
-    console.log(materialRate._id);
-
     const materialMapping = await materialMappingModel
-      .findOne({
-        materialRateId: materialRate._id,
-      })
-      .select("materialRateID materials createdBy createdAt updatedAt")
+      .findOne()
+      .select("materials createdBy createdAt updatedAt")
       .lean();
-
 
     // No mapping has been created yet
     if (!materialMapping) {
@@ -407,10 +328,9 @@ export const getMaterialMapping = async (req, res) => {
         success: true,
         message: "No material mapping found.",
         data: {
-          materialRateID: materialRate._id,
-          region: materialRate.state,
-          vendor: vendorExists.name,
           materials: [],
+          ...(region && { region }),
+          ...(vendor && { vendor }),
         },
       });
     }
@@ -419,10 +339,13 @@ export const getMaterialMapping = async (req, res) => {
       success: true,
       message: "Material mapping fetched successfully.",
       data: {
-        materialRateID: materialRate._id,
-        region: materialRate.state,
-        vendor: vendorExists.name,
+        _id: materialMapping._id,
         materials: materialMapping.materials,
+        createdBy: materialMapping.createdBy,
+        createdAt: materialMapping.createdAt,
+        updatedAt: materialMapping.updatedAt,
+        ...(region && { region }),
+        ...(vendor && { vendor }),
       },
     });
   } catch (error) {
@@ -437,51 +360,9 @@ export const getMaterialMapping = async (req, res) => {
 
 // Delete Material Mapping
 export const deleteMaterialMapping = async (req, res) => {
-  const { region, vendor } = req.params;
-
-  const vendorId = vendor;
-
   try {
-    if (!region || !vendorId) {
-      return res.status(400).json({
-        success: false,
-        message: "Region and vendor are required.",
-      });
-    }
-
-    const vendorExists = await vendorModel
-      .findById(vendorId).select("_id")
-      .lean();
-
-    if (!vendorExists) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found.",
-      });
-    }
-
-    const materialRate = await materialRateModel
-      .findOne({
-        state: region.trim(),
-        vendor: vendorExists._id,
-      })
-      .select("_id")
-      .lean();
-
-      console.log(materialRate)
-
-    if (!materialRate) {
-      return res.status(404).json({
-        success: false,
-        message:
-          "Material rate not found for the specified region and vendor.",
-      });
-    }
-
     // Delete the complete mapping document
-    const deletedMapping = await materialMappingModel.findOneAndDelete({
-      materialRateId: materialRate._id,
-    });
+    const deletedMapping = await materialMappingModel.findOneAndDelete({});
 
     if (!deletedMapping) {
       return res.status(404).json({
@@ -493,9 +374,7 @@ export const deleteMaterialMapping = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Material mapping deleted successfully.",
-      data: {
-        materialRateID: deletedMapping.materialRateID,
-      },
+      data: deletedMapping,
     });
   } catch (error) {
     console.error("Error in deleteMaterialMapping controller:", error);

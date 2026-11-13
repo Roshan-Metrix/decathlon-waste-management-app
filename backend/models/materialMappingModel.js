@@ -2,12 +2,6 @@ import mongoose from "mongoose";
 
 const materialMappingSchema = new mongoose.Schema(
   {
-    materialRateId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "materialRate",
-      required: true,
-      index: true,
-    },
     materials: [
       {
         _id: false,
@@ -26,7 +20,6 @@ const materialMappingSchema = new mongoose.Schema(
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "admin",
-      required: true,
     },
   },
   { timestamps: true },

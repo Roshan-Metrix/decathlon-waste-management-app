@@ -211,8 +211,6 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
         $group: {
           _id: "$items.materialType",
 
-          materialRateId: { $first: "$materialRateId" },
-
           totalItems: { $sum: 1 },
 
           weight: {
@@ -278,11 +276,7 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       });
     }
 
-    const materialRateId = stats[0].materialRateId;
-
-    const mapping = materialRateId
-      ? await materialMappingModel.findOne({ materialRateId }).lean()
-      : null;
+    const mapping = await materialMappingModel.findOne().lean();
 
     // lookup map
     const materialLookup = new Map(
@@ -297,15 +291,15 @@ export const getStoreTotalWeightsByDates = async (req, res) => {
       const materialType = entry._id;
 
       const decathlonType =
-        materialLookup.get(materialType.trim().toLowerCase()) || materialType;
+        materialLookup.get(materialType?.trim().toLowerCase()) || materialType;
 
       return {
         materialType,
         decathlonType,
-        totalItems: entry.totalItems,
-        rate: Number(entry.rate.toFixed(2)),
-        totalAmount: Number(entry.totalAmount.toFixed(2)),
-        weight: Number(entry.weight.toFixed(2)),
+        totalItems: entry.totalItems || 0,
+        rate: Number((entry.rate || 0).toFixed(2)),
+        totalAmount: Number((entry.totalAmount || 0).toFixed(2)),
+        weight: Number((entry.weight || 0).toFixed(2)),
       };
     });
 

@@ -36,24 +36,24 @@ authRouter.patch('/admin/edit-store/:storeId',adminMiddleware,editStoreDetails)
 
 //manager
 authRouter.post('/registerManager',authMiddleware,registerManager);
-authRouter.get('/manager/profile',authMiddleware,managerMiddleware,getManagerProfile);
+authRouter.get('/manager/profile',managerMiddleware,getManagerProfile);
 
 // store
 authRouter.get('/manager/get-store-managers/:storeId',authMiddleware,getParticularStoreManagers);
 authRouter.get('/store/profile',authMiddleware,getStoreProfile);
 
 // materialType and Rate add
-authRouter.post('/admin/add-materials',authMiddleware,adminMiddleware,addMaterialTypeAndRate);
+authRouter.post('/admin/add-materials',adminMiddleware,addMaterialTypeAndRate);
 authRouter.get('/get-regions',authMiddleware,getAllRegions);
 authRouter.get('/get-regional-materials/:region/:vendor',authMiddleware,getAllMaterialsWithRate);
-authRouter.delete('/admin/delete-region/:region',authMiddleware,adminMiddleware,deleteRegion);
+authRouter.delete('/admin/delete-region/:region/:vendor',adminMiddleware,deleteRegion);
 
 // materialMapping routes
-authRouter.post('/add-material-mapping', authMiddleware, adminMiddleware, addMaterialMapping);
-authRouter.post('/add-material-mapping/:region/:vendor', authMiddleware, adminMiddleware, addMaterialMapping);
+authRouter.post('/add-material-mapping', adminMiddleware, addMaterialMapping);
+authRouter.post('/add-material-mapping/:region/:vendor', adminMiddleware, addMaterialMapping);
 authRouter.get('/get-material-mapping', authMiddleware, getMaterialMapping);
 authRouter.get('/get-material-mapping/:region/:vendor', authMiddleware, getMaterialMapping);
-authRouter.delete('/delete-material-mapping', authMiddleware, adminMiddleware, deleteMaterialMapping);
-authRouter.delete('/delete-material-mapping/:region/:vendor', authMiddleware, adminMiddleware, deleteMaterialMapping);
+authRouter.delete('/delete-material-mapping', adminMiddleware, deleteMaterialMapping);
+authRouter.delete('/delete-material-mapping/:region/:vendor', adminMiddleware, deleteMaterialMapping);
 
 export default authRouter;

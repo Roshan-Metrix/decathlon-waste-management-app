@@ -3,6 +3,7 @@ import authMiddleware from "../middlewares/authMiddleware.js";
 import {
   AddTransactionDetailController,
   AllTransactionsController,
+  MetrioFormatDataController,
   ParticularTransactionController,
   recognizeWithGeminiController,
   SelectedTransactionItemsController,
@@ -116,6 +117,13 @@ transactionRouter.get(
   "/transaction-store-summary",
   adminMiddleware,
   TransactionStoreSummaryController
+)
+
+// Metrio format data route
+transactionRouter.get(
+  "/metrio-format-data/:year/:month",
+  adminMiddleware,
+  MetrioFormatDataController
 )
 
 export default transactionRouter;

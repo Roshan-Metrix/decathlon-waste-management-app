@@ -143,15 +143,24 @@ export const addMaterialTypeAndRate = async (req, res) => {
 
 export const getAllRegions = async (req, res) => {
   try {
-    const uniqueStates = await materialRateModel.distinct("state");
+    const statesRegions = await materialRateModel
+      .find()
+      .select("state vendor")
+      .populate("vendor", "name");
 
     return res.status(200).json({
       success: true,
-      count: uniqueStates.length, 
-      regions: uniqueStates,     
+      count: statesRegions.length,
+      regions: statesRegions.map((item) => ({
+        state: item.state,
+        vendorId: item.vendor?._id || null,
+        vendor: item.vendor?.name || "Unknown Vendor",
+      })),
     });
+
   } catch (error) {
     console.error("Error in getAllRegions controller: ", error);
+
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
@@ -159,7 +168,7 @@ export const getAllRegions = async (req, res) => {
   }
 };
 
-// Get All Material Types and Rates for a Region (State) --
+// Get All Material Types and Rates by State & Vendor --
 export const getAllMaterialsWithRate = async (req, res) => {
   const { region, vendor } = req.params;
 
@@ -196,11 +205,11 @@ export const getAllMaterialsWithRate = async (req, res) => {
 
 // Delete a Region (State) and its associated material rates --
 export const deleteRegion = async (req, res) => {
-  const { region } = req.params;
+  const { region,vendor } = req.params;
   
   try {
     const deletedRegion = await materialRateModel
-      .findOneAndDelete({ state: region })
+      .findOneAndDelete({ state: region, vendor })
       .select("_id") 
       .lean();
 

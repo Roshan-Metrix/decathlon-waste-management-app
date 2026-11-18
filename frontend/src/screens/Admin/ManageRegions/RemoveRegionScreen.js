@@ -60,10 +60,16 @@ export default function RemoveRegionScreen({ navigation }) {
 
   // Filtered regions based on search
   const filteredRegions = useMemo(() => {
-    if (!search.trim()) return regions;
-    const q = search.toLowerCase();
-    return regions.filter((r) => r.toLowerCase().includes(q));
-  }, [search, regions]);
+    const query = search.trim().toLowerCase();
+
+    if (!query) return regions;
+
+    return regions.filter(
+      (item) =>
+        item.vendor?.toLowerCase().includes(query) ||
+        item.state?.toLowerCase().includes(query),
+    );
+  }, [regions, search]);
 
   // Open delete modal for a region
   const handleOpenDeleteModal = (region) => {
@@ -85,7 +91,7 @@ export default function RemoveRegionScreen({ navigation }) {
     try {
       setDeleting(true);
 
-      // 1. VERIFY ADMIN
+      // VERIFY ADMIN
       const verify = await api.post("/auth/login", {
         email: adminEmail.trim(),
         password: adminPassword,
@@ -98,26 +104,37 @@ export default function RemoveRegionScreen({ navigation }) {
         return;
       }
 
-      // 2. DELETE REGION
+      // DELETE REGION
       const deleteRes = await api.delete(
-        `/auth/admin/delete-region/${selectedRegion}`
+        `/auth/admin/delete-region/${encodeURIComponent(
+          selectedRegion.state,
+        )}/${encodeURIComponent(selectedRegion.vendorId)}`,
       );
 
       if (!deleteRes.data?.success) {
-        setDeleting(false);
         setAlertMessage(deleteRes.data?.message || "Region delete failed");
         setAlertVisible(true);
         return;
       }
 
-      // Update state locally
-      setRegions((prev) => prev.filter((region) => region !== selectedRegion));
+      // Update frontend state
+      setRegions((prev) =>
+        prev.filter(
+          (item) =>
+            !(
+              item.state === selectedRegion.state &&
+              item.vendorId === selectedRegion.vendorId
+            ),
+        ),
+      );
 
       setModalVisible(false);
       setAdminEmail("");
       setAdminPassword("");
 
-      setAlertMessage(`Region "${selectedRegion}" deleted successfully!`);
+      setAlertMessage(
+        `${selectedRegion.vendor} - ${selectedRegion.state} deleted successfully!`,
+      );
       setAlertVisible(true);
     } catch (err) {
       const errMsg =
@@ -130,23 +147,26 @@ export default function RemoveRegionScreen({ navigation }) {
   };
 
   // RENDER REGION CARD
-  const renderItem = ({ item, index }) => (
+  const renderItem = ({ item }) => (
     <View style={styles.card}>
       <View style={styles.cardContent}>
-        {/* Region Icon Circle */}
         <View style={styles.iconCircle}>
-          <MaterialIcons name="location-on" size={24} color="#2563eb" />
+          <MaterialIcons name="business" size={24} color="#2563eb" />
         </View>
 
-        {/* Region Details */}
         <View style={styles.regionInfo}>
+          {/* Vendor Name */}
           <Text style={styles.regionName} numberOfLines={1}>
-            {item}
+            {item.vendor || "Unknown Vendor"}
           </Text>
-          <Text style={styles.regionSub}>Configured Territory</Text>
+
+          {/* State Name */}
+          <View style={styles.stateRow}>
+            <MaterialIcons name="location-on" size={15} color="#64748b" />
+            <Text style={styles.regionSub}>{item.state}</Text>
+          </View>
         </View>
 
-        {/* Remove Button */}
         <TouchableOpacity
           style={styles.removeButton}
           onPress={() => handleOpenDeleteModal(item)}
@@ -182,7 +202,7 @@ export default function RemoveRegionScreen({ navigation }) {
       ) : (
         <FlatList
           data={filteredRegions}
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => `${item.vendorId}-${item.state}`}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
@@ -213,8 +233,8 @@ export default function RemoveRegionScreen({ navigation }) {
               <View style={styles.noticeBanner}>
                 <MaterialIcons name="info-outline" size={20} color="#d97706" />
                 <Text style={styles.noticeText}>
-                  Deleting a region will permanently remove all associated material
-                  rates and configurations.
+                  Deleting a region will permanently remove all associated
+                  material rates and configurations.
                 </Text>
               </View>
 
@@ -224,7 +244,7 @@ export default function RemoveRegionScreen({ navigation }) {
                   <MaterialIcons name="search" size={22} color="#2563eb" />
                   <TextInput
                     style={styles.searchInput}
-                    placeholder="Search region name..."
+                    placeholder="Search vendor or state..."
                     placeholderTextColor="#94a3b8"
                     value={search}
                     onChangeText={setSearch}
@@ -286,9 +306,17 @@ export default function RemoveRegionScreen({ navigation }) {
             {/* Target Region Highlight Card */}
             <View style={styles.targetRegionCard}>
               <Text style={styles.targetRegionLabel}>Region to Delete:</Text>
+
+              <Text style={styles.targetRegionName}>
+                {selectedRegion?.vendor}
+              </Text>
+
               <View style={styles.targetRegionRow}>
-                <MaterialIcons name="location-on" size={18} color="#dc2626" />
-                <Text style={styles.targetRegionName}>{selectedRegion}</Text>
+                <MaterialIcons name="location-on" size={16} color="#dc2626" />
+
+                <Text style={styles.targetRegionState}>
+                  {selectedRegion?.state}
+                </Text>
               </View>
             </View>
 
@@ -331,10 +359,7 @@ export default function RemoveRegionScreen({ navigation }) {
 
             {/* Confirm Delete Button */}
             <TouchableOpacity
-              style={[
-                styles.confirmButton,
-                deleting && { opacity: 0.7 },
-              ]}
+              style={[styles.confirmButton, deleting && { opacity: 0.7 }]}
               onPress={confirmDeleteRegion}
               disabled={deleting}
               activeOpacity={0.8}
@@ -342,12 +367,20 @@ export default function RemoveRegionScreen({ navigation }) {
               {deleting ? (
                 <>
                   <ActivityIndicator size="small" color="#ffffff" />
-                  <Text style={styles.confirmText}>Verifying & Deleting...</Text>
+                  <Text style={styles.confirmText}>
+                    Verifying & Deleting...
+                  </Text>
                 </>
               ) : (
                 <>
-                  <MaterialIcons name="delete-forever" size={20} color="#ffffff" />
-                  <Text style={styles.confirmText}>Confirm & Delete Region</Text>
+                  <MaterialIcons
+                    name="delete-forever"
+                    size={20}
+                    color="#ffffff"
+                  />
+                  <Text style={styles.confirmText}>
+                    Confirm & Delete Region
+                  </Text>
                 </>
               )}
             </TouchableOpacity>
@@ -524,17 +557,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 10,
   },
-  regionName: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1e293b",
-  },
-  regionSub: {
-    fontSize: 12,
-    color: "#64748b",
-    marginTop: 2,
-    fontWeight: "500",
-  },
   removeButton: {
     flexDirection: "row",
     alignItems: "center",
@@ -644,11 +666,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
   },
-  targetRegionName: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#b91c1c",
-  },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -702,5 +719,36 @@ const styles = StyleSheet.create({
     color: "#64748b",
     fontWeight: "600",
     fontSize: 14,
+  },
+  regionName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#1e293b",
+  },
+
+  stateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+
+  regionSub: {
+    fontSize: 13,
+    color: "#64748b",
+    marginLeft: 3,
+    fontWeight: "500",
+  },
+
+  targetRegionName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#b91c1c",
+    marginBottom: 5,
+  },
+
+  targetRegionState: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#991b1b",
   },
 });

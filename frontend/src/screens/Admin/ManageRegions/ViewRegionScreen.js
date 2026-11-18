@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -19,7 +20,7 @@ export default function ViewRegionScreen({ navigation }) {
       const { data } = await api.get("/auth/get-regions");
 
       if (data.success) {
-        setRegions(data.regions);
+        setRegions(data.regions || []);
       }
     } catch (error) {
       console.log("Fetch Regions Error:", error.message);
@@ -32,9 +33,10 @@ export default function ViewRegionScreen({ navigation }) {
     fetchRegions();
   }, []);
 
-  const handleRegionClick = (regionName) => {
+  const handleRegionClick = (region) => {
     navigation.navigate("EditMaterialsRateScreen", {
-      stateName: regionName, 
+      stateName: region.state,
+      vendorId: region.vendorId
     });
   };
 
@@ -64,26 +66,53 @@ export default function ViewRegionScreen({ navigation }) {
           {/* Total Count */}
           <View style={styles.countBox}>
             <MaterialIcons name="map" size={50} color="#2563eb" />
+
             <Text style={styles.countText}>Total Regions</Text>
+
             <Text style={styles.countNumber}>{regions.length}</Text>
           </View>
 
           {/* Region List */}
-          {regions.map((region, index) => (
+          {regions.map((region) => (
             <TouchableOpacity
-              key={index}
+              key={region._id}
               style={styles.card}
               onPress={() => handleRegionClick(region)}
+              activeOpacity={0.7}
             >
               <View style={styles.row}>
+                <View style={styles.iconContainer}>
+                  <MaterialIcons
+                    name="business"
+                    size={26}
+                    color="#2563eb"
+                  />
+                </View>
+
+                <View style={styles.regionInfo}>
+                  {/* Vendor Name */}
+                  <Text style={styles.vendorName}>
+                    {region.vendor || "Unknown Vendor"}
+                  </Text>
+
+                  {/* State Name */}
+                  <View style={styles.stateRow}>
+                    <MaterialIcons
+                      name="location-on"
+                      size={15}
+                      color="#64748b"
+                    />
+                    <Text style={styles.regionName}>
+                      {region.state}
+                    </Text>
+                  </View>
+                </View>
+
                 <MaterialIcons
-                  name="location-city"
-                  size={22}
-                  color="#2563eb"
+                  name="chevron-right"
+                  size={26}
+                  color="#94a3b8"
                 />
-                <Text style={styles.regionName}>
-                  {region}
-                </Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -152,11 +181,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
-  regionName: {
-    fontSize: 16,
-    fontWeight: "700",
-    marginLeft: 10,
+  iconContainer: {
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: "#eff6ff",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  regionInfo: {
+    flex: 1,
+  },
+  vendorName: {
+    fontSize: 18,
+    fontWeight: "800",
     color: "#1e293b",
+  },
+  stateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  regionName: {
+    fontSize: 13,
+    fontWeight: "500",
+    marginLeft: 3,
+    color: "#64748b",
   },
   noData: {
     textAlign: "center",

@@ -15,7 +15,7 @@ import api from "../../../api/api";
 import Alert from "../../../Components/Alert";
 
 export default function EditMaterialsRateScreen({ route, navigation }) {
-  const { stateName } = route.params;
+  const { stateName,vendorId } = route.params;
 
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,7 +27,7 @@ export default function EditMaterialsRateScreen({ route, navigation }) {
   const fetchMaterials = async () => {
     try {
       const { data } = await api.get(
-        `/auth/get-regional-materials/${stateName}`
+        `/auth/get-regional-materials/${stateName}/${vendorId}`
       );
 
       if (data.success) {

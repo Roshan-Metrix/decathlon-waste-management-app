@@ -16,18 +16,24 @@ import Alert from "../../../Components/Alert";
 
 // Quick suggestions for Decathlon standard waste categories
 const OFFICIAL_MATERIAL_SUGGESTIONS = [
-  "Carton / Cardboard",
-  "Clear Film (LDPE)",
-  "Coloured Film",
-  "Mixed Plastic",
-  "Rigid Plastic (PP/HDPE)",
-  "Wood / Pallets",
-  "Metal / Iron",
-  "Organic / Food Waste",
-  "General Non-Recyclable",
-  "Paper / Office Waste",
-  "Textile Waste",
-  "E-Waste / Electrical",
+  "Defective Products",
+  "Hazardous Waste",
+  "Recycling Batteries",
+  "Recycling E Waste",
+  "Recycling Glass",
+  "Recycling Hard Plastic",
+  "Recycling Lighting Products",
+  "Recycling Metal",
+  "Recycling Mixed Packaging",
+  "Recycling Organic",
+  "Recycling Paper/cardboard",
+  "Recycling Rubber",
+  "Recycling Soft Plastics",
+  "Recycling Textile",
+  "Recycling Wood",
+  "Waste incineration",
+  "Waste incineration energy recovery",
+  "Waste landfill",
 ];
 
 export default function AddMaterialMappingScreen({ navigation }) {

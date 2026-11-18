@@ -1,3 +1,4 @@
+import blackListTokenModel from "../models/blackListTokenModel.js";
 import managerModel from "../models/managerModel.js";
 import storeModel from "../models/storeModel.js";
 import jwt from "jsonwebtoken";
@@ -19,18 +20,27 @@ const managerMiddleware = async (req, res, next) => {
     }
 
     if (!token) {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Unauthorized: Access token missing" 
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Access token missing",
+      });
+    }
+
+    const isBlacklisted = await blackListTokenModel.findOne({ token });
+
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: "Token has been blacklisted. Please login again.",
       });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     if (decoded.role !== "manager") {
-      return res.status(403).json({ 
-        success: false, 
-        message: "Forbidden: Access denied" 
+      return res.status(403).json({
+        success: false,
+        message: "Forbidden: Access denied",
       });
     }
 
@@ -40,9 +50,9 @@ const managerMiddleware = async (req, res, next) => {
       .lean();
 
     if (!manager) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Manager profile not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Manager profile not found",
       });
     }
 
@@ -52,36 +62,33 @@ const managerMiddleware = async (req, res, next) => {
       .lean();
 
     if (!store) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Store not found for manager" 
+      return res.status(404).json({
+        success: false,
+        message: "Store not found for manager",
       });
     }
 
-    req.user = decoded; 
+    req.user = decoded;
     req.store = store;
     req.manager = manager;
 
     return next();
-
   } catch (error) {
     console.error("Error in managerMiddleware:", error.message);
     if (error.name === "TokenExpiredError") {
-      return res.status(401).json({ 
-        success: false, 
-        message: "Session expired, please login again" 
+      return res.status(401).json({
+        success: false,
+        message: "Session expired, please login again",
       });
     }
-    return res.status(401).json({ 
-      success: false, 
-      message: "Invalid or expired token" 
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token",
     });
   }
 };
 
 export default managerMiddleware;
-
-
 
 // import managerModel from "../models/managerModel.js";
 // import storeModel from "../models/storeModel.js";
@@ -123,7 +130,7 @@ export default managerMiddleware;
 //         .json({ success: false, message: "Store not found for manager" });
 //     }
 
-//     req.user = decoded; 
+//     req.user = decoded;
 //     req.store = store;
 //     req.manager = manager;
 
@@ -138,4 +145,3 @@ export default managerMiddleware;
 // };
 
 // export default managerMiddleware;
-

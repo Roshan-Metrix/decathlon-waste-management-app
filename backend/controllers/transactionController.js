@@ -37,9 +37,15 @@ export const AddTransactionDetailController = async (req, res) => {
 
     const transactionId = await generateTransactionId(storeId);
 
-    const vendorId = await vendorModel.findOne({ name: vendorName }).select("_id").lean();
+    const vendorId = await vendorModel
+      .findOne({ name: vendorName })
+      .select("_id")
+      .lean();
 
-    const materialId = await materialRateModel.findOne({ vendor: vendorId }).select("_id").lean();
+    const materialId = await materialRateModel
+      .findOne({ vendor: vendorId })
+      .select("_id")
+      .lean();
 
     const newTransaction = await transactionModel.create({
       transactionId,
@@ -87,13 +93,8 @@ export const TransactionItemsController = async (req, res) => {
   try {
     const { transactionId } = req.params;
 
-    const {
-      materialType,
-      weight,
-      weightSource,
-      materialRate,
-      materialRateId,
-    } = req.body;
+    const { materialType, weight, weightSource, materialRate, materialRateId } =
+      req.body;
 
     const imageFile = req.file;
 
@@ -136,10 +137,7 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
-    if (
-      !weightSource ||
-      !["manually", "system"].includes(weightSource)
-    ) {
+    if (!weightSource || !["manually", "system"].includes(weightSource)) {
       return res.status(400).json({
         success: false,
         message: "weightSource must be 'manually' or 'system'",
@@ -160,13 +158,9 @@ export const TransactionItemsController = async (req, res) => {
 
     const positiveWeight = Math.abs(Number(weight));
 
-    const calibrationError = Number(
-      transactionMeta.calibration?.error || 0
-    );
+    const calibrationError = Number(transactionMeta.calibration?.error || 0);
 
-    const finalWeight = Number(
-      (positiveWeight - calibrationError).toFixed(3)
-    );
+    const finalWeight = Number((positiveWeight - calibrationError).toFixed(3));
 
     if (!Number.isFinite(finalWeight) || finalWeight <= 0) {
       return res.status(400).json({
@@ -175,14 +169,11 @@ export const TransactionItemsController = async (req, res) => {
       });
     }
 
-    const nextItemNo =
-      (transactionMeta.items?.length || 0) + 1;
+    const nextItemNo = (transactionMeta.items?.length || 0) + 1;
 
     const rate = Number(materialRate);
 
-    const itemAmount = Number(
-      (rate * finalWeight).toFixed(2)
-    );
+    const itemAmount = Number((rate * finalWeight).toFixed(2));
 
     const extension =
       imageFile.originalname.split(".").pop() ||
@@ -199,7 +190,7 @@ export const TransactionItemsController = async (req, res) => {
         Key: imageKey,
         Body: imageFile.buffer,
         ContentType: imageFile.mimetype,
-      })
+      }),
     );
 
     const updateFields = {};
@@ -221,14 +212,12 @@ export const TransactionItemsController = async (req, res) => {
             weightSource,
           },
         },
-        ...(Object.keys(updateFields).length > 0
-          ? { $set: updateFields }
-          : {}),
+        ...(Object.keys(updateFields).length > 0 ? { $set: updateFields } : {}),
       },
       {
         new: true,
         runValidators: true,
-      }
+      },
     );
 
     if (!updatedTransaction) {
@@ -244,7 +233,7 @@ export const TransactionItemsController = async (req, res) => {
 
     for (const item of updatedTransaction.items) {
       const amount = Number(
-        (Number(item.materialRate) * Number(item.weight)).toFixed(2)
+        (Number(item.materialRate) * Number(item.weight)).toFixed(2),
       );
 
       total += amount;
@@ -260,9 +249,7 @@ export const TransactionItemsController = async (req, res) => {
     receivable = Number(receivable.toFixed(2));
     payable = Number(payable.toFixed(2));
 
-    const net = Number(
-      (receivable - payable).toFixed(2)
-    );
+    const net = Number((receivable - payable).toFixed(2));
 
     updatedTransaction.total = total;
     updatedTransaction.receivable = receivable;
@@ -275,14 +262,10 @@ export const TransactionItemsController = async (req, res) => {
       success: true,
       message: "Item added successfully",
       itemAmount,
-      items: updatedTransaction.items
+      items: updatedTransaction.items,
     });
-
   } catch (error) {
-    console.error(
-      "Error in TransactionItemsController:",
-      error
-    );
+    console.error("Error in TransactionItemsController:", error);
 
     return res.status(500).json({
       success: false,
@@ -290,7 +273,6 @@ export const TransactionItemsController = async (req, res) => {
     });
   }
 };
-
 
 export const recognizeWithGeminiController = async (req, res) => {
   try {
@@ -339,7 +321,7 @@ export const TransactionCalibrationController = async (req, res) => {
       });
     }
 
-    //  Upload calibration image to S3 
+    //  Upload calibration image to S3
 
     const extension =
       imageFile.originalname.split(".").pop() ||
@@ -354,10 +336,10 @@ export const TransactionCalibrationController = async (req, res) => {
         Key: imageKey,
         Body: imageFile.buffer,
         ContentType: imageFile.mimetype,
-      })
+      }),
     );
 
-    // Update MongoDB 
+    // Update MongoDB
 
     const updatedTransaction = await transactionModel
       .findOneAndUpdate(
@@ -373,7 +355,7 @@ export const TransactionCalibrationController = async (req, res) => {
         {
           new: true,
           select: "calibration",
-        }
+        },
       )
       .lean();
 
@@ -390,7 +372,6 @@ export const TransactionCalibrationController = async (req, res) => {
       calibration: updatedTransaction.calibration,
       error: updatedTransaction.calibration.error.toFixed(3),
     });
-
   } catch (error) {
     console.error("Error in TransactionCalibrationController:", error);
     return res.status(500).json({
@@ -506,16 +487,16 @@ export const ParticularTransactionController = async (req, res) => {
 
       items: Array.isArray(txn.items)
         ? txn.items.map((item) => ({
-          itemNo: item.itemNo,
-          materialType: item.materialType,
-          materialRate: item.materialRate,
-          image: getImageUrl(item.image) || null,
-          weight: item.weight,
-          weightSource: item.weightSource,
-          aiWeight: item.aiWeight,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt,
-        }))
+            itemNo: item.itemNo,
+            materialType: item.materialType,
+            materialRate: item.materialRate,
+            image: getImageUrl(item.image) || null,
+            weight: item.weight,
+            weightSource: item.weightSource,
+            aiWeight: item.aiWeight,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt,
+          }))
         : [],
       createdAt: txn.createdAt,
       updatedAt: txn.updatedAt,
@@ -568,7 +549,6 @@ export const AllTransactionsController = async (req, res) => {
         hasMore: false,
       });
     }
-
 
     const totalCount = await transactionModel.estimatedDocumentCount();
 
@@ -644,7 +624,6 @@ export const SelectedTransactionItemsController = async (req, res) => {
       vendorName: transaction.vendorName,
       items: transaction.items,
     });
-
   } catch (error) {
     console.error("Error in SelectedTransactionItemsController:", error);
 
@@ -746,9 +725,10 @@ export const TransactionSummaryController = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: from && to
-        ? "Transaction summary fetched for the selected date range."
-        : "Transaction summary fetched successfully.",
+      message:
+        from && to
+          ? "Transaction summary fetched for the selected date range."
+          : "Transaction summary fetched successfully.",
       dateRange: from && to ? { from, to } : null,
       summary: result,
     });
@@ -762,7 +742,7 @@ export const TransactionSummaryController = async (req, res) => {
   }
 };
 
-// Invoice Transaction Controller 
+// Invoice Transaction Controller
 export const TransactionInvoiceController = async (req, res) => {
   try {
     const { from, to } = req.query;
@@ -852,58 +832,58 @@ export const TransactionInvoiceController = async (req, res) => {
     const rows = groupedItems.map((item) => ({
       "Cost Center": "",
       "Store Code": item._id.storeId ?? "",
-      "gstin_of_consignee": "",
-      "legal_name_of_consignee": "",
-      "address1_of_consignee": "",
-      "address2_of_consignee": "",
-      "place_of_consignee": "",
-      "pincode_of_consignee": "",
-      "state_of_supply": "",
-      "document_number": "",
-      "document_date": "",
-      "ref_document_number": "",
-      "note_type": "",
-      "reason": "",
-      "original_document_number": "",
-      "original_document_date": "",
-      "po_number": "",
-      "order_dt": "",
-      "p_due_date": "",
-      "s_dt": "",
-      "item_code": "",
-      "payment_type": "",
-      "hsn_code": "",
-      "product_name_item": item._id.materialType ?? "",
-      "product_description_item": item._id.materialType ?? "",
-      "unit_of_product_item": "Kgs",
-      "quantity_item": Number(item.quantity.toFixed(3)),
-      "taxable_amount_item": "",
-      "discount": "",
-      "gst_rate_item": "",
-      "cess_amount_item": "",
-      "freight_amount": "",
-      "ins_amount": "",
-      "pack_for_amount": "",
-      "supply_type": "",
-      "sub_supply_type": "",
-      "document_type": "",
-      "transporter_id": "",
-      "transporter_name": "",
-      "approximate_distance": "",
-      "transportation_mode": "",
-      "vehicle_number": "",
-      "vehicle_type": "",
-      "transporter_doc_no": "",
-      "transporter_doc_date": "",
-      "order_id": "",
-      "ref_order_id": "",
-      "original_order_id": "",
-      "is_amended": "",
-      "return_period": "",
-      "delivery_challan": "",
-      "dispatch_date": "",
-      "actual_to_state": "",
-      "tcs_rate": "",
+      gstin_of_consignee: "",
+      legal_name_of_consignee: "",
+      address1_of_consignee: "",
+      address2_of_consignee: "",
+      place_of_consignee: "",
+      pincode_of_consignee: "",
+      state_of_supply: "",
+      document_number: "",
+      document_date: "",
+      ref_document_number: "",
+      note_type: "",
+      reason: "",
+      original_document_number: "",
+      original_document_date: "",
+      po_number: "",
+      order_dt: "",
+      p_due_date: "",
+      s_dt: "",
+      item_code: "",
+      payment_type: "",
+      hsn_code: "",
+      product_name_item: item._id.materialType ?? "",
+      product_description_item: item._id.materialType ?? "",
+      unit_of_product_item: "Kgs",
+      quantity_item: Number(item.quantity.toFixed(3)),
+      taxable_amount_item: "",
+      discount: "",
+      gst_rate_item: "",
+      cess_amount_item: "",
+      freight_amount: "",
+      ins_amount: "",
+      pack_for_amount: "",
+      supply_type: "",
+      sub_supply_type: "",
+      document_type: "",
+      transporter_id: "",
+      transporter_name: "",
+      approximate_distance: "",
+      transportation_mode: "",
+      vehicle_number: "",
+      vehicle_type: "",
+      transporter_doc_no: "",
+      transporter_doc_date: "",
+      order_id: "",
+      ref_order_id: "",
+      original_order_id: "",
+      is_amended: "",
+      return_period: "",
+      delivery_challan: "",
+      dispatch_date: "",
+      actual_to_state: "",
+      tcs_rate: "",
       "Including Tax": "",
     }));
 
@@ -1031,6 +1011,124 @@ export const TransactionStoreSummaryController = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal Server Error",
+    });
+  }
+};
+
+// Metrio Format Data Controller
+export const MetrioFormatDataController = async (req, res) => {
+  try {
+    const { year, month } = req.params;
+
+    // Validate year and month
+    const selectedYear = Number(year);
+    const selectedMonth = Number(month);
+
+    if (
+      !Number.isInteger(selectedYear) ||
+      selectedYear < 2000 ||
+      selectedYear > 9999 ||
+      !Number.isInteger(selectedMonth) ||
+      selectedMonth < 1 ||
+      selectedMonth > 12
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid year or month",
+      });
+    }
+
+    // Calculate date range
+    const startDate = new Date(Date.UTC(selectedYear, selectedMonth - 1, 1));
+
+    const endDate = new Date(Date.UTC(selectedYear, selectedMonth, 1));
+
+    // Aggregate transaction data
+    const result = await transactionModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: startDate,
+            $lt: endDate,
+          },
+        },
+      },
+
+      // Unwind transaction items
+      {
+        $unwind: "$items",
+      },
+
+      // Group by Store and Material Type
+      {
+        $group: {
+          _id: {
+            storeId: "$store.storeId",
+            storeName: "$store.storeName",
+            materialType: "$items.materialType",
+          },
+
+          totalWeight: {
+            $sum: "$items.weight",
+          },
+        },
+      },
+
+      // Format output
+      {
+        $project: {
+          _id: 0,
+
+          Year: {
+            $literal: selectedYear,
+          },
+
+          Month: {
+            $literal: selectedMonth,
+          },
+
+          Site: {
+            $concat: ["$_id.storeId", " - ", "$_id.storeName", " - INDIA"],
+          },
+
+          "Waste Activity Data": "$_id.materialType",
+
+          "Data Type": {
+            $literal: "Real",
+          },
+
+          Unit: {
+            $literal: "kg",
+          },
+
+          Value: "$totalWeight",
+
+          Notes: {
+            $literal: "",
+          },
+        },
+      },
+
+      {
+        $sort: {
+          Site: 1,
+          "Waste Activity Data": 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      count: result.length,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Metrio Format Data Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate Metrio format data",
+      error: error.message,
     });
   }
 };
